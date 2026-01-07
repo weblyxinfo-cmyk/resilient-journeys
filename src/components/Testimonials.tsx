@@ -26,15 +26,17 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-24">
+    <section className="py-24 bg-background">
       <div className="container px-6">
         {/* Header */}
         <div className="max-w-xl mb-16">
-          <p className="text-primary text-sm font-medium mb-3">Testimonials</p>
-          <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4">
+          <p className="text-accent font-sans font-bold uppercase tracking-wide text-sm mb-3">
+            Testimonials
+          </p>
+          <h2 className="text-4xl md:text-5xl font-display mb-4">
             Stories of Transformation
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground font-sans">
             Hear from other expat families who have walked this path.
           </p>
         </div>
@@ -44,30 +46,30 @@ const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-card border border-border rounded-xl p-6"
+              className="brutal-card p-6"
             >
-              <Quote size={24} className="text-primary/20 mb-4" />
+              <Quote size={32} className="text-accent mb-4" />
 
               {/* Rating */}
-              <div className="flex gap-0.5 mb-4">
+              <div className="flex gap-1 mb-4">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
                   <Star
                     key={i}
-                    size={14}
-                    className="text-primary fill-primary"
+                    size={16}
+                    className="text-brutal-yellow fill-brutal-yellow"
                   />
                 ))}
               </div>
 
-              <p className="text-foreground text-sm leading-relaxed mb-6">
+              <p className="text-foreground font-sans leading-relaxed mb-6">
                 "{testimonial.quote}"
               </p>
 
-              <div>
-                <div className="font-medium text-sm">
+              <div className="border-t-2 border-foreground pt-4">
+                <div className="font-display text-lg">
                   {testimonial.name}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-sm text-muted-foreground font-sans">
                   {testimonial.role}
                 </div>
               </div>

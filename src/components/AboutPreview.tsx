@@ -4,12 +4,17 @@ import portrait from "@/assets/about-portrait.jpg";
 
 const AboutPreview = () => {
   return (
-    <section className="py-24">
+    <section className="py-24 bg-secondary">
       <div className="container px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Image */}
           <div className="relative">
-            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-muted">
+            <div
+              className="aspect-[4/5] overflow-hidden border-2 border-foreground bg-muted"
+              style={{
+                boxShadow: "8px 8px 0 0 hsl(var(--brutal-black))",
+              }}
+            >
               <img
                 src={portrait}
                 alt="Your resilience coach"
@@ -17,27 +22,34 @@ const AboutPreview = () => {
               />
             </div>
             {/* Accent decoration */}
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-sage-light rounded-2xl -z-10" />
+            <div
+              className="absolute -bottom-6 -right-6 w-32 h-32 bg-accent border-2 border-foreground -z-10"
+              style={{
+                boxShadow: "4px 4px 0 0 hsl(var(--brutal-black))",
+              }}
+            />
           </div>
 
           {/* Content */}
           <div>
-            <p className="text-primary text-sm font-medium mb-3">About Me</p>
-            
-            <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-6">
+            <p className="text-accent font-sans font-bold uppercase tracking-wide text-sm mb-3">
+              About Me
+            </p>
+
+            <h2 className="text-4xl md:text-5xl font-display mb-6">
               I Know What It Feels Like to Start Over
             </h2>
 
-            <p className="text-muted-foreground leading-relaxed mb-5">
-              Having lived as an expat in Australia and now Spain, I intimately 
-              understand the challenges of building a new life abroad. The language 
-              barriers, the cultural differences, and the constant feeling of being 
+            <p className="text-muted-foreground font-sans leading-relaxed mb-5">
+              Having lived as an expat in Australia and now Spain, I intimately
+              understand the challenges of building a new life abroad. The language
+              barriers, the cultural differences, and the constant feeling of being
               slightly out of place.
             </p>
 
-            <p className="text-muted-foreground leading-relaxed mb-8">
-              Through my journey, I discovered the power of creative art therapy 
-              and evidence-based resilience techniques. Now I help other expat 
+            <p className="text-muted-foreground font-sans leading-relaxed mb-8">
+              Through my journey, I discovered the power of creative art therapy
+              and evidence-based resilience techniques. Now I help other expat
               families develop the inner strength to truly thrive.
             </p>
 
@@ -46,7 +58,10 @@ const AboutPreview = () => {
               {["Art Therapy", "Resilience Coaching", "Expat Experience"].map((skill) => (
                 <span
                   key={skill}
-                  className="px-3 py-1.5 bg-muted text-sm text-muted-foreground rounded-full"
+                  className="px-4 py-2 bg-brutal-yellow border-2 border-foreground text-sm font-sans font-bold uppercase"
+                  style={{
+                    boxShadow: "2px 2px 0 0 hsl(var(--brutal-black))",
+                  }}
                 >
                   {skill}
                 </span>
@@ -55,10 +70,10 @@ const AboutPreview = () => {
 
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:gap-3 transition-all"
+              className="btn-secondary inline-flex items-center gap-2"
             >
               Read My Full Story
-              <ArrowRight size={16} />
+              <ArrowRight size={18} />
             </Link>
           </div>
         </div>

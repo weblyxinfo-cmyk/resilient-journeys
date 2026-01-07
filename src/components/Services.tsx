@@ -36,15 +36,17 @@ const services = [
 
 const Services = () => {
   return (
-    <section className="py-24 bg-muted/50">
+    <section className="py-24 bg-background">
       <div className="container px-6">
         {/* Header */}
         <div className="max-w-xl mb-16">
-          <p className="text-primary text-sm font-medium mb-3">Services</p>
-          <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4">
+          <p className="text-accent font-sans font-bold uppercase tracking-wide text-sm mb-3">
+            Services
+          </p>
+          <h2 className="text-4xl md:text-5xl font-display mb-4">
             Your Path to Resilience
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground font-sans">
             Choose the support that fits your journey.
           </p>
         </div>
@@ -55,45 +57,42 @@ const Services = () => {
             <Link
               key={index}
               to={service.href}
-              className={`group p-6 rounded-xl transition-all duration-300 ${
+              className={`group p-6 border-2 border-foreground transition-all duration-150 ${
                 service.featured
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card border border-border hover:border-primary/30"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-card hover:bg-secondary"
               }`}
+              style={{
+                boxShadow: "4px 4px 0 0 hsl(var(--brutal-black))",
+              }}
             >
               <div
-                className={`w-10 h-10 flex items-center justify-center rounded-lg mb-5 ${
-                  service.featured
-                    ? "bg-primary-foreground/10"
-                    : "bg-muted"
+                className={`w-12 h-12 flex items-center justify-center border-2 border-foreground mb-5 ${
+                  service.featured ? "bg-background" : "bg-brutal-yellow"
                 }`}
               >
                 <service.icon
-                  size={20}
-                  className={service.featured ? "text-primary-foreground" : "text-primary"}
+                  size={24}
+                  className={service.featured ? "text-foreground" : "text-foreground"}
                 />
               </div>
 
               <p
-                className={`text-xs font-medium mb-1 ${
-                  service.featured ? "text-primary-foreground/70" : "text-primary"
+                className={`text-xs font-sans font-bold uppercase tracking-wide mb-1 ${
+                  service.featured ? "text-accent-foreground/80" : "text-accent"
                 }`}
               >
                 {service.subtitle}
               </p>
 
-              <h3
-                className={`text-xl font-serif font-semibold mb-3 ${
-                  service.featured ? "text-primary-foreground" : "text-foreground"
-                }`}
-              >
+              <h3 className="text-2xl font-display mb-3">
                 {service.title}
               </h3>
 
               <p
-                className={`text-sm leading-relaxed mb-5 ${
+                className={`text-sm font-sans leading-relaxed mb-5 ${
                   service.featured
-                    ? "text-primary-foreground/80"
+                    ? "text-accent-foreground/90"
                     : "text-muted-foreground"
                 }`}
               >
@@ -101,18 +100,12 @@ const Services = () => {
               </p>
 
               <div className="flex items-center justify-between">
-                <span
-                  className={`text-sm font-medium ${
-                    service.featured ? "text-primary-foreground" : "text-foreground"
-                  }`}
-                >
+                <span className="text-sm font-sans font-bold">
                   {service.price}
                 </span>
                 <ArrowRight
-                  size={16}
-                  className={`transition-transform group-hover:translate-x-1 ${
-                    service.featured ? "text-primary-foreground" : "text-primary"
-                  }`}
+                  size={20}
+                  className="transition-transform group-hover:translate-x-1"
                 />
               </div>
             </Link>

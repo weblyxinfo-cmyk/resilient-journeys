@@ -12,19 +12,21 @@ const LeadMagnet = () => {
   };
 
   return (
-    <section className="py-24 bg-secondary">
+    <section className="py-24 bg-brutal-yellow">
       <div className="container px-6">
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Content */}
             <div>
-              <p className="text-primary text-sm font-medium mb-3">Free Resource</p>
-              
-              <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-5">
+              <p className="text-foreground font-sans font-bold uppercase tracking-wide text-sm mb-3">
+                Free Resource
+              </p>
+
+              <h2 className="text-4xl md:text-5xl font-display mb-5">
                 Start Your Resilience Journey Today
               </h2>
 
-              <p className="text-muted-foreground mb-6">
+              <p className="text-foreground/80 font-sans mb-6">
                 Get your free mini e-book & video course with practical exercises
                 to begin building your resilient mind immediately.
               </p>
@@ -36,8 +38,10 @@ const LeadMagnet = () => {
                   "Printable Workbook (PDF)",
                   "Video Lessons",
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm">
-                    <Check size={16} className="text-primary flex-shrink-0" />
+                  <li key={item} className="flex items-center gap-3 font-sans font-medium">
+                    <div className="w-6 h-6 bg-foreground flex items-center justify-center">
+                      <Check size={14} className="text-brutal-yellow" />
+                    </div>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -45,25 +49,30 @@ const LeadMagnet = () => {
             </div>
 
             {/* Form */}
-            <div className="bg-card rounded-xl p-6 border border-border">
+            <div
+              className="bg-card p-8 border-2 border-foreground"
+              style={{
+                boxShadow: "6px 6px 0 0 hsl(var(--brutal-black))",
+              }}
+            >
               {isSubmitted ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Check size={24} className="text-primary" />
+                  <div className="w-16 h-16 bg-accent border-2 border-foreground flex items-center justify-center mx-auto mb-4">
+                    <Check size={32} className="text-accent-foreground" />
                   </div>
-                  <h3 className="text-lg font-serif font-semibold mb-2">
+                  <h3 className="text-2xl font-display mb-2">
                     Thank You!
                   </h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground font-sans">
                     Check your inbox for your free resources.
                   </p>
                 </div>
               ) : (
                 <>
-                  <h3 className="text-lg font-serif font-semibold mb-2">
+                  <h3 className="text-2xl font-display mb-2">
                     Get Free Access
                   </h3>
-                  <p className="text-muted-foreground text-sm mb-5">
+                  <p className="text-muted-foreground font-sans text-sm mb-6">
                     Enter your email to receive your free mini-course.
                   </p>
 
@@ -74,18 +83,18 @@ const LeadMagnet = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your@email.com"
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      className="w-full px-4 py-3 border-2 border-foreground bg-background font-sans focus:outline-none focus:ring-0 focus:bg-secondary transition-all"
                     />
 
                     <button
                       type="submit"
-                      className="w-full btn-primary gap-2"
+                      className="btn-primary w-full gap-2"
                     >
                       Send Me Free Resources
-                      <ArrowRight size={16} />
+                      <ArrowRight size={18} />
                     </button>
 
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-xs text-muted-foreground font-sans text-center">
                       No spam. Unsubscribe anytime.
                     </p>
                   </form>
