@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["Fraunces", "Georgia", "serif"],
-        sans: ["DM Sans", "system-ui", "sans-serif"],
+        display: ["Bebas Neue", "Impact", "sans-serif"],
+        sans: ["Space Grotesk", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -61,17 +61,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        sage: {
-          DEFAULT: "hsl(var(--sage))",
-          light: "hsl(var(--sage-light))",
-          dark: "hsl(var(--sage-dark))",
+        brutal: {
+          black: "hsl(var(--brutal-black))",
+          white: "hsl(var(--brutal-white))",
+          red: "hsl(var(--brutal-red))",
+          yellow: "hsl(var(--brutal-yellow))",
+          blue: "hsl(var(--brutal-blue))",
         },
-        cream: {
-          DEFAULT: "hsl(var(--cream))",
-          dark: "hsl(var(--cream-dark))",
-        },
-        terracotta: "hsl(var(--terracotta))",
-        "warm-brown": "hsl(var(--warm-brown))",
       },
       borderRadius: {
         lg: "var(--radius)",
