@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,94 +6,108 @@
 
 @layer base {
   :root {
-    /* Brutalist palette - high contrast, bold */
-    --background: 60 5% 96%;
-    --foreground: 0 0% 5%;
+    /* Warm cream/gold palette inspired by the logo */
+    --background: 40 33% 96%;
+    --foreground: 30 15% 20%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
+    --card: 40 30% 98%;
+    --card-foreground: 30 15% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
+    --popover: 40 30% 98%;
+    --popover-foreground: 30 15% 20%;
 
-    /* Bold black primary */
-    --primary: 0 0% 8%;
-    --primary-foreground: 60 5% 96%;
+    /* Gold primary - from logo */
+    --primary: 43 70% 47%;
+    --primary-foreground: 40 33% 96%;
 
-    /* Off-white secondary */
-    --secondary: 60 10% 92%;
-    --secondary-foreground: 0 0% 5%;
+    /* Warm sage secondary */
+    --secondary: 45 25% 90%;
+    --secondary-foreground: 30 15% 25%;
 
-    --muted: 60 5% 90%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 40 20% 92%;
+    --muted-foreground: 30 10% 45%;
 
-    /* Electric accent - terracotta red */
-    --accent: 8 80% 55%;
-    --accent-foreground: 60 5% 96%;
+    /* Terracotta accent */
+    --accent: 25 55% 55%;
+    --accent-foreground: 40 33% 96%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 5%;
-    --input: 0 0% 85%;
-    --ring: 0 0% 8%;
+    --border: 40 25% 85%;
+    --input: 40 25% 85%;
+    --ring: 43 70% 47%;
 
-    --radius: 0px;
+    --radius: 0.75rem;
 
-    /* Custom brutalist tokens */
-    --brutal-black: 0 0% 5%;
-    --brutal-white: 60 5% 96%;
-    --brutal-red: 8 80% 55%;
-    --brutal-yellow: 50 95% 60%;
-    --brutal-blue: 220 85% 50%;
+    /* Custom tokens */
+    --gold: 43 70% 47%;
+    --gold-light: 43 60% 70%;
+    --gold-dark: 43 75% 35%;
+    --cream: 40 33% 96%;
+    --cream-dark: 40 25% 90%;
+    --sage: 140 20% 45%;
+    --sage-light: 140 15% 85%;
+    --terracotta: 25 55% 55%;
+    --warm-brown: 30 25% 30%;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 5%;
-    --sidebar-primary: 0 0% 8%;
-    --sidebar-primary-foreground: 60 5% 96%;
-    --sidebar-accent: 60 10% 92%;
-    --sidebar-accent-foreground: 0 0% 5%;
-    --sidebar-border: 0 0% 85%;
-    --sidebar-ring: 0 0% 8%;
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(43 70% 47%), hsl(43 60% 55%));
+    --gradient-warm: linear-gradient(180deg, hsl(40 33% 96%), hsl(40 25% 90%));
+    --gradient-hero: linear-gradient(135deg, hsla(40, 33%, 96%, 0.95), hsla(43, 60%, 85%, 0.9));
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsla(30, 25%, 30%, 0.1);
+    --shadow-elevated: 0 12px 40px -12px hsla(30, 25%, 30%, 0.15);
+    --shadow-gold: 0 8px 30px -8px hsla(43, 70%, 47%, 0.3);
+
+    --sidebar-background: 40 30% 98%;
+    --sidebar-foreground: 30 15% 25%;
+    --sidebar-primary: 43 70% 47%;
+    --sidebar-primary-foreground: 40 33% 96%;
+    --sidebar-accent: 45 25% 92%;
+    --sidebar-accent-foreground: 30 15% 25%;
+    --sidebar-border: 40 25% 85%;
+    --sidebar-ring: 43 70% 47%;
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 60 5% 96%;
+    --background: 30 15% 10%;
+    --foreground: 40 25% 92%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 60 5% 96%;
+    --card: 30 15% 12%;
+    --card-foreground: 40 25% 92%;
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 60 5% 96%;
+    --popover: 30 15% 12%;
+    --popover-foreground: 40 25% 92%;
 
-    --primary: 60 5% 96%;
-    --primary-foreground: 0 0% 5%;
+    --primary: 43 65% 55%;
+    --primary-foreground: 30 15% 10%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 60 5% 96%;
+    --secondary: 30 15% 18%;
+    --secondary-foreground: 40 25% 92%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 60 5% 60%;
+    --muted: 30 15% 18%;
+    --muted-foreground: 40 15% 60%;
 
-    --accent: 8 80% 55%;
-    --accent-foreground: 60 5% 96%;
+    --accent: 25 50% 50%;
+    --accent-foreground: 40 25% 92%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 60 5% 96%;
+    --destructive-foreground: 40 25% 92%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 60 5% 96%;
+    --border: 30 15% 20%;
+    --input: 30 15% 20%;
+    --ring: 43 65% 55%;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 60 5% 96%;
-    --sidebar-primary: 60 5% 96%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 60 5% 96%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 60 5% 96%;
+    --sidebar-background: 30 15% 8%;
+    --sidebar-foreground: 40 25% 92%;
+    --sidebar-primary: 43 65% 55%;
+    --sidebar-primary-foreground: 30 15% 10%;
+    --sidebar-accent: 30 15% 15%;
+    --sidebar-accent-foreground: 40 25% 92%;
+    --sidebar-border: 30 15% 18%;
+    --sidebar-ring: 43 65% 55%;
   }
 }
 
@@ -107,69 +121,53 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display uppercase tracking-tight;
+    @apply font-serif;
   }
 }
 
 @layer components {
-  .text-gradient {
+  .text-gradient-gold {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--brutal-yellow)));
+    background-image: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
   }
 
-  .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 bg-foreground text-background font-sans font-semibold text-sm uppercase tracking-wide border-2 border-foreground transition-all duration-150 hover:bg-accent hover:border-accent hover:text-background active:translate-x-[2px] active:translate-y-[2px];
-    box-shadow: 4px 4px 0 0 hsl(var(--brutal-black));
+  .bg-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
   }
 
-  .btn-primary:hover {
-    box-shadow: 2px 2px 0 0 hsl(var(--brutal-black));
+  .bg-gradient-warm {
+    background: linear-gradient(180deg, hsl(var(--cream)), hsl(var(--cream-dark)));
   }
 
-  .btn-primary:active {
-    box-shadow: none;
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
   }
 
-  .btn-secondary {
-    @apply inline-flex items-center justify-center px-6 py-3 bg-background text-foreground font-sans font-semibold text-sm uppercase tracking-wide border-2 border-foreground transition-all duration-150 hover:bg-foreground hover:text-background active:translate-x-[2px] active:translate-y-[2px];
-    box-shadow: 4px 4px 0 0 hsl(var(--brutal-black));
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
   }
 
-  .btn-secondary:hover {
-    box-shadow: 2px 2px 0 0 hsl(var(--brutal-black));
-  }
-
-  .btn-secondary:active {
-    box-shadow: none;
-  }
-
-  .brutal-card {
-    @apply bg-card border-2 border-foreground transition-all duration-150;
-    box-shadow: 4px 4px 0 0 hsl(var(--brutal-black));
-  }
-
-  .brutal-card:hover {
-    box-shadow: 6px 6px 0 0 hsl(var(--brutal-black));
-    transform: translate(-2px, -2px);
-  }
-
-  .brutal-accent-card {
-    @apply bg-accent text-accent-foreground border-2 border-foreground;
-    box-shadow: 4px 4px 0 0 hsl(var(--brutal-black));
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
   }
 }
 
 @layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
   .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+    animation: fadeIn 0.8s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s ease-out forwards;
+    animation: slideUp 0.6s ease-out forwards;
   }
 
-  .animate-slide-in-left {
-    animation: slideInLeft 0.5s ease-out forwards;
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
 
   @keyframes fadeIn {
@@ -185,17 +183,6 @@
     to { 
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @keyframes slideInLeft {
-    from { 
-      opacity: 0;
-      transform: translateX(-30px);
-    }
-    to { 
-      opacity: 1;
-      transform: translateX(0);
     }
   }
 }

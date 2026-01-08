@@ -1,4 +1,4 @@
-import { Check, Star } from "lucide-react";
+import { Check, Sparkles, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const tiers = [
@@ -58,110 +58,113 @@ const tiers = [
 
 const Pricing = () => {
   return (
-    <section className="py-24 bg-secondary">
-      <div className="container px-6">
+    <section className="py-24 bg-gradient-warm">
+      <div className="container px-4">
         {/* Header */}
-        <div className="max-w-xl mb-16">
-          <p className="text-accent font-sans font-bold uppercase tracking-wide text-sm mb-3">
-            Pricing
-          </p>
-          <h2 className="text-4xl md:text-5xl font-display mb-4">
-            Invest in Your Wellbeing
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+            <Sparkles size={16} className="text-primary" />
+            <span className="text-sm font-sans font-medium text-primary">
+              Simple Pricing
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
+            Invest in Your <span className="text-gradient-gold">Wellbeing</span>
           </h2>
           <p className="text-muted-foreground font-sans">
-            Choose the membership that fits your needs.
+            Choose the membership that fits your needs. All options include access
+            to our supportive expat community.
           </p>
         </div>
 
         {/* Pricing Grid */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {tiers.map((tier, index) => (
             <div
               key={index}
-              className={`relative p-6 border-2 border-foreground ${
+              className={`relative rounded-2xl p-8 transition-all duration-300 ${
                 tier.featured
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-card"
+                  ? "bg-gradient-gold text-primary-foreground shadow-gold scale-105"
+                  : "bg-card border border-border hover:shadow-elevated"
               }`}
-              style={{
-                boxShadow: tier.featured
-                  ? "6px 6px 0 0 hsl(var(--brutal-black))"
-                  : "4px 4px 0 0 hsl(var(--brutal-black))",
-              }}
             >
               {tier.featured && (
-                <div
-                  className="absolute -top-4 left-4 inline-flex items-center gap-1 px-4 py-2 bg-brutal-yellow text-foreground text-xs font-sans font-bold uppercase border-2 border-foreground"
-                  style={{
-                    boxShadow: "2px 2px 0 0 hsl(var(--brutal-black))",
-                  }}
-                >
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-4 py-1 bg-card text-primary text-xs font-sans font-semibold rounded-full shadow-soft">
                   <Star size={12} />
                   Best Value
                 </div>
               )}
 
-              <div className="mb-5 pt-2">
-                <p
-                  className={`text-xs font-sans font-bold uppercase tracking-wide mb-1 ${
-                    tier.featured ? "text-accent-foreground/80" : "text-accent"
+              <div className="mb-6">
+                <div
+                  className={`text-sm font-sans font-medium mb-1 ${
+                    tier.featured ? "text-primary-foreground/80" : "text-primary"
                   }`}
                 >
                   {tier.subtitle}
-                </p>
-                <h3 className="text-3xl font-display">
+                </div>
+                <h3
+                  className={`text-2xl font-serif font-semibold ${
+                    tier.featured ? "text-primary-foreground" : "text-foreground"
+                  }`}
+                >
                   {tier.name}
                 </h3>
               </div>
 
-              <div className="mb-5">
+              <div className="mb-6">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-display">
+                  <span
+                    className={`text-4xl font-serif font-bold ${
+                      tier.featured ? "text-primary-foreground" : "text-foreground"
+                    }`}
+                  >
                     €{tier.monthlyPrice}
                   </span>
                   <span
                     className={`text-sm font-sans ${
-                      tier.featured ? "text-accent-foreground/70" : "text-muted-foreground"
+                      tier.featured ? "text-primary-foreground/70" : "text-muted-foreground"
                     }`}
                   >
                     {tier.yearlyPrice ? "/month" : "/session"}
                   </span>
                 </div>
                 {tier.yearlyPrice && (
-                  <p
-                    className={`text-xs font-sans mt-1 ${
-                      tier.featured ? "text-accent-foreground/70" : "text-muted-foreground"
+                  <div
+                    className={`text-sm font-sans mt-1 ${
+                      tier.featured ? "text-primary-foreground/80" : "text-muted-foreground"
                     }`}
                   >
-                    or €{tier.yearlyPrice}/year ({tier.yearlySavings})
-                  </p>
+                    or €{tier.yearlyPrice}/year{" "}
+                    <span className="text-primary font-semibold">
+                      ({tier.yearlySavings})
+                    </span>
+                  </div>
                 )}
               </div>
 
               <p
-                className={`text-sm font-sans mb-5 ${
-                  tier.featured ? "text-accent-foreground/90" : "text-muted-foreground"
+                className={`text-sm font-sans mb-6 ${
+                  tier.featured ? "text-primary-foreground/80" : "text-muted-foreground"
                 }`}
               >
                 {tier.description}
               </p>
 
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-3 mb-8">
                 {tier.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <div
-                      className={`w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 border-2 ${
-                        tier.featured
-                          ? "border-accent-foreground bg-accent-foreground"
-                          : "border-foreground bg-foreground"
+                    <Check
+                      size={18}
+                      className={`flex-shrink-0 mt-0.5 ${
+                        tier.featured ? "text-primary-foreground" : "text-primary"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-sans ${
+                        tier.featured ? "text-primary-foreground/90" : "text-foreground"
                       }`}
                     >
-                      <Check
-                        size={12}
-                        className={tier.featured ? "text-accent" : "text-background"}
-                      />
-                    </div>
-                    <span className="text-sm font-sans">
                       {feature}
                     </span>
                   </li>
@@ -170,7 +173,11 @@ const Pricing = () => {
 
               <Link
                 to={tier.name === "1:1 Session" ? "/booking" : "/resilient-hub"}
-                className={tier.featured ? "btn-secondary w-full text-center" : "btn-primary w-full text-center"}
+                className={`block w-full py-3.5 text-center font-sans font-semibold rounded-xl transition-all duration-300 ${
+                  tier.featured
+                    ? "bg-card text-primary hover:bg-card/90"
+                    : "bg-gradient-gold text-primary-foreground shadow-gold hover:shadow-elevated"
+                }`}
               >
                 {tier.cta}
               </Link>
