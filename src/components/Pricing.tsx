@@ -172,7 +172,7 @@ const Pricing = () => {
               </ul>
 
               <Link
-                to={tier.name === "1:1 Session" ? "/booking" : "/resilient-hub"}
+                to={tier.name === "1:1 Session" ? "/booking" : "/auth"}
                 className={`block w-full py-3.5 text-center font-sans font-semibold rounded-xl transition-all duration-300 ${
                   tier.featured
                     ? "bg-card text-primary hover:bg-card/90"

@@ -1,19 +1,33 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Logo from "./Logo";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About Me" },
+  { href: "/", label: "Domů" },
+  { href: "/about", label: "O mně" },
   { href: "/resilient-hub", label: "Resilient Hub" },
-  { href: "/booking", label: "Book a Session" },
+  { href: "/booking", label: "Rezervace" },
   { href: "/blog", label: "Blog" },
 ];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, profile, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -39,13 +53,52 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <Link
-            to="/booking"
-            className="hidden md:inline-flex items-center justify-center px-6 py-2.5 bg-gradient-gold text-primary-foreground font-sans font-semibold text-sm rounded-full shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-105"
-          >
-            Get Started
-          </Link>
+          {/* Auth/CTA Buttons */}
+          <div className="hidden md:flex items-center gap-4">
+            {loading ? (
+              <div className="w-24 h-10 bg-muted animate-pulse rounded-full" />
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="border-gold/30 hover:bg-gold/10">
+                    <User className="h-4 w-4 mr-2" />
+                    {profile?.full_name?.split(' ')[0] || 'Účet'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer">
+                      Nastavení profilu
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Odhlásit se
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost" className="text-foreground/80 hover:text-foreground">
+                    Přihlásit
+                  </Button>
+                </Link>
+                <Link
+                  to="/resilient-hub"
+                  className="inline-flex items-center justify-center px-6 py-2.5 bg-gradient-gold text-primary-foreground font-sans font-semibold text-sm rounded-full shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-105"
+                >
+                  Začít
+                </Link>
+              </>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -75,13 +128,44 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                to="/booking"
-                onClick={() => setIsOpen(false)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold text-sm rounded-full mt-2"
-              >
-                Get Started
-              </Link>
+              
+              {user ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="font-sans text-base font-medium px-2 py-2 text-gold"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsOpen(false);
+                    }}
+                    className="font-sans text-base font-medium px-2 py-2 text-left text-destructive"
+                  >
+                    Odhlásit se
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsOpen(false)}
+                    className="font-sans text-base font-medium px-2 py-2 text-foreground/80"
+                  >
+                    Přihlásit
+                  </Link>
+                  <Link
+                    to="/resilient-hub"
+                    onClick={() => setIsOpen(false)}
+                    className="inline-flex items-center justify-center px-6 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold text-sm rounded-full mt-2"
+                  >
+                    Začít
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

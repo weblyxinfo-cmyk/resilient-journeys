@@ -1,15 +1,61 @@
 import { useState } from "react";
 import { Download, CheckCircle, Mail } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const emailSchema = z.string().email('Zadejte platnou emailovou adresu');
 
 const LeadMagnet = () => {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here would be the SmartEmailing integration
-    console.log("Email submitted:", email);
-    setIsSubmitted(true);
+    
+    try {
+      emailSchema.parse(email);
+    } catch {
+      toast({
+        title: 'Chyba',
+        description: 'Zadejte platnou emailovou adresu',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error } = await supabase
+      .from('lead_magnets')
+      .insert({ email, name: name || null, source: 'website' });
+
+    if (error) {
+      if (error.code === '23505') {
+        toast({
+          title: 'Již jste registrováni',
+          description: 'Tento email je již v našem seznamu'
+        });
+        setIsSubmitted(true);
+      } else {
+        toast({
+          title: 'Chyba',
+          description: 'Něco se pokazilo. Zkuste to prosím znovu.',
+          variant: 'destructive'
+        });
+      }
+    } else {
+      setIsSubmitted(true);
+      toast({
+        title: 'Děkujeme!',
+        description: 'Brzy obdržíte email s materiály'
+      });
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -27,25 +73,25 @@ const LeadMagnet = () => {
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                   <Download size={16} className="text-primary" />
                   <span className="text-sm font-sans font-medium text-primary">
-                    Free Resource
+                    Zdarma ke stažení
                   </span>
                 </div>
 
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
-                  Start Your Resilience Journey Today
+                  Začněte svou cestu k odolnosti
                 </h2>
 
                 <p className="text-muted-foreground font-sans mb-6">
-                  Get your free mini e-book &amp; video course with practical exercises
-                  to begin building your resilient mind immediately.
+                  Získejte zdarma mini e-book a video kurz s praktickými cvičeními
+                  pro budování vaší mentální odolnosti.
                 </p>
 
                 <ul className="space-y-3 mb-6">
                   {[
-                    "5 Essential Resilience Techniques",
-                    "Guided Meditation Audio",
-                    "Printable Workbook (PDF)",
-                    "Video Lessons",
+                    "5 základních technik resilience",
+                    "Řízená meditace (audio)",
+                    "Tisknutelný pracovní sešit (PDF)",
+                    "Video lekce",
                   ].map((item, index) => (
                     <li key={index} className="flex items-center gap-3 font-sans text-sm">
                       <CheckCircle size={18} className="text-primary flex-shrink-0" />
@@ -63,22 +109,31 @@ const LeadMagnet = () => {
                       <CheckCircle size={32} className="text-primary" />
                     </div>
                     <h3 className="text-xl font-serif font-semibold mb-2">
-                      Thank You!
+                      Děkujeme!
                     </h3>
                     <p className="text-muted-foreground font-sans text-sm">
-                      Check your inbox for your free resources.
+                      Podívejte se do své schránky na materiály zdarma.
                     </p>
                   </div>
                 ) : (
                   <>
                     <h3 className="text-xl font-serif font-semibold mb-2">
-                      Get Free Access
+                      Získejte přístup zdarma
                     </h3>
                     <p className="text-muted-foreground font-sans text-sm mb-6">
-                      Enter your email to receive your free mini-course instantly.
+                      Zadejte svůj email a ihned obdržíte materiály.
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Vaše jméno (volitelné)"
+                          className="w-full px-4 py-3.5 rounded-xl border border-border bg-background font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        />
+                      </div>
                       <div className="relative">
                         <Mail
                           size={18}
@@ -88,7 +143,7 @@ const LeadMagnet = () => {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Your email address"
+                          placeholder="Váš email"
                           required
                           className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-border bg-background font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         />
@@ -96,13 +151,14 @@ const LeadMagnet = () => {
 
                       <button
                         type="submit"
-                        className="w-full py-3.5 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-[1.02]"
+                        disabled={isLoading}
+                        className="w-full py-3.5 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
                       >
-                        Send Me Free Resources
+                        {isLoading ? 'Odesílám...' : 'Poslat mi materiály zdarma'}
                       </button>
 
                       <p className="text-xs text-muted-foreground font-sans text-center">
-                        No spam. Unsubscribe anytime. Your data is safe with me.
+                        Žádný spam. Odhlášení kdykoliv. Vaše data jsou v bezpečí.
                       </p>
                     </form>
                   </>
