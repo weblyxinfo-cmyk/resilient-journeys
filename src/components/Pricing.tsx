@@ -172,7 +172,13 @@ const Pricing = () => {
               </ul>
 
               <Link
-                to={tier.name === "1:1 Session" ? "/booking" : "/auth"}
+                to={
+                  tier.name === "1:1 Session" 
+                    ? "/booking" 
+                    : tier.name === "Basic"
+                      ? "/checkout?plan=basic_monthly"
+                      : "/checkout?plan=premium_monthly"
+                }
                 className={`block w-full py-3.5 text-center font-sans font-semibold rounded-xl transition-all duration-300 ${
                   tier.featured
                     ? "bg-card text-primary hover:bg-card/90"

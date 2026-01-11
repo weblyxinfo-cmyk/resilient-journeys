@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import VideoPreviewCard from "./VideoPreviewCard";
@@ -8,7 +9,6 @@ import {
   Zap, Compass, Target, Globe, Sun, Puzzle, Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 interface VideoCategory {
   id: string;
@@ -46,6 +46,7 @@ const iconMap: { [key: string]: React.ElementType } = {
 };
 
 const ProgramOverview = () => {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [categories, setCategories] = useState<VideoCategory[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -142,6 +143,7 @@ const ProgramOverview = () => {
                   isLocked={!canAccessVideo(video)}
                   isFree={video.is_free}
                   membership={video.min_membership}
+                  onClick={() => navigate(`/video/${video.id}`)}
                 />
               ))
             ) : (
