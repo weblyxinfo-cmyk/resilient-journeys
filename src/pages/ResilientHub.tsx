@@ -1,8 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Pricing from "@/components/Pricing";
-import { Check, Sparkles, Calendar, BookOpen, Video, Users, Palette, Download } from "lucide-react";
+import ProgramOverview from "@/components/ProgramOverview";
+import { Check, Sparkles, Calendar, BookOpen, Video, Users, Palette, Download, Play } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const months = [
   { month: 1, title: "Foundation", focus: "Understanding Resilience" },
@@ -85,40 +87,61 @@ const ResilientHub = () => {
           </div>
         </section>
 
-        {/* 12 Month Journey */}
+        {/* Program Content with Tabs */}
         <section className="py-16 md:py-24 bg-card">
           <div className="container px-4">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-                  <Calendar size={16} className="text-primary" />
-                  <span className="text-sm font-sans font-medium text-primary">
-                    Your Journey Map
-                  </span>
-                </div>
-                <h2 className="text-2xl md:text-4xl font-serif font-semibold">
-                  12 Months, 12 Pillars of Resilience
-                </h2>
-              </div>
-              
-              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {months.map((item) => (
-                  <div
-                    key={item.month}
-                    className="p-5 bg-background rounded-xl border border-border hover:shadow-soft transition-all"
-                  >
-                    <div className="text-xs font-sans font-semibold text-primary mb-2">
-                      Month {item.month}
+            <div className="max-w-6xl mx-auto">
+              <Tabs defaultValue="videos" className="w-full">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
+                      <Play size={16} className="text-primary" />
+                      <span className="text-sm font-sans font-medium text-primary">
+                        Obsah programu
+                      </span>
                     </div>
-                    <h3 className="font-serif font-semibold text-lg mb-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground font-sans">
-                      {item.focus}
-                    </p>
+                    <h2 className="text-2xl md:text-4xl font-serif font-semibold">
+                      12 měsíců, 12 pilířů odolnosti
+                    </h2>
                   </div>
-                ))}
-              </div>
+                  
+                  <TabsList className="bg-cream-dark/50 self-start">
+                    <TabsTrigger value="videos" className="data-[state=active]:bg-gold data-[state=active]:text-white">
+                      <Video size={16} className="mr-2" />
+                      Video lekce
+                    </TabsTrigger>
+                    <TabsTrigger value="overview" className="data-[state=active]:bg-gold data-[state=active]:text-white">
+                      <Calendar size={16} className="mr-2" />
+                      Přehled
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="videos" className="mt-0">
+                  <ProgramOverview />
+                </TabsContent>
+
+                <TabsContent value="overview" className="mt-0">
+                  <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {months.map((item) => (
+                      <div
+                        key={item.month}
+                        className="group p-5 bg-background rounded-xl border border-border hover:shadow-soft hover:border-gold/30 transition-all cursor-pointer"
+                      >
+                        <div className="text-xs font-sans font-semibold text-primary mb-2">
+                          Měsíc {item.month}
+                        </div>
+                        <h3 className="font-serif font-semibold text-lg mb-1 group-hover:text-gold transition-colors">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-sans">
+                          {item.focus}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </section>
