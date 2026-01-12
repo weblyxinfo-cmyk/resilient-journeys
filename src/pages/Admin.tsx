@@ -5,12 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, Settings, FileText } from 'lucide-react';
+import { Shield, Video, Users, Star, Settings, FileText, CreditCard } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminTestimonials from '@/components/admin/AdminTestimonials';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminCategories from '@/components/admin/AdminCategories';
+import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -94,6 +95,10 @@ const Admin = () => {
                 <FileText className="h-4 w-4 mr-2" />
                 Kategorie
               </TabsTrigger>
+              <TabsTrigger value="subscriptions" className="data-[state=active]:bg-gold data-[state=active]:text-white">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Předplatné
+              </TabsTrigger>
               <TabsTrigger value="users" className="data-[state=active]:bg-gold data-[state=active]:text-white">
                 <Users className="h-4 w-4 mr-2" />
                 Uživatelé
@@ -114,6 +119,10 @@ const Admin = () => {
 
             <TabsContent value="categories">
               <AdminCategories />
+            </TabsContent>
+
+            <TabsContent value="subscriptions">
+              <AdminSubscriptions />
             </TabsContent>
 
             <TabsContent value="users">
