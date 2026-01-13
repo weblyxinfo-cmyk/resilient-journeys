@@ -11,22 +11,22 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import Logo from '@/components/Logo';
 
-const emailSchema = z.string().email('Zadejte platnou emailovou adresu');
-const passwordSchema = z.string().min(6, 'Heslo musí mít alespoň 6 znaků');
-const nameSchema = z.string().min(2, 'Jméno musí mít alespoň 2 znaky');
+const emailSchema = z.string().email('Please enter a valid email address');
+const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
 
 const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  
+
   // Register form
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
@@ -48,7 +48,7 @@ const Auth = () => {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Chyba validace',
+          title: 'Validation Error',
           description: err.errors[0].message,
           variant: 'destructive'
         });
@@ -58,27 +58,27 @@ const Auth = () => {
     }
 
     const { error } = await signIn(loginEmail, loginPassword);
-    
+
     if (error) {
-      let message = 'Nastala chyba při přihlášení';
+      let message = 'An error occurred during sign in';
       if (error.message.includes('Invalid login credentials')) {
-        message = 'Nesprávný email nebo heslo';
+        message = 'Invalid email or password';
       } else if (error.message.includes('Email not confirmed')) {
-        message = 'Prosím potvrďte svůj email';
+        message = 'Please confirm your email address';
       }
       toast({
-        title: 'Chyba přihlášení',
+        title: 'Sign In Error',
         description: message,
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'Vítejte zpět!',
-        description: 'Úspěšně jste se přihlásili'
+        title: 'Welcome back!',
+        description: 'You have successfully signed in'
       });
       navigate('/dashboard');
     }
-    
+
     setIsLoading(false);
   };
 
@@ -93,7 +93,7 @@ const Auth = () => {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Chyba validace',
+          title: 'Validation Error',
           description: err.errors[0].message,
           variant: 'destructive'
         });
@@ -103,32 +103,32 @@ const Auth = () => {
     }
 
     const { error } = await signUp(registerEmail, registerPassword, registerName);
-    
+
     if (error) {
-      let message = 'Nastala chyba při registraci';
+      let message = 'An error occurred during registration';
       if (error.message.includes('already registered')) {
-        message = 'Tento email je již zaregistrován';
+        message = 'This email is already registered';
       }
       toast({
-        title: 'Chyba registrace',
+        title: 'Registration Error',
         description: message,
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'Účet vytvořen!',
-        description: 'Vítejte v Resilient Mind'
+        title: 'Account Created!',
+        description: 'Welcome to Resilient Mind'
       });
       navigate('/dashboard');
     }
-    
+
     setIsLoading(false);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-gold">Načítám...</div>
+        <div className="animate-pulse text-gold">Loading...</div>
       </div>
     );
   }
@@ -139,7 +139,7 @@ const Auth = () => {
       <header className="p-6">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Zpět na hlavní stránku
+          Back to home
         </Link>
       </header>
 
@@ -157,10 +157,10 @@ const Auth = () => {
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-cream/50">
                 <TabsTrigger value="login" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                  Přihlášení
+                  Sign In
                 </TabsTrigger>
                 <TabsTrigger value="register" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                  Registrace
+                  Sign Up
                 </TabsTrigger>
               </TabsList>
 
@@ -168,9 +168,9 @@ const Auth = () => {
               <TabsContent value="login">
                 <form onSubmit={handleLogin}>
                   <CardHeader>
-                    <CardTitle className="font-serif text-2xl">Vítejte zpět</CardTitle>
+                    <CardTitle className="font-serif text-2xl">Welcome Back</CardTitle>
                     <CardDescription>
-                      Přihlaste se do svého účtu
+                      Sign in to your account to continue
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -179,7 +179,7 @@ const Auth = () => {
                       <Input
                         id="login-email"
                         type="email"
-                        placeholder="vas@email.cz"
+                        placeholder="you@example.com"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         required
@@ -187,7 +187,7 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">Heslo</Label>
+                      <Label htmlFor="login-password">Password</Label>
                       <div className="relative">
                         <Input
                           id="login-password"
@@ -209,12 +209,12 @@ const Auth = () => {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="w-full bg-gold hover:bg-gold-dark text-white"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Přihlašuji...' : 'Přihlásit se'}
+                      {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
                   </CardFooter>
                 </form>
@@ -224,18 +224,18 @@ const Auth = () => {
               <TabsContent value="register">
                 <form onSubmit={handleRegister}>
                   <CardHeader>
-                    <CardTitle className="font-serif text-2xl">Vytvořte si účet</CardTitle>
+                    <CardTitle className="font-serif text-2xl">Create Your Account</CardTitle>
                     <CardDescription>
-                      Začněte svou cestu k vnitřní síle
+                      Begin your journey to inner strength
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="register-name">Celé jméno</Label>
+                      <Label htmlFor="register-name">Full Name</Label>
                       <Input
                         id="register-name"
                         type="text"
-                        placeholder="Jana Nováková"
+                        placeholder="Jane Doe"
                         value={registerName}
                         onChange={(e) => setRegisterName(e.target.value)}
                         required
@@ -247,7 +247,7 @@ const Auth = () => {
                       <Input
                         id="register-email"
                         type="email"
-                        placeholder="vas@email.cz"
+                        placeholder="you@example.com"
                         value={registerEmail}
                         onChange={(e) => setRegisterEmail(e.target.value)}
                         required
@@ -255,7 +255,7 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-password">Heslo</Label>
+                      <Label htmlFor="register-password">Password</Label>
                       <div className="relative">
                         <Input
                           id="register-password"
@@ -274,16 +274,16 @@ const Auth = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      <p className="text-xs text-muted-foreground">Minimálně 6 znaků</p>
+                      <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="w-full bg-gold hover:bg-gold-dark text-white"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Vytvářím účet...' : 'Zaregistrovat se'}
+                      {isLoading ? 'Creating account...' : 'Sign Up'}
                     </Button>
                   </CardFooter>
                 </form>
@@ -292,10 +292,10 @@ const Auth = () => {
           </Card>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Registrací souhlasíte s našimi{' '}
-            <Link to="/terms" className="text-gold hover:underline">podmínkami použití</Link>
-            {' '}a{' '}
-            <Link to="/privacy" className="text-gold hover:underline">zásadami ochrany osobních údajů</Link>
+            By registering, you agree to our{' '}
+            <Link to="/terms" className="text-gold hover:underline">Terms of Service</Link>
+            {' '}and{' '}
+            <Link to="/privacy" className="text-gold hover:underline">Privacy Policy</Link>
           </p>
         </div>
       </main>
