@@ -113,6 +113,24 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
+  // Redirect admin users to admin panel
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+
+      if (!error && data) {
+        navigate('/admin');
+      }
+    };
+
+    if (!loading && user) {
+      checkAdminRole();
+    }
+  }, [user, loading, navigate]);
+
   useEffect(() => {
     const fetchContent = async () => {
       // Fetch categories
