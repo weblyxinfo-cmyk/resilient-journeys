@@ -252,10 +252,10 @@ const Dashboard = () => {
 
       // Open file in new tab
       window.open(resource.file_url, '_blank');
-      toast.success(`Stahování: ${resource.title}`);
+      toast.success(`Downloading: ${resource.title}`);
     } catch (err) {
       console.error('Error downloading resource:', err);
-      toast.error('Nepodařilo se stáhnout soubor');
+      toast.error('Failed to download file');
     }
   };
 
@@ -318,7 +318,7 @@ const Dashboard = () => {
                     <Play className="h-6 w-6 text-gold" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Dokončeno</p>
+                    <p className="text-sm text-muted-foreground">Completed</p>
                     <p className="text-2xl font-semibold">
                       {completedVideos} / {totalAccessibleVideos}
                     </p>

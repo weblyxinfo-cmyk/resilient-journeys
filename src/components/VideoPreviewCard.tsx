@@ -15,7 +15,7 @@ interface VideoPreviewCardProps {
 }
 
 const membershipBadges = {
-  free: { label: "Zdarma", className: "bg-muted text-muted-foreground" },
+  free: { label: "Free", className: "bg-muted text-muted-foreground" },
   basic: { label: "Basic", className: "bg-gold/20 text-gold-dark border-gold/30" },
   premium: { label: "Premium", className: "bg-gradient-gold text-white border-0" },
 };

@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addMonths, startOfMonth } from "date-fns";
-import { cs } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 // Session types configuration
 const SESSION_TYPES = [
@@ -133,7 +133,7 @@ const Booking = () => {
       setAvailableDays(result.availableDays || []);
     } catch (error: any) {
       console.error("Error fetching available days:", error);
-      toast.error("Nepodařilo se načíst dostupné dny");
+      toast.error("Failed to load available days");
     } finally {
       setLoadingDays(false);
     }
@@ -162,7 +162,7 @@ const Booking = () => {
       setAvailableSlots(result.slots || []);
     } catch (error: any) {
       console.error("Error fetching available slots:", error);
-      toast.error("Nepodařilo se načíst dostupné časy");
+      toast.error("Failed to load available time slots");
     } finally {
       setLoadingSlots(false);
     }
@@ -191,7 +191,7 @@ const Booking = () => {
 
       // Free session (discovery) - redirect to success page
       if (data.status === "confirmed") {
-        toast.success("Rezervace potvrzena! Zkontrolujte email.");
+        toast.success("Booking confirmed! Check your email.");
         window.location.href = `/booking/success?id=${data.booking_id}`;
         return;
       }
@@ -202,7 +202,7 @@ const Booking = () => {
       }
     } catch (error: any) {
       console.error("Error creating booking:", error);
-      toast.error(error.message || "Rezervace selhala");
+      toast.error(error.message || "Booking failed");
     } finally {
       setLoading(false);
     }
@@ -233,7 +233,7 @@ const Booking = () => {
   };
 
   const calendarDays = generateCalendarDays();
-  const weekDays = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="min-h-screen bg-background">
@@ -247,16 +247,16 @@ const Booking = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Calendar size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  Rezervace Sezení
+                  Session Booking
                 </span>
               </div>
 
               <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-                Pojďme Spolupracovat
+                Let's Work Together
               </h1>
 
               <p className="text-lg text-muted-foreground font-sans">
-                Vyberte typ sezení a naplánujte si čas, který vám vyhovuje
+                Select session type and schedule a time that works for you
               </p>
 
               {/* Progress Steps */}
@@ -292,7 +292,7 @@ const Booking = () => {
               {step === 1 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Vyberte Typ Sezení
+                    Select Session Type
                   </h2>
 
                   <div className="grid md:grid-cols-3 gap-6">
@@ -315,7 +315,7 @@ const Booking = () => {
                             {session.title}
                           </CardTitle>
                           <div className="text-2xl font-serif font-bold text-primary mt-2">
-                            {session.price === 0 ? "Zdarma" : `€${session.price}`}
+                            {session.price === 0 ? "Free" : `€${session.price}`}
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -341,7 +341,7 @@ const Booking = () => {
                       disabled={!selectedType}
                       className="bg-gradient-gold"
                     >
-                      Pokračovat <ArrowRight className="ml-2" size={16} />
+                      Continue <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </div>
                 </div>
@@ -352,7 +352,7 @@ const Booking = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between mb-6">
                     <Button variant="ghost" onClick={() => setStep(1)}>
-                      <ArrowLeft className="mr-2" size={16} /> Zpět
+                      <ArrowLeft className="mr-2" size={16} /> Back
                     </Button>
                     <Badge variant="outline" className="text-sm">
                       {selectedSessionType.title} - {selectedSessionType.duration} min
@@ -360,7 +360,7 @@ const Booking = () => {
                   </div>
 
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Vyberte Datum
+                    Select Date
                   </h2>
 
                   {/* Month Navigation */}
@@ -373,7 +373,7 @@ const Booking = () => {
                       <ArrowLeft size={16} />
                     </Button>
                     <h3 className="text-lg font-semibold">
-                      {format(currentMonth, "LLLL yyyy", { locale: cs })}
+                      {format(currentMonth, "LLLL yyyy", { locale: enUS })}
                     </h3>
                     <Button
                       variant="outline"
@@ -428,7 +428,7 @@ const Booking = () => {
 
                       {availableDays.length === 0 && !loadingDays && (
                         <p className="text-center text-muted-foreground mt-6">
-                          V tomto měsíci nejsou žádné dostupné termíny
+                          There are no available dates this month
                         </p>
                       )}
                     </div>
@@ -440,7 +440,7 @@ const Booking = () => {
                       disabled={!selectedDate}
                       className="bg-gradient-gold"
                     >
-                      Pokračovat <ArrowRight className="ml-2" size={16} />
+                      Continue <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </div>
                 </div>
@@ -454,15 +454,15 @@ const Booking = () => {
                       setStep(2);
                       setSelectedTime(null);
                     }}>
-                      <ArrowLeft className="mr-2" size={16} /> Zpět
+                      <ArrowLeft className="mr-2" size={16} /> Back
                     </Button>
                     <Badge variant="outline" className="text-sm">
-                      {format(new Date(selectedDate), "d. MMMM yyyy", { locale: cs })}
+                      {format(new Date(selectedDate), "MMMM d, yyyy", { locale: enUS })}
                     </Badge>
                   </div>
 
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Vyberte Čas
+                    Select Time
                   </h2>
 
                   {loadingSlots ? (
@@ -490,7 +490,7 @@ const Booking = () => {
 
                   {availableSlots.filter((s) => s.available).length === 0 && !loadingSlots && (
                     <p className="text-center text-muted-foreground">
-                      Pro tento den nejsou dostupné žádné časy
+                      No available times for this day
                     </p>
                   )}
 
@@ -500,7 +500,7 @@ const Booking = () => {
                       disabled={!selectedTime}
                       className="bg-gradient-gold"
                     >
-                      Pokračovat <ArrowRight className="ml-2" size={16} />
+                      Continue <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </div>
                 </div>
@@ -511,42 +511,42 @@ const Booking = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between mb-6">
                     <Button variant="ghost" onClick={() => setStep(3)}>
-                      <ArrowLeft className="mr-2" size={16} /> Zpět
+                      <ArrowLeft className="mr-2" size={16} /> Back
                     </Button>
                   </div>
 
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Vaše Údaje
+                    Your Information
                   </h2>
 
                   {/* Booking Summary */}
                   <Card className="bg-gradient-warm border-primary/20">
                     <CardHeader>
-                      <CardTitle className="text-lg">Souhrn Rezervace</CardTitle>
+                      <CardTitle className="text-lg">Booking Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Typ sezení:</span>
+                        <span className="text-muted-foreground">Session type:</span>
                         <span className="font-semibold">{selectedSessionType.title}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Datum:</span>
+                        <span className="text-muted-foreground">Date:</span>
                         <span className="font-semibold">
-                          {format(new Date(selectedDate), "d. MMMM yyyy", { locale: cs })}
+                          {format(new Date(selectedDate), "MMMM d, yyyy", { locale: enUS })}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Čas:</span>
+                        <span className="text-muted-foreground">Time:</span>
                         <span className="font-semibold">{selectedTime}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Délka:</span>
+                        <span className="text-muted-foreground">Duration:</span>
                         <span className="font-semibold">{selectedSessionType.duration} min</span>
                       </div>
                       <div className="flex justify-between text-lg pt-2 border-t">
-                        <span className="font-semibold">Cena:</span>
+                        <span className="font-semibold">Price:</span>
                         <span className="font-bold text-primary">
-                          {selectedSessionType.price === 0 ? "Zdarma" : `€${selectedSessionType.price}`}
+                          {selectedSessionType.price === 0 ? "Free" : `€${selectedSessionType.price}`}
                         </span>
                       </div>
                     </CardContent>
@@ -555,14 +555,14 @@ const Booking = () => {
                   {/* Client Form */}
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="client_name">Jméno a Příjmení *</Label>
+                      <Label htmlFor="client_name">Full Name *</Label>
                       <Input
                         id="client_name"
                         value={formData.client_name}
                         onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                         required
                         minLength={2}
-                        placeholder="Jan Novák"
+                        placeholder="John Smith"
                       />
                     </div>
 
@@ -574,22 +574,22 @@ const Booking = () => {
                         value={formData.client_email}
                         onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
                         required
-                        placeholder="jan@example.com"
+                        placeholder="john@example.com"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="notes">Poznámka (volitelné)</Label>
+                      <Label htmlFor="notes">Note (optional)</Label>
                       <Textarea
                         id="notes"
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        placeholder="Napište nám něco o sobě nebo o tom, s čím potřebujete pomoci..."
+                        placeholder="Tell us something about yourself or what you need help with..."
                         maxLength={500}
                         rows={4}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formData.notes.length}/500 znaků
+                        {formData.notes.length}/500 characters
                       </p>
                     </div>
 
@@ -598,12 +598,12 @@ const Booking = () => {
                         {loading ? (
                           <>
                             <Loader2 className="mr-2 animate-spin" size={16} />
-                            Zpracovávám...
+                            Processing...
                           </>
                         ) : selectedSessionType.price === 0 ? (
-                          "Potvrdit Rezervaci"
+                          "Confirm Booking"
                         ) : (
-                          `Přejít k Platbě (€${selectedSessionType.price})`
+                          `Go to Payment (€${selectedSessionType.price})`
                         )}
                       </Button>
                     </div>

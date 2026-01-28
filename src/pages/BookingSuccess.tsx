@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { cs } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 const BookingSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -84,7 +84,7 @@ const BookingSuccess = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Načítám rezervaci...</p>
+          <p className="text-muted-foreground">Loading reservation...</p>
         </div>
       </div>
     );
@@ -98,11 +98,11 @@ const BookingSuccess = () => {
           <div className="container px-4">
             <div className="max-w-2xl mx-auto text-center">
               <div className="text-6xl mb-4">❌</div>
-              <h1 className="text-3xl font-serif font-semibold mb-4">Něco se pokazilo</h1>
-              <p className="text-muted-foreground mb-8">{error || "Rezervace nebyla nalezena"}</p>
+              <h1 className="text-3xl font-serif font-semibold mb-4">Something went wrong</h1>
+              <p className="text-muted-foreground mb-8">{error || "Reservation not found"}</p>
               <Link to="/booking">
                 <Button className="bg-gradient-gold">
-                  Zpět na Rezervaci
+                  Back to Booking
                 </Button>
               </Link>
             </div>
@@ -130,28 +130,28 @@ const BookingSuccess = () => {
               </div>
 
               <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-                {isConfirmed ? "Rezervace Potvrzena!" : "Rezervace Vytvořena"}
+                {isConfirmed ? "Booking Confirmed!" : "Booking Created"}
               </h1>
 
               <p className="text-lg text-muted-foreground">
                 {isConfirmed
-                  ? "Vaše rezervace byla úspěšně potvrzena. Potvrzovací email byl odeslán."
-                  : "Rezervace čeká na dokončení platby."}
+                  ? "Your booking has been successfully confirmed. Confirmation email has been sent."
+                  : "Booking is awaiting payment completion."}
               </p>
             </div>
 
             {/* Booking Details Card */}
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Detaily Rezervace</CardTitle>
+                <CardTitle>Booking Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Calendar className="text-primary mt-1 flex-shrink-0" size={20} />
                   <div>
-                    <p className="font-semibold">Datum</p>
+                    <p className="font-semibold">Date</p>
                     <p className="text-muted-foreground">
-                      {format(new Date(booking.session_date), "EEEE, d. MMMM yyyy", { locale: cs })}
+                      {format(new Date(booking.session_date), "EEEE, MMMM d, yyyy", { locale: enUS })}
                     </p>
                   </div>
                 </div>
@@ -159,7 +159,7 @@ const BookingSuccess = () => {
                 <div className="flex items-start gap-3">
                   <Clock className="text-primary mt-1 flex-shrink-0" size={20} />
                   <div>
-                    <p className="font-semibold">Čas</p>
+                    <p className="font-semibold">Time</p>
                     <p className="text-muted-foreground">
                       {format(new Date(booking.session_date), "HH:mm")} -{" "}
                       {format(
@@ -174,7 +174,7 @@ const BookingSuccess = () => {
                 <div className="flex items-start gap-3">
                   <Mail className="text-primary mt-1 flex-shrink-0" size={20} />
                   <div>
-                    <p className="font-semibold">Typ Sezení</p>
+                    <p className="font-semibold">Session Type</p>
                     <p className="text-muted-foreground">
                       {sessionTypeNames[booking.session_type] || booking.session_type}
                     </p>
@@ -183,7 +183,7 @@ const BookingSuccess = () => {
 
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Klient:</span>
+                    <span className="text-muted-foreground">Client:</span>
                     <span className="font-semibold">{booking.client_name}</span>
                   </div>
                   <div className="flex justify-between items-center mt-2">
@@ -192,13 +192,13 @@ const BookingSuccess = () => {
                   </div>
                   {booking.price_cents > 0 && (
                     <div className="flex justify-between items-center mt-2">
-                      <span className="text-muted-foreground">Cena:</span>
+                      <span className="text-muted-foreground">Price:</span>
                       <span className="font-bold text-primary">€{(booking.price_cents / 100).toFixed(2)}</span>
                     </div>
                   )}
                   {booking.notes && (
                     <div className="mt-4">
-                      <p className="text-sm text-muted-foreground mb-1">Poznámka:</p>
+                      <p className="text-sm text-muted-foreground mb-1">Note:</p>
                       <p className="text-sm bg-muted p-3 rounded-lg">{booking.notes}</p>
                     </div>
                   )}
@@ -216,13 +216,13 @@ const BookingSuccess = () => {
                   size="lg"
                 >
                   <Calendar className="mr-2" size={20} />
-                  Přidat do Google Kalendáře
+                  Add to Google Calendar
                 </Button>
               )}
 
               <Link to="/" className="block">
                 <Button variant="outline" className="w-full" size="lg">
-                  Zpět na Hlavní Stránku
+                  Back to Homepage
                 </Button>
               </Link>
             </div>
@@ -230,7 +230,7 @@ const BookingSuccess = () => {
             {/* What's Next */}
             <Card className="mt-8 bg-gradient-warm border-primary/20">
               <CardHeader>
-                <CardTitle>Co bude dál?</CardTitle>
+                <CardTitle>What's next?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-3">
@@ -239,8 +239,8 @@ const BookingSuccess = () => {
                   </div>
                   <p className="text-sm">
                     {isConfirmed
-                      ? "Potvrzovací email byl odeslán na vaši emailovou adresu"
-                      : "Dokončete platbu pro potvrzení rezervace"}
+                      ? "Confirmation email has been sent to your email address"
+                      : "Complete payment to confirm your reservation"}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -248,7 +248,7 @@ const BookingSuccess = () => {
                     2
                   </div>
                   <p className="text-sm">
-                    Připomínku obdržíte 24 hodin před vaším sezením
+                    You will receive a reminder 24 hours before your session
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -256,7 +256,7 @@ const BookingSuccess = () => {
                     3
                   </div>
                   <p className="text-sm">
-                    Odkaz na online sezení obdržíte emailem den před termínem
+                    You will receive the online session link by email one day before your appointment
                   </p>
                 </div>
               </CardContent>
@@ -264,7 +264,7 @@ const BookingSuccess = () => {
 
             {/* Contact Info */}
             <div className="text-center mt-12 text-sm text-muted-foreground">
-              <p>Máte dotazy? Kontaktujte nás na</p>
+              <p>Have questions? Contact us at</p>
               <a href="mailto:silvie@resilientmind.io" className="text-primary hover:underline">
                 silvie@resilientmind.io
               </a>
