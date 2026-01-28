@@ -141,17 +141,17 @@ const Workshopy = () => {
               {/* CTA */}
               <div className="mt-16 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 text-center">
                 <h3 className="text-2xl font-serif font-semibold mb-4">
-                  Want to Host a Workshop?
+                  Interested in a Workshop?
                 </h3>
                 <p className="text-muted-foreground font-sans mb-6 max-w-md mx-auto">
-                  We offer personalized workshops for expat communities, schools, and organizations.
+                  We offer personalized workshops for expat communities, schools, and organizations. Please contact me by email for details.
                 </p>
-                <Link
-                  to="/booking"
+                <a
+                  href="mailto:silvie@resilientmind.io"
                   className="inline-block px-8 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all"
                 >
-                  Book a Session
-                </Link>
+                  Contact: silvie@resilientmind.io
+                </a>
               </div>
             </div>
           </div>

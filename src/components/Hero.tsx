@@ -33,9 +33,17 @@ const Hero = () => {
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-foreground/80 font-sans font-medium leading-relaxed max-w-3xl mx-auto mb-10 animate-fade-in drop-shadow-sm" style={{ animationDelay: "0.2s" }}>
-            Living between worlds changes everything—your identity, relationships, and sense of belonging. When familiar ground disappears, you need more than just practical adaptation techniques. You need a profound inner transformation.
-          </p>
+          <div className="max-w-3xl mx-auto mb-10 space-y-4 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <p className="text-lg md:text-xl text-foreground/80 font-sans font-medium leading-relaxed drop-shadow-sm">
+              Living between worlds changes everything—your identity, relationships, and sense of belonging. When familiar ground disappears, you need more than just practical adaptation techniques. You need a profound inner transformation.
+            </p>
+            <p className="text-base md:text-lg text-foreground/75 font-sans leading-relaxed">
+              At Resilient Mind, we guide expatriates through this alchemical process, turning the challenges of cultural transition into your most powerful assets. Through our signature blend of evidence-based techniques, expressive arts, and energy work, you'll develop an unshakable "inner home" that travels with you anywhere.
+            </p>
+            <p className="text-base md:text-lg text-foreground/75 font-sans font-medium leading-relaxed">
+              Because true resilience isn't about resisting change — it's about learning to flow with it and grow stronger.
+            </p>
+          </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 animate-fade-in" style={{ animationDelay: "0.4s" }}>

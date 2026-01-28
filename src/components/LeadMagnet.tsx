@@ -111,7 +111,7 @@ const LeadMagnet = () => {
                       Thank you!
                     </h3>
                     <p className="text-muted-foreground font-sans text-sm">
-                      Check your inbox for your free materials.
+                      Check your inbox for your free materials and access link.
                     </p>
                   </div>
                 ) : (
