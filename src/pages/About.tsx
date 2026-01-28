@@ -2,7 +2,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, Heart, MapPin, Palette, Award, BookOpen, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import portrait from "@/assets/about-portrait.jpg";
 
 const About = () => {
   return (
@@ -18,9 +17,9 @@ const About = () => {
               <div className="relative order-2 lg:order-1">
                 <div className="relative rounded-3xl overflow-hidden shadow-elevated">
                   <img
-                    src={portrait}
-                    alt="Your resilience coach"
-                    className="w-full h-auto aspect-[4/5] object-cover"
+                    src="/silvie.jpg"
+                    alt="Silvie Bogdanova - Art Expressive Therapist"
+                    className="w-full h-auto aspect-[4/5] object-cover object-top"
                   />
                 </div>
                 
