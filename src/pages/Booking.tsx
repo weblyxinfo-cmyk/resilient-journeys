@@ -115,16 +115,11 @@ const Booking = () => {
     setLoadingDays(true);
     try {
       const monthStr = format(currentMonth, "yyyy-MM");
-      const { data, error } = await supabase.functions.invoke("booking-available-days", {
-        body: {},
-        method: "GET",
-      });
-
-      // Use fetch directly for GET requests with query params
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-days?month=${monthStr}&type=${selectedType}`,
         {
           headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
         }
@@ -153,6 +148,7 @@ const Booking = () => {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-slots?date=${selectedDate}&type=${selectedType}`,
         {
           headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
         }
