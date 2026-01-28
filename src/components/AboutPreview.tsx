@@ -1,6 +1,5 @@
 import { ArrowRight, MapPin, Heart, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
-import portrait from "@/assets/about-portrait.jpg";
 
 const AboutPreview = () => {
   return (
@@ -12,9 +11,9 @@ const AboutPreview = () => {
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-elevated">
                 <img
-                  src={portrait}
-                  alt="Your resilience coach"
-                  className="w-full h-auto aspect-[4/5] object-cover"
+                  src="/silvie.jpg"
+                  alt="Silvie Bogdanova - Art Expressive Therapist"
+                  className="w-full h-auto aspect-[4/5] object-cover object-top"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent" />
               </div>
