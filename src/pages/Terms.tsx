@@ -82,8 +82,8 @@ const Terms = () => {
               <h2 className="text-2xl font-serif font-semibold mb-4">7. Contact</h2>
               <p className="text-muted-foreground font-sans mb-6">
                 For questions about these terms, please contact us at{" "}
-                <a href="mailto:silvie@artexpressivetherapy.com" className="text-gold hover:underline">
-                  silvie@artexpressivetherapy.com
+                <a href="mailto:contact@resilientmind.io" className="text-gold hover:underline">
+                  contact@resilientmind.io
                 </a>
               </p>
             </div>
