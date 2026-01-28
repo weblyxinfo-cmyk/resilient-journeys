@@ -17,6 +17,8 @@ interface Workshop {
   published_at: string | null;
   tags: string[];
   featured_image_url: string | null;
+  gallery_images: string[] | null;
+  video_urls: string[] | null;
   min_membership: 'free' | 'basic' | 'premium';
   view_count: number;
 }
@@ -145,6 +147,44 @@ const WorkshopPost = () => {
               </p>
             )}
           </header>
+
+          {/* Gallery Images */}
+          {hasAccess && workshop.gallery_images && workshop.gallery_images.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-serif font-semibold mb-6">Workshop Gallery</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {workshop.gallery_images.map((image, idx) => (
+                  <div key={idx} className="rounded-lg overflow-hidden aspect-square">
+                    <img
+                      src={image}
+                      alt={`${workshop.title} - Image ${idx + 1}`}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Video Content */}
+          {hasAccess && workshop.video_urls && workshop.video_urls.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-serif font-semibold mb-6">Workshop Videos</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {workshop.video_urls.map((videoUrl, idx) => (
+                  <div key={idx} className="rounded-lg overflow-hidden aspect-video">
+                    <iframe
+                      src={videoUrl}
+                      title={`${workshop.title} - Video ${idx + 1}`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Content or Paywall */}
           {hasAccess ? (

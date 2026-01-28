@@ -14,6 +14,8 @@ interface Workshop {
   published_at: string | null;
   tags: string[];
   featured_image_url: string | null;
+  gallery_images: string[] | null;
+  video_urls: string[] | null;
 }
 
 const Workshopy = () => {
@@ -27,7 +29,7 @@ const Workshopy = () => {
   const fetchWorkshops = async () => {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, excerpt, category, published_at, tags, featured_image_url')
+      .select('id, title, slug, excerpt, category, published_at, tags, featured_image_url, gallery_images, video_urls')
       .eq('category', 'workshop')
       .eq('is_published', true)
       .order('published_at', { ascending: false });
@@ -98,6 +100,29 @@ const Workshopy = () => {
                             alt={workshop.title}
                             className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                           />
+                        </div>
+                      )}
+
+                      {/* Gallery Preview */}
+                      {workshop.gallery_images && workshop.gallery_images.length > 0 && (
+                        <div className="mb-6">
+                          <div className="grid grid-cols-4 gap-2">
+                            {workshop.gallery_images.slice(0, 4).map((image, idx) => (
+                              <div key={idx} className="rounded-lg overflow-hidden aspect-square">
+                                <img
+                                  src={image}
+                                  alt={`${workshop.title} preview ${idx + 1}`}
+                                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          {(workshop.gallery_images.length > 4 || (workshop.video_urls && workshop.video_urls.length > 0)) && (
+                            <p className="text-xs text-muted-foreground mt-2 font-sans">
+                              {workshop.gallery_images.length} photos
+                              {workshop.video_urls && workshop.video_urls.length > 0 && ` • ${workshop.video_urls.length} videos`}
+                            </p>
+                          )}
                         </div>
                       )}
 
