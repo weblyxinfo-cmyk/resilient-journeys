@@ -45,30 +45,27 @@ const AboutPreview = () => {
               </div>
 
               <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-6">
-                I Help Expatriates{" "}
-                <span className="text-gradient-gold">Build Resilience</span>
+                Hi, I'm <span className="text-gradient-gold">Silvie</span>
               </h2>
 
               <p className="text-muted-foreground font-sans leading-relaxed mb-6">
-                I'm Silvie Bogdanova. Having lived as an expat in Australia and now Spain,
-                I intimately understand the challenges of building a new life abroad.
-                The cultural differences, the distance from family, and the journey of
-                creating a new sense of belonging.
+                I help expatriates and globally mobile individuals build mental resilience, blending proven personal development techniques with insights from my own 13 years of living and thriving abroad.
+              </p>
+
+              <p className="text-muted-foreground font-sans leading-relaxed mb-6">
+                My journey began in the Czech Republic, where I completed my Master's degree in Economics and Management. Life presented me with unexpected challenges: a diagnosis of endometriosis, multiple surgeries, and navigating new cultures and healthcare systems far from home.
               </p>
 
               <p className="text-muted-foreground font-sans leading-relaxed mb-8">
-                Through my journey, I discovered the power of creative art expressive therapy
-                and evidence-based resilience techniques. Now I help expatriates and
-                globally mobile individuals develop the inner strength to not just survive,
-                but truly thrive.
+                Over the years, I've devoted myself to holistic approaches, obtaining a Certificate in Holistic Counselling, an Art Therapy Diploma (HH Dip A.Th), and Reiki Master certification. Through Resilient Mind, I guide individuals—especially women living abroad—toward inner strength and clarity.
               </p>
 
               {/* Skills */}
               <div className="flex flex-wrap gap-3 mb-8">
                 {[
-                  { icon: Palette, label: "Art Expressive Therapy" },
-                  { icon: Heart, label: "Resilience Coaching" },
-                  { icon: MapPin, label: "Expat Experience" },
+                  { icon: Heart, label: "Holistic Counselling" },
+                  { icon: Palette, label: "Art Therapy Diploma" },
+                  { icon: MapPin, label: "Reiki Master" },
                 ].map((skill, index) => (
                   <div
                     key={index}

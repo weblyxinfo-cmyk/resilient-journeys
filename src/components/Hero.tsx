@@ -20,48 +20,50 @@ const Hero = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/20 backdrop-blur-sm rounded-full mb-8 animate-fade-in border border-gold/30">
             <span className="w-2 h-2 bg-gold rounded-full animate-pulse" />
             <span className="text-sm font-sans font-semibold text-gold-dark">
-              For Expat Women Worldwide
+              For Expats Ready to Thrive
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold leading-tight mb-6 animate-slide-up drop-shadow-sm">
-            <span className="text-foreground">Build Your</span>{" "}
-            <span className="text-gradient-gold drop-shadow-md">Resilient Mind</span>
+            <span className="text-foreground">The Expat's</span>{" "}
+            <span className="text-gradient-gold drop-shadow-md">Inner Alchemy</span>
             <br />
-            <span className="text-foreground/95 font-semibold">Thrive Wherever You Are</span>
+            <span className="text-foreground/95 font-semibold">Transform Uncertainty Into Your Greatest Strength</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-foreground/80 font-sans font-medium leading-relaxed max-w-2xl mx-auto mb-10 animate-fade-in drop-shadow-sm" style={{ animationDelay: "0.2s" }}>
-            A transformative 12-month journey combining creative art expressive therapy and
-            proven resilience techniques for expatriates and globally mobile individuals.
+          <p className="text-lg md:text-xl text-foreground/80 font-sans font-medium leading-relaxed max-w-3xl mx-auto mb-10 animate-fade-in drop-shadow-sm" style={{ animationDelay: "0.2s" }}>
+            Living between worlds changes everything—your identity, relationships, and sense of belonging. When familiar ground disappears, you need more than just practical adaptation techniques. You need a profound inner transformation.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <Link
               to="/resilient-hub"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-105"
             >
-              Start Your Journey
+              Explore Membership
               <ArrowRight size={18} />
             </Link>
-            <button
-              className="inline-flex items-center gap-2 px-8 py-4 bg-card/90 backdrop-blur-sm border border-border text-foreground font-sans font-medium rounded-full hover:bg-card transition-all duration-300 group"
+            <Link
+              to="/booking"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-card/90 backdrop-blur-sm border border-border text-foreground font-sans font-medium rounded-full hover:bg-card transition-all duration-300"
             >
-              <span className="w-10 h-10 flex items-center justify-center bg-gold/20 rounded-full group-hover:bg-gold/30 transition-colors">
-                <Play size={16} className="text-gold ml-0.5" />
-              </span>
-              My Story
-            </button>
+              Book Individual Session
+            </Link>
           </div>
+
+          {/* Tagline */}
+          <p className="text-sm md:text-base text-foreground/70 font-sans italic max-w-2xl mx-auto mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            "Start your journey today and discover the power of inner strength. Resilience is not about avoiding challenges—it's about meeting them with courage and clarity."
+          </p>
 
           {/* Features */}
           <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto animate-fade-in" style={{ animationDelay: "0.6s" }}>
             {[
-              { number: "12", label: "Month Program" },
-              { number: "1:1", label: "Personal Sessions" },
+              { number: "4", label: "Programs" },
+              { number: "13+", label: "Years Abroad" },
               { number: "Online", label: "& In-Person" },
             ].map((stat, index) => (
               <div key={index} className="text-center">

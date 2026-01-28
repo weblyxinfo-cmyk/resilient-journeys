@@ -6,19 +6,103 @@ import { Check, Sparkles, Calendar, BookOpen, Video, Users, Palette, Download, P
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const months = [
-  { month: 1, title: "Foundation", focus: "Understanding Resilience" },
-  { month: 2, title: "Self-Awareness", focus: "Knowing Your Patterns" },
-  { month: 3, title: "Emotional Regulation", focus: "Managing Big Feelings" },
-  { month: 4, title: "Connection", focus: "Building Support Networks" },
-  { month: 5, title: "Adaptability", focus: "Embracing Change" },
-  { month: 6, title: "Problem Solving", focus: "Creative Solutions" },
-  { month: 7, title: "Self-Care", focus: "Nurturing Yourself" },
-  { month: 8, title: "Communication", focus: "Expressing Your Needs" },
-  { month: 9, title: "Boundaries", focus: "Protecting Your Energy" },
-  { month: 10, title: "Purpose", focus: "Finding Meaning" },
-  { month: 11, title: "Gratitude", focus: "Cultivating Joy" },
-  { month: 12, title: "Integration", focus: "Living Resiliently" },
+const programs = [
+  {
+    id: 1,
+    title: "Adaptation in a Foreign Country",
+    months: "Months 1-3",
+    focus: "Nervous system regulation, daily safety rituals, inner home, identity beyond location",
+    quote: "Fear doesn't mean I made a mistake – it means I left the familiar.",
+    modules: [
+      {
+        name: "Module A",
+        title: "First Steps: Finding Solid Ground When Everything is New",
+        description: "Practical techniques for calming your nervous system while navigating cultural differences, building daily certainty in an unfamiliar environment."
+      },
+      {
+        name: "Module B",
+        title: "Creating Your New Roots: Identity Beyond Borders",
+        description: "The profound process of identity transformation during cultural transition. Practical steps for creating an 'inner home' that remains stable regardless of geographic location."
+      },
+      {
+        name: "Module C",
+        title: "The Integration Path: Becoming Part of Your New World",
+        description: "The art of balancing preservation of your cultural identity while opening to new ways of being across cultural differences."
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Navigating Inner Landscapes: From Loneliness to Self-Discovery",
+    months: "Months 4-6",
+    focus: "Loneliness, emotional phases, identity collapse and reconstruction, purpose, vision",
+    quote: "I am not broken – I am in transition.",
+    modules: [
+      {
+        name: "Module A",
+        title: "The Emotional Terrain of Expatriation: You Are Not Alone",
+        description: "Uncovering the hidden emotional phases most expats experience. Practical techniques for transforming isolation into deeper self-knowledge."
+      },
+      {
+        name: "Module B",
+        title: "Reclaiming Your Authentic Self: Identity Beyond Cultural Labels",
+        description: "Discovering new dimensions of your identity that awaken only through living between cultures. Transformational work with the Byron Katie method."
+      },
+      {
+        name: "Module C",
+        title: "Soul Alignment: Finding Meaning in Your Expat Journey",
+        description: "Revealing the hidden meaning and purpose behind your expatriation journey through intuitive practices."
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "Financial Freedom Abroad: Navigate Financial Uncertainty with Ease",
+    months: "Months 7-9",
+    focus: "Money beliefs, self-trust, financial calm, opportunity awareness, intuitive decisions",
+    quote: "I don't rely on certainty—I rely on my own inner guidance.",
+    modules: [
+      {
+        name: "Module A",
+        title: "Money Energy Mastery: Uncovering Your Expat Money Story",
+        description: "Practical techniques for identifying inherited money beliefs, understanding how your financial mindset shifts when navigating different cultural money values."
+      },
+      {
+        name: "Module B",
+        title: "Trust & Abundance: Creating Financial Security Anywhere",
+        description: "Building inner certainty independent of external circumstances, how to develop trust in yourself and your ability to thrive in any environment."
+      },
+      {
+        name: "Module C",
+        title: "Prosperity Consciousness: Living in Alignment with Abundance",
+        description: "Creating a personal manifestation process for attracting opportunities, techniques for recognizing and utilizing hidden financial opportunities."
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "Life Beyond Family Borders: Redefining Family When Worlds Apart",
+    months: "Months 10-12",
+    focus: "Guilt release, emotional closeness, building authentic community, integration, life vision",
+    quote: "Belonging isn't found, it's created—through your courageous presence, the seeds of trust, and the daily tending of meaningful connections.",
+    modules: [
+      {
+        name: "Module A",
+        title: "Heart Bridges: Nurturing Love Across Distances",
+        description: "Rituals for maintaining deep emotional closeness despite physical distance, creative ways of sharing life beyond texts and calls."
+      },
+      {
+        name: "Module B",
+        title: "Soul Family: Creating Your Tribe in a New Land",
+        description: "Strategies for finding authentic friendships in a foreign environment, recognizing potential 'kindred spirits,' courage to be vulnerable."
+      },
+      {
+        name: "Module C",
+        title: "The Integrated Self: Embracing Your Multi-Dimensional Life",
+        description: "The culmination of your transformation journey, where separate skills integrate into your new resilient identity."
+      }
+    ]
+  }
 ];
 
 const ResilientHub = () => {
@@ -34,19 +118,21 @@ const ResilientHub = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Sparkles size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  12-Month Transformation
+                  Building Resilient Mind
                 </span>
               </div>
-              
+
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-semibold mb-6">
-                Building <span className="text-gradient-gold">Resilient Mind</span>
-                <br />12 Months to Inner Strength
+                <span className="text-gradient-gold">12 Months Program</span>
+                <br />to Inner Strength
               </h1>
-              
-              <p className="text-lg text-muted-foreground font-sans mb-8 max-w-2xl mx-auto">
-                A structured journey through 12 aspects of resilience, combining
-                creative art expressive therapy techniques with evidence-based approaches
-                designed specifically for expatriates and globally mobile individuals.
+
+              <p className="text-lg text-muted-foreground font-sans mb-4 max-w-3xl mx-auto">
+                Expat life can be rewarding, but it also comes with challenges—loneliness, cultural differences, uncertainty, and navigating health challenges while away from your familiar support network.
+              </p>
+
+              <p className="text-lg text-foreground/90 font-sans mb-8 max-w-3xl mx-auto">
+                Using my 13 years of experience living abroad and my expertise in personal development, expressive arts, and holistic therapies, I created a program that turns these challenges into opportunities for growth and inner strength.
               </p>
               
               <Link
@@ -122,21 +208,46 @@ const ResilientHub = () => {
                 </TabsContent>
 
                 <TabsContent value="overview" className="mt-0">
-                  <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {months.map((item) => (
+                  <div className="space-y-6">
+                    {programs.map((program) => (
                       <div
-                        key={item.month}
-                        className="group p-5 bg-background rounded-xl border border-border hover:shadow-soft hover:border-gold/30 transition-all cursor-pointer"
+                        key={program.id}
+                        className="bg-background rounded-2xl border border-border overflow-hidden hover:shadow-soft transition-all"
                       >
-                        <div className="text-xs font-sans font-semibold text-primary mb-2">
-                          Month {item.month}
+                        <div className="bg-gradient-warm p-6">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <div>
+                              <div className="text-xs font-sans font-semibold text-primary mb-2">
+                                {program.months}
+                              </div>
+                              <h3 className="font-serif font-semibold text-2xl mb-2 text-foreground">
+                                {program.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-sans mb-3">
+                                <strong>Focus:</strong> {program.focus}
+                              </p>
+                              <p className="text-sm italic text-foreground/80 font-sans">
+                                "{program.quote}"
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <h3 className="font-serif font-semibold text-lg mb-1 group-hover:text-gold transition-colors">
-                          {item.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground font-sans">
-                          {item.focus}
-                        </p>
+
+                        <div className="grid md:grid-cols-3 gap-4 p-6">
+                          {program.modules.map((module, idx) => (
+                            <div key={idx} className="p-4 bg-card rounded-xl border border-border">
+                              <div className="text-xs font-sans font-semibold text-gold mb-2">
+                                {module.name}
+                              </div>
+                              <h4 className="font-serif font-semibold text-base mb-2">
+                                {module.title}
+                              </h4>
+                              <p className="text-xs text-muted-foreground font-sans">
+                                {module.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>

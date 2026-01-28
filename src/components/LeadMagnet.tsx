@@ -78,20 +78,19 @@ const LeadMagnet = () => {
                 </div>
 
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
-                  Start Your Journey to Resilience
+                  Immediate Techniques to Find Calm in Cultural Chaos
                 </h2>
 
                 <p className="text-muted-foreground font-sans mb-6">
-                  Get a free mini e-book and video course with practical exercises
-                  for building your mental resilience.
+                  Begin your transformation today with our free guide and discover how our Resilient Mind program can transform your expatriate journey.
                 </p>
 
                 <ul className="space-y-3 mb-6">
                   {[
-                    "5 core resilience techniques",
-                    "Guided meditation (audio)",
-                    "Printable workbook (PDF)",
-                    "Video lessons",
+                    "3 proven resilience techniques for immediate calm",
+                    "Practical exercises you can use right now",
+                    "Introduction to our transformational approach",
+                    "Downloadable PDF guide",
                   ].map((item, index) => (
                     <li key={index} className="flex items-center gap-3 font-sans text-sm">
                       <CheckCircle size={18} className="text-primary flex-shrink-0" />
