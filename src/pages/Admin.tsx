@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, Settings, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock } from 'lucide-react';
+import { Shield, Video, Users, Star, Settings, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminTestimonials from '@/components/admin/AdminTestimonials';
@@ -17,6 +17,7 @@ import AdminBlog from '@/components/admin/AdminBlog';
 import AdminCMS from '@/components/admin/AdminCMS';
 import AdminBookings from '@/components/admin/AdminBookings';
 import AdminAvailability from '@/components/admin/AdminAvailability';
+import AdminInquiries from '@/components/admin/AdminInquiries';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -104,6 +105,10 @@ const Admin = () => {
                 <BookOpen className="h-4 w-4 mr-2" />
                 Blog & Workshopy
               </TabsTrigger>
+              <TabsTrigger value="inquiries" className="data-[state=active]:bg-gold data-[state=active]:text-white">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Inquiries
+              </TabsTrigger>
               <TabsTrigger value="bookings" className="data-[state=active]:bg-gold data-[state=active]:text-white">
                 <Calendar className="h-4 w-4 mr-2" />
                 Rezervace
@@ -148,6 +153,10 @@ const Admin = () => {
 
             <TabsContent value="blog">
               <AdminBlog />
+            </TabsContent>
+
+            <TabsContent value="inquiries">
+              <AdminInquiries />
             </TabsContent>
 
             <TabsContent value="bookings">

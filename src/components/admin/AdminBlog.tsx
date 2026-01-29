@@ -31,6 +31,11 @@ interface BlogPost {
   meta_title: string | null;
   meta_description: string | null;
   view_count: number;
+  is_paid_workshop: boolean;
+  workshop_price: number;
+  workshop_currency: string;
+  payment_iban: string | null;
+  payment_message: string | null;
 }
 
 const membershipLabels = {
@@ -59,7 +64,12 @@ const AdminBlog = () => {
     min_membership: 'free' as 'free' | 'basic' | 'premium',
     tags: '',
     meta_title: '',
-    meta_description: ''
+    meta_description: '',
+    is_paid_workshop: false,
+    workshop_price: 0,
+    workshop_currency: 'CZK',
+    payment_iban: '',
+    payment_message: ''
   });
 
   useEffect(() => {
@@ -95,7 +105,12 @@ const AdminBlog = () => {
       min_membership: 'free',
       tags: '',
       meta_title: '',
-      meta_description: ''
+      meta_description: '',
+      is_paid_workshop: false,
+      workshop_price: 0,
+      workshop_currency: 'CZK',
+      payment_iban: '',
+      payment_message: ''
     });
     setEditingPost(null);
   };
@@ -121,7 +136,12 @@ const AdminBlog = () => {
       min_membership: post.min_membership,
       tags: post.tags.join(', '),
       meta_title: post.meta_title || '',
-      meta_description: post.meta_description || ''
+      meta_description: post.meta_description || '',
+      is_paid_workshop: post.is_paid_workshop || false,
+      workshop_price: post.workshop_price || 0,
+      workshop_currency: post.workshop_currency || 'CZK',
+      payment_iban: post.payment_iban || '',
+      payment_message: post.payment_message || ''
     });
     setDialogOpen(true);
   };
@@ -144,7 +164,7 @@ const AdminBlog = () => {
       publishedAt = new Date().toISOString();
     }
 
-    const postData = {
+    const postData: any = {
       title: formData.title,
       slug: formData.slug || generateSlug(formData.title),
       excerpt: formData.excerpt || null,
@@ -158,7 +178,12 @@ const AdminBlog = () => {
       tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
       meta_title: formData.meta_title || formData.title,
       meta_description: formData.meta_description || formData.excerpt || formData.content.substring(0, 160),
-      author_id: user?.id
+      author_id: user?.id,
+      is_paid_workshop: formData.category === 'workshop' ? formData.is_paid_workshop : false,
+      workshop_price: formData.category === 'workshop' ? formData.workshop_price : 0,
+      workshop_currency: formData.category === 'workshop' ? formData.workshop_currency : 'CZK',
+      payment_iban: formData.category === 'workshop' && formData.payment_iban ? formData.payment_iban : null,
+      payment_message: formData.category === 'workshop' && formData.payment_message ? formData.payment_message : null,
     };
 
     if (editingPost) {
@@ -327,6 +352,75 @@ const AdminBlog = () => {
                   </div>
                 </div>
 
+                {formData.category === 'workshop' && (
+                  <Card className="border-gold/30">
+                    <CardContent className="pt-4 space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="is_paid_workshop"
+                          checked={formData.is_paid_workshop}
+                          onCheckedChange={(checked) => setFormData({ ...formData, is_paid_workshop: checked })}
+                        />
+                        <Label htmlFor="is_paid_workshop" className="cursor-pointer font-semibold">
+                          Paid Workshop (with registration & QR payment)
+                        </Label>
+                      </div>
+
+                      {formData.is_paid_workshop && (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="workshop_price">Price</Label>
+                              <Input
+                                id="workshop_price"
+                                type="number"
+                                min={0}
+                                value={formData.workshop_price}
+                                onChange={(e) => setFormData({ ...formData, workshop_price: parseInt(e.target.value) || 0 })}
+                                placeholder="e.g. 1500"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="workshop_currency">Currency</Label>
+                              <Select value={formData.workshop_currency} onValueChange={(v) => setFormData({ ...formData, workshop_currency: v })}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="CZK">CZK</SelectItem>
+                                  <SelectItem value="EUR">EUR</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_iban">Bank Account (IBAN)</Label>
+                            <Input
+                              id="payment_iban"
+                              value={formData.payment_iban}
+                              onChange={(e) => setFormData({ ...formData, payment_iban: e.target.value })}
+                              placeholder="CZ6508000000192000145399"
+                            />
+                            <p className="text-xs text-muted-foreground">IBAN for QR payment code</p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_message">Payment Message / Note</Label>
+                            <Input
+                              id="payment_message"
+                              value={formData.payment_message}
+                              onChange={(e) => setFormData({ ...formData, payment_message: e.target.value })}
+                              placeholder="e.g. Workshop Resilience 2026"
+                            />
+                            <p className="text-xs text-muted-foreground">Message shown in bank transfer</p>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="meta_title">SEO: Meta Title</Label>
                   <Input
@@ -409,6 +503,7 @@ const AdminBlog = () => {
                       <TableHead>Title</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Membership</TableHead>
+                      {activeCategory === 'workshop' && <TableHead>Price</TableHead>}
                       <TableHead>Views</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -436,6 +531,17 @@ const AdminBlog = () => {
                         <TableCell>
                           <Badge variant="outline">{membershipLabels[post.min_membership]}</Badge>
                         </TableCell>
+                        {activeCategory === 'workshop' && (
+                          <TableCell>
+                            {post.is_paid_workshop ? (
+                              <Badge className="bg-green-100 text-green-800">
+                                {post.workshop_price} {post.workshop_currency}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Free inquiry</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell>{post.view_count}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">

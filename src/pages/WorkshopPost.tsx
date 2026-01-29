@@ -6,6 +6,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Calendar, Tag, ArrowLeft, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import WorkshopInquiryForm from '@/components/WorkshopInquiryForm';
+import WorkshopRegistration from '@/components/WorkshopRegistration';
 
 interface Workshop {
   id: string;
@@ -21,6 +23,11 @@ interface Workshop {
   video_urls: string[] | null;
   min_membership: 'free' | 'basic' | 'premium';
   view_count: number;
+  is_paid_workshop: boolean;
+  workshop_price: number;
+  workshop_currency: string;
+  payment_iban: string | null;
+  payment_message: string | null;
 }
 
 const membershipNames = {
@@ -192,7 +199,7 @@ const WorkshopPost = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-12 text-center">
+            <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-12 text-center mb-12">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gold/20 rounded-full mb-6">
                 <Lock className="text-gold" size={32} />
               </div>
@@ -211,6 +218,22 @@ const WorkshopPost = () => {
               </Link>
             </div>
           )}
+
+          {/* Registration (paid) or Inquiry (free) */}
+          <div className="mt-12">
+            {workshop.is_paid_workshop && workshop.workshop_price > 0 ? (
+              <WorkshopRegistration
+                workshopId={workshop.id}
+                workshopTitle={workshop.title}
+                price={workshop.workshop_price}
+                currency={workshop.workshop_currency}
+                iban={workshop.payment_iban}
+                paymentMessage={workshop.payment_message}
+              />
+            ) : (
+              <WorkshopInquiryForm workshopId={workshop.id} workshopTitle={workshop.title} />
+            )}
+          </div>
         </article>
       </main>
 

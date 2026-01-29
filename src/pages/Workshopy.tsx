@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Sparkles, Calendar, ArrowRight, Tag } from "lucide-react";
+import { Sparkles, Calendar, ArrowRight, Tag, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
+import WorkshopInquiryForm from '@/components/WorkshopInquiryForm';
 
 interface Workshop {
   id: string;
@@ -16,6 +17,9 @@ interface Workshop {
   featured_image_url: string | null;
   gallery_images: string[] | null;
   video_urls: string[] | null;
+  is_paid_workshop: boolean;
+  workshop_price: number;
+  workshop_currency: string;
 }
 
 const Workshopy = () => {
@@ -29,7 +33,7 @@ const Workshopy = () => {
   const fetchWorkshops = async () => {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, excerpt, category, published_at, tags, featured_image_url, gallery_images, video_urls')
+      .select('id, title, slug, excerpt, category, published_at, tags, featured_image_url, gallery_images, video_urls, is_paid_workshop, workshop_price, workshop_currency')
       .eq('category', 'workshop')
       .eq('is_published', true)
       .order('published_at', { ascending: false });
@@ -139,6 +143,16 @@ const Workshopy = () => {
                           <Calendar size={14} />
                           <span>{formatDate(workshop.published_at)}</span>
                         </div>
+                        {workshop.is_paid_workshop && workshop.workshop_price > 0 && (
+                          <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 rounded-full">
+                            <CreditCard size={12} className="text-green-700" />
+                            <span className="text-xs font-sans font-semibold text-green-700">
+                              {workshop.workshop_currency === 'CZK'
+                                ? `${workshop.workshop_price.toLocaleString('cs-CZ')} Kč`
+                                : `€${workshop.workshop_price.toLocaleString('de-DE')}`}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <h2 className="text-xl md:text-2xl font-serif font-semibold mb-3 group-hover:text-primary transition-colors">
@@ -163,20 +177,9 @@ const Workshopy = () => {
                 </div>
               )}
 
-              {/* CTA */}
-              <div className="mt-16 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 text-center">
-                <h3 className="text-2xl font-serif font-semibold mb-4">
-                  Interested in a Workshop?
-                </h3>
-                <p className="text-muted-foreground font-sans mb-6 max-w-md mx-auto">
-                  We offer personalized workshops for expat communities, schools, and organizations. Please contact me by email for details.
-                </p>
-                <a
-                  href="mailto:silvie@resilientmind.io"
-                  className="inline-block px-8 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all"
-                >
-                  Contact: silvie@resilientmind.io
-                </a>
+              {/* Inquiry Form */}
+              <div className="mt-16">
+                <WorkshopInquiryForm />
               </div>
             </div>
           </div>

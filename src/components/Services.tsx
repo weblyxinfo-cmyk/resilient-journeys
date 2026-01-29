@@ -25,11 +25,11 @@ const services = [
   {
     icon: Calendar,
     title: "Workshops",
-    subtitle: "Contact by Email",
+    subtitle: "For Groups & Organizations",
     description:
       "Interactive workshops for organizations and groups. Innovative approaches to building resilience abroad.",
     price: "Contact for details",
-    href: "mailto:silvie@resilientmind.io",
+    href: "/workshopy",
     featured: false,
   },
 ];

@@ -14,6 +14,88 @@ export type Database = {
   }
   public: {
     Tables: {
+      workshop_registrations: {
+        Row: {
+          id: string
+          workshop_id: string
+          name: string
+          email: string
+          phone: string | null
+          note: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          workshop_id: string
+          name: string
+          email: string
+          phone?: string | null
+          note?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          workshop_id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          note?: string | null
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_registrations_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshop_inquiries: {
+        Row: {
+          id: string
+          workshop_id: string | null
+          name: string
+          email: string
+          company: string | null
+          group_size: string | null
+          message: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          workshop_id?: string | null
+          name: string
+          email: string
+          company?: string | null
+          group_size?: string | null
+          message: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          workshop_id?: string | null
+          name?: string
+          email?: string
+          company?: string | null
+          group_size?: string | null
+          message?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_inquiries_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_magnets: {
         Row: {
           email: string
