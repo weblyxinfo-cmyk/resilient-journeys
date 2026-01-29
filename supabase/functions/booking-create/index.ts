@@ -31,14 +31,16 @@ serve(async (req) => {
   }
 
   try {
-    const { session_type, client_name, client_email, start_time, notes } =
-      await req.json();
+    const requestBody = await req.json();
+    console.log("Request body:", JSON.stringify(requestBody));
+
+    const { session_type, client_name, client_email, start_time, notes } = requestBody;
 
     // Validation
     if (!session_type || !client_name || !client_email || !start_time) {
-      throw new Error(
-        "Missing required fields: session_type, client_name, client_email, start_time"
-      );
+      const error = `Missing required fields. Received: ${JSON.stringify({ session_type, client_name, client_email, start_time })}`;
+      console.error(error);
+      throw new Error(error);
     }
 
     if (!SESSION_DURATIONS[session_type]) {
@@ -91,14 +93,23 @@ serve(async (req) => {
     }
 
     // Check availability for day of week
-    const { data: availability } = await supabaseClient
+    console.log("Checking availability for day_of_week:", dayOfWeek);
+    const { data: availability, error: availError } = await supabaseClient
       .from("availability")
       .select("*")
       .eq("day_of_week", dayOfWeek)
       .eq("is_active", true);
 
+    console.log("Availability query result:", { availability, error: availError });
+
+    if (availError) {
+      console.error("Error fetching availability:", availError);
+      throw new Error(`Availability check failed: ${availError.message}`);
+    }
+
     if (!availability || availability.length === 0) {
-      throw new Error("No availability for selected day");
+      console.error("No availability found for day", dayOfWeek);
+      throw new Error(`No availability for selected day (${dayOfWeek})`);
     }
 
     // Check for conflicting bookings
