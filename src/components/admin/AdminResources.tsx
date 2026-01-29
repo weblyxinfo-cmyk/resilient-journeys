@@ -43,6 +43,8 @@ interface Resource {
   is_free: boolean;
   sort_order: number;
   download_count: number;
+  week_number: number | null;
+  resource_subtype: string | null;
 }
 
 interface Category {
@@ -57,6 +59,8 @@ const AdminResources = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [weekFilter, setWeekFilter] = useState<string>('all');
+  const [subtypeFilter, setSubtypeFilter] = useState<string>('all');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -68,6 +72,8 @@ const AdminResources = () => {
     min_membership: 'basic',
     is_free: false,
     sort_order: 0,
+    week_number: '',
+    resource_subtype: '',
   });
 
   useEffect(() => {
@@ -112,6 +118,8 @@ const AdminResources = () => {
       min_membership: 'basic',
       is_free: false,
       sort_order: 0,
+      week_number: '',
+      resource_subtype: '',
     });
     setEditingId(null);
   };
@@ -125,6 +133,8 @@ const AdminResources = () => {
         ...formData,
         file_size_mb: formData.file_size_mb ? parseFloat(formData.file_size_mb) : null,
         category_id: formData.category_id || null,
+        week_number: formData.week_number ? parseInt(formData.week_number) : null,
+        resource_subtype: formData.resource_subtype || null,
       };
 
       if (editingId) {
@@ -165,6 +175,8 @@ const AdminResources = () => {
       min_membership: resource.min_membership,
       is_free: resource.is_free,
       sort_order: resource.sort_order,
+      week_number: resource.week_number?.toString() || '',
+      resource_subtype: resource.resource_subtype || '',
     });
     setEditingId(resource.id);
   };
@@ -341,6 +353,47 @@ const AdminResources = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="week_number">Week Number</Label>
+                <Select
+                  value={formData.week_number}
+                  onValueChange={(value) => setFormData({ ...formData, week_number: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Not assigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Not assigned</SelectItem>
+                    <SelectItem value="1">Week 1</SelectItem>
+                    <SelectItem value="2">Week 2</SelectItem>
+                    <SelectItem value="3">Week 3</SelectItem>
+                    <SelectItem value="4">Week 4</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="resource_subtype">Resource Subtype</Label>
+                <Select
+                  value={formData.resource_subtype}
+                  onValueChange={(value) => setFormData({ ...formData, resource_subtype: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="General" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">General</SelectItem>
+                    <SelectItem value="workbook">Workbook</SelectItem>
+                    <SelectItem value="affirmation">Affirmation</SelectItem>
+                    <SelectItem value="tarot_card">Tarot Card</SelectItem>
+                    <SelectItem value="vision_board">Vision Board</SelectItem>
+                    <SelectItem value="habit_tracker">Habit Tracker</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="flex items-center gap-4 pt-4">
               <Button type="submit" disabled={submitting} className="bg-gold hover:bg-gold-dark">
                 {submitting ? (
@@ -372,11 +425,52 @@ const AdminResources = () => {
           {resources.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No resources yet. Add your first one above!</p>
           ) : (
+            <>
+              {/* Filters */}
+              <div className="flex gap-4 mb-6">
+                <div className="space-y-2">
+                  <Label>Filter by Week</Label>
+                  <Select value={weekFilter} onValueChange={setWeekFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Weeks</SelectItem>
+                      <SelectItem value="none">Not Assigned</SelectItem>
+                      <SelectItem value="1">Week 1</SelectItem>
+                      <SelectItem value="2">Week 2</SelectItem>
+                      <SelectItem value="3">Week 3</SelectItem>
+                      <SelectItem value="4">Week 4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Filter by Subtype</Label>
+                  <Select value={subtypeFilter} onValueChange={setSubtypeFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Subtypes</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="workbook">Workbook</SelectItem>
+                      <SelectItem value="affirmation">Affirmation</SelectItem>
+                      <SelectItem value="tarot_card">Tarot Card</SelectItem>
+                      <SelectItem value="vision_board">Vision Board</SelectItem>
+                      <SelectItem value="habit_tracker">Habit Tracker</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Week</TableHead>
+                  <TableHead>Subtype</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Membership</TableHead>
                   <TableHead>Downloads</TableHead>
@@ -385,7 +479,23 @@ const AdminResources = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {resources.map((resource) => {
+                {resources
+                  .filter((resource) => {
+                    // Week filter
+                    if (weekFilter !== 'all') {
+                      if (weekFilter === 'none' && resource.week_number !== null) return false;
+                      if (weekFilter !== 'none' && resource.week_number?.toString() !== weekFilter) return false;
+                    }
+
+                    // Subtype filter
+                    if (subtypeFilter !== 'all') {
+                      if (subtypeFilter === 'general' && resource.resource_subtype !== null && resource.resource_subtype !== '') return false;
+                      if (subtypeFilter !== 'general' && resource.resource_subtype !== subtypeFilter) return false;
+                    }
+
+                    return true;
+                  })
+                  .map((resource) => {
                   const Icon = getResourceIcon(resource.resource_type);
                   const category = categories.find(c => c.id === resource.category_id);
                   return (
@@ -398,6 +508,22 @@ const AdminResources = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{resource.resource_type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {resource.week_number ? (
+                          <Badge variant="secondary">Week {resource.week_number}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {resource.resource_subtype ? (
+                          <Badge variant="outline" className="capitalize">
+                            {resource.resource_subtype.replace('_', ' ')}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">General</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {category ? `Month ${category.month_number}` : '-'}
@@ -441,6 +567,7 @@ const AdminResources = () => {
                 })}
               </TableBody>
             </Table>
+            </>
           )}
         </CardContent>
       </Card>
