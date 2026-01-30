@@ -284,9 +284,9 @@ const ResilientHub = () => {
                     </p>
                     <ul className="space-y-2 mb-4">
                       {[
-                        "Complete access to all modules (A, B, C)",
-                        "1-hour personal consultation including Reiki treatment",
-                        "Tools for managing pain while expatriating",
+                        "1 hour individual session",
+                        "1 hour Reiki treatment",
+                        "Art Therapy tool kit for chronic pain",
                       ].map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
                           <Check size={16} className="text-primary mt-0.5 flex-shrink-0" />

@@ -50,7 +50,7 @@ const EndometriosisHub = () => {
                 What's Included
               </h2>
               <p className="text-center text-muted-foreground font-sans mb-12 max-w-2xl mx-auto">
-                Complete access to all modules (A, B, C) plus 1-hour personal consultation including Reiki treatment
+                1-hour individual session, 1-hour Reiki treatment, and Art Therapy tool kit for chronic pain
               </p>
 
               <div className="grid md:grid-cols-3 gap-6 mb-12">

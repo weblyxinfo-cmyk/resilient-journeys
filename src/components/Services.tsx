@@ -82,20 +82,25 @@ const Services = () => {
         </div>
 
         {/* Why Our Approach Works */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-20">
-          {approaches.map((approach, index) => (
-            <div key={index} className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <approach.icon size={32} className="text-primary" />
+        <div className="max-w-5xl mx-auto mb-20">
+          <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-12 text-center">
+            Why Our Approach Works
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {approaches.map((approach, index) => (
+              <div key={index} className="text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <approach.icon size={32} className="text-primary" />
+                </div>
+                <h3 className="text-xl font-serif font-semibold mb-3 text-foreground">
+                  {approach.title}
+                </h3>
+                <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                  {approach.description}
+                </p>
               </div>
-              <h3 className="text-xl font-serif font-semibold mb-3 text-foreground">
-                {approach.title}
-              </h3>
-              <p className="text-sm text-muted-foreground font-sans leading-relaxed">
-                {approach.description}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Who It's For */}
