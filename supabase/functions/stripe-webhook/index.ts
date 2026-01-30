@@ -30,25 +30,123 @@ serve(async (req) => {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.user_id;
-        const membershipType = session.metadata?.membership_type;
+        const mode = session.mode; // 'subscription' or 'payment'
 
-        if (userId && membershipType) {
-          // Calculate expiry based on subscription
-          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-          const expiresAt = new Date(subscription.current_period_end * 1000);
+        console.log(`Checkout completed - Mode: ${mode}, User: ${userId}`);
 
-          await supabaseAdmin
-            .from("profiles")
-            .update({
-              membership_type: membershipType,
-              membership_started_at: new Date().toISOString(),
-              membership_expires_at: expiresAt.toISOString(),
-              stripe_customer_id: session.customer as string,
-            })
-            .eq("user_id", userId);
-
-          console.log(`Updated membership for user ${userId} to ${membershipType}`);
+        if (!userId) {
+          console.error("No user_id in session metadata");
+          break;
         }
+
+        // Handle subscription payments
+        if (mode === "subscription") {
+          const membershipType = session.metadata?.membership_type;
+
+          if (membershipType) {
+            try {
+              // Calculate expiry based on subscription
+              const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+              const expiresAt = new Date(subscription.current_period_end * 1000);
+
+              await supabaseAdmin
+                .from("profiles")
+                .update({
+                  membership_type: membershipType,
+                  membership_started_at: new Date().toISOString(),
+                  membership_expires_at: expiresAt.toISOString(),
+                  stripe_customer_id: session.customer as string,
+                })
+                .eq("user_id", userId);
+
+              console.log(`Updated subscription membership for user ${userId} to ${membershipType}`);
+            } catch (error) {
+              console.error(`Error processing subscription for user ${userId}:`, error);
+              throw error;
+            }
+          }
+        }
+
+        // Handle one-time payments
+        if (mode === "payment") {
+          const productType = session.metadata?.product_type;
+          console.log(`Processing one-time payment - Product type: ${productType}`);
+
+          try {
+            // Handle yearly membership purchases
+            if (productType === "yearly_basic" || productType === "yearly_premium") {
+              // Set membership for 12 months
+              const expiresAt = new Date();
+              expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+              const membershipType = productType === "yearly_basic" ? "basic" : "premium";
+
+              const { error } = await supabaseAdmin
+                .from("profiles")
+                .update({
+                  membership_type: membershipType,
+                  membership_started_at: new Date().toISOString(),
+                  membership_expires_at: expiresAt.toISOString(),
+                  stripe_customer_id: session.customer as string,
+                })
+                .eq("user_id", userId);
+
+              if (error) {
+                console.error(`Error updating yearly membership for user ${userId}:`, error);
+                throw error;
+              }
+
+              console.log(`Updated yearly membership for user ${userId} to ${membershipType}, expires: ${expiresAt.toISOString()}`);
+            }
+
+            // Handle Hub purchases
+            if (productType === "hub") {
+              const hubSlug = session.metadata?.hub_slug;
+
+              if (!hubSlug) {
+                console.error(`No hub_slug in metadata for Hub purchase by user ${userId}`);
+                break;
+              }
+
+              // Get current purchased hubs
+              const { data: profile, error: fetchError } = await supabaseAdmin
+                .from("profiles")
+                .select("purchased_hubs")
+                .eq("user_id", userId)
+                .single();
+
+              if (fetchError) {
+                console.error(`Error fetching profile for user ${userId}:`, fetchError);
+                throw fetchError;
+              }
+
+              const currentHubs = profile?.purchased_hubs || [];
+
+              // Check if hub is already purchased
+              if (currentHubs.includes(hubSlug)) {
+                console.log(`Hub ${hubSlug} already purchased by user ${userId}`);
+              } else {
+                const updatedHubs = [...currentHubs, hubSlug];
+
+                const { error: updateError } = await supabaseAdmin
+                  .from("profiles")
+                  .update({ purchased_hubs: updatedHubs })
+                  .eq("user_id", userId);
+
+                if (updateError) {
+                  console.error(`Error updating purchased hubs for user ${userId}:`, updateError);
+                  throw updateError;
+                }
+
+                console.log(`Added hub ${hubSlug} to purchased_hubs for user ${userId}. Total hubs: ${updatedHubs.length}`);
+              }
+            }
+          } catch (error) {
+            console.error(`Error processing one-time payment for user ${userId}:`, error);
+            throw error;
+          }
+        }
+
         break;
       }
 
