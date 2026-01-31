@@ -1,5 +1,6 @@
 import { BookOpen, Users, Calendar, Sparkles, Target, Palette, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const services = [
   {
@@ -60,8 +61,17 @@ const whoItsFor = [
 
 const Services = () => {
   return (
-    <section className="py-24 bg-gradient-warm">
-      <div className="container px-4">
+    <section className="relative py-24 overflow-hidden">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBg})` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background" />
+        <div className="absolute inset-0 bg-foreground/5" />
+      </div>
+
+      <div className="container relative z-10 px-4">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
