@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { FileText } from "lucide-react";
+import PageHero from "@/components/PageHero";
 
 const Terms = () => {
   return (
@@ -8,8 +9,7 @@ const Terms = () => {
       <Navbar />
 
       <main className="pt-20">
-        <section className="py-16 md:py-24 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <FileText size={16} className="text-primary" />
@@ -26,8 +26,7 @@ const Terms = () => {
                 Last updated: January 2025
               </p>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         <section className="py-16 md:py-24 bg-background">
           <div className="container px-4">

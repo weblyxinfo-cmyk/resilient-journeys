@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { ArrowRight, Heart, MapPin, Palette, Award, BookOpen, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import PageHero from "@/components/PageHero";
 
 const About = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -36,8 +37,7 @@ const About = () => {
       
       <main className="pt-20">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
               {/* Image */}
               <div className="relative order-2 lg:order-1">
@@ -99,8 +99,7 @@ const About = () => {
                 )}
               </div>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Story Section */}
         <section className="py-16 md:py-24 bg-background">

@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BookOpen, Calendar, ArrowRight, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHero from "@/components/PageHero";
 
 interface BlogPost {
   id: string;
@@ -50,8 +51,7 @@ const Blog = () => {
 
       <main className="pt-20">
         {/* Hero */}
-        <section className="py-16 md:py-24 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <BookOpen size={16} className="text-primary" />
@@ -69,8 +69,7 @@ const Blog = () => {
                 for expat families building their resilient minds.
               </p>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Blog Posts */}
         <section className="py-16 md:py-24 bg-background">

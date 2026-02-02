@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addMonths, startOfMonth } from "date-fns";
+import PageHero from "@/components/PageHero";
 import { enUS } from "date-fns/locale";
 
 // Session types configuration
@@ -262,8 +263,7 @@ const Booking = () => {
 
       <main className="pt-20 pb-16">
         {/* Hero Section */}
-        <section className="py-12 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Calendar size={16} className="text-primary" />
@@ -302,8 +302,7 @@ const Booking = () => {
                 ))}
               </div>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Booking Steps */}
         <section className="py-12">

@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Heart, CheckCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import PageHero from "@/components/PageHero";
 
 const EndometriosisHub = () => {
   return (
@@ -11,8 +12,7 @@ const EndometriosisHub = () => {
 
       <main className="pt-20">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Heart size={16} className="text-primary" />
@@ -39,8 +39,7 @@ const EndometriosisHub = () => {
                 <span className="text-sm text-muted-foreground">One-time fee</span>
               </div>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Focus Areas */}
         <section className="py-16 md:py-24 bg-background">

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import PageHero from "@/components/PageHero";
 import {
   Check,
   Crown,
@@ -189,8 +190,7 @@ const Pricing = () => {
 
       <main className="pt-20 pb-16">
         {/* Hero Section */}
-        <section className="py-12 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Crown size={16} className="text-primary" />
@@ -207,8 +207,7 @@ const Pricing = () => {
                 Select the membership tier that fits your needs. All plans include access to our transformative 12-month program.
               </p>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Main Membership Tiers */}
         <section className="py-12">

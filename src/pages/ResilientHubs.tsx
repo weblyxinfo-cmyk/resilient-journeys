@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, Sparkles, Download, ArrowRight, Heart, Brain, Users, Globe, Coins, Fingerprint } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHero from "@/components/PageHero";
 
 const whatYouWillGain = [
   {
@@ -70,8 +71,7 @@ const ResilientHubs = () => {
 
       <main className="pt-20">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Sparkles size={16} className="text-primary" />
@@ -90,8 +90,7 @@ const ResilientHubs = () => {
                 Expat life can be rewarding, but it also comes with challenges—loneliness, cultural differences, uncertainty, and navigating health challenges while away from your familiar support network. I've been there. Using my 13 years of experience living abroad and my expertise in personal development, expressive arts, and holistic therapies, I created a program that turns these challenges into opportunities for growth and inner strength.
               </p>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* What You'll Gain */}
         <section className="py-16 md:py-24 bg-background">

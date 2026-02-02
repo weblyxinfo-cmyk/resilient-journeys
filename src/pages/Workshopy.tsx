@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Sparkles, Calendar, ArrowRight, Tag, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import WorkshopInquiryForm from '@/components/WorkshopInquiryForm';
+import PageHero from "@/components/PageHero";
 
 interface Workshop {
   id: string;
@@ -56,8 +57,7 @@ const Workshopy = () => {
 
       <main className="pt-20">
         {/* Hero */}
-        <section className="py-16 md:py-24 bg-gradient-warm">
-          <div className="container px-4">
+        <PageHero>
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Sparkles size={16} className="text-primary" />
@@ -75,8 +75,7 @@ const Workshopy = () => {
                 to help you build resilience and thrive in your expat journey.
               </p>
             </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Workshops */}
         <section className="py-16 md:py-24 bg-background">
