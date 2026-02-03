@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Crown, User, Mail, Calendar, CreditCard } from 'lucide-react';
+import { ArrowLeft, Crown, User, Mail, Calendar, CreditCard, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const membershipLabels = {
@@ -32,6 +32,10 @@ const Profile = () => {
   
   const [fullName, setFullName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -70,6 +74,52 @@ const Profile = () => {
     }
     
     setIsSaving(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (!user) return;
+
+    if (newPassword.length < 6) {
+      toast({
+        title: 'Error',
+        description: 'New password must be at least 6 characters',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Passwords do not match',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to change password',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Password Changed',
+        description: 'Your password has been updated successfully'
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+
+    setIsChangingPassword(false);
   };
 
   if (loading) {
@@ -143,6 +193,50 @@ const Profile = () => {
                   className="bg-gold hover:bg-gold-dark text-white"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Change Password */}
+            <Card className="border-gold/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-gold" />
+                  Change Password
+                </CardTitle>
+                <CardDescription>
+                  Update your account password
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    className="border-gold/30 focus:border-gold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat new password"
+                    className="border-gold/30 focus:border-gold"
+                  />
+                </div>
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword || !newPassword || !confirmPassword}
+                  className="bg-gold hover:bg-gold-dark text-white"
+                >
+                  {isChangingPassword ? 'Changing...' : 'Change Password'}
                 </Button>
               </CardContent>
             </Card>
