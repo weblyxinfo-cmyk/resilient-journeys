@@ -10,8 +10,8 @@ const Hero = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background" />
-        <div className="absolute inset-0 bg-foreground/5" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background" />
+        <div className="absolute inset-0 bg-foreground/8" />
       </div>
 
       <div className="container relative z-10 px-4 py-20 md:py-32">
@@ -25,11 +25,11 @@ const Hero = () => {
           </div>
 
           {/* Heading */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold leading-tight mb-6 animate-slide-up drop-shadow-sm">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold leading-tight mb-6 animate-slide-up" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
             <span className="text-foreground">With</span>{" "}
-            <span className="text-gradient-gold drop-shadow-md">Resilient Mind</span>
+            <span className="text-gradient-gold" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 40px rgba(180,140,60,0.3)' }}>Resilient Mind</span>
             <br />
-            <span className="text-foreground/95 font-semibold">You Transform Uncertainty Into Your Greatest Strength</span>
+            <span className="text-foreground font-semibold">You Transform Uncertainty Into Your Greatest Strength</span>
           </h1>
 
           {/* Subheading */}
