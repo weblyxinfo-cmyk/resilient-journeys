@@ -1,16 +1,9 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProgramOverview from "@/components/ProgramOverview";
-import { Check, Sparkles, Download, ArrowRight, Heart, Brain, Users, Globe, Coins, Fingerprint, Crown, Star, Zap, Video, FileText, Headphones, Shield, Clock, Loader2 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Sparkles, Download, ArrowRight, Heart, Brain, Users, Globe, Coins, Fingerprint, Crown, Check, Shield, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import PricingCards, { PricingTrustSignals } from "@/components/PricingCards";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 
@@ -74,116 +67,7 @@ const whyDifferent = [
   }
 ];
 
-const MEMBERSHIP_TIERS = [
-  {
-    id: "monthly_basic",
-    name: "Basic Monthly",
-    price: 27,
-    period: "/month",
-    savings: null,
-    badge: null,
-    features: [
-      "Monthly foundational module (Module A)",
-      "Downloadable worksheets for Module A",
-      "Access to meditation library",
-      "Monthly content updates",
-    ],
-    buttonText: "Start Basic Monthly",
-  },
-  {
-    id: "yearly_basic",
-    name: "Basic Yearly",
-    price: 270,
-    period: "/year",
-    savings: "Save €54",
-    badge: "Best Value",
-    features: [
-      "All 4 transformational programs (12 months)",
-      "Complete access to all modules (A, B, C)",
-      "All downloadable worksheets & exercises",
-      "Full meditation & visualization library",
-    ],
-    buttonText: "Save with Basic Yearly",
-  },
-  {
-    id: "monthly_premium",
-    name: "Premium Monthly",
-    price: 47,
-    period: "/month",
-    savings: null,
-    badge: null,
-    features: [
-      "Modules A & B of current month",
-      "All Basic Monthly benefits",
-      "Access to additional Resilient Hub (Module A)",
-      "Priority support",
-    ],
-    buttonText: "Go Premium Monthly",
-  },
-  {
-    id: "yearly_premium",
-    name: "Premium Yearly",
-    price: 470,
-    period: "/year",
-    savings: "Save €94",
-    badge: "Most Popular",
-    features: [
-      "All 4 programs with all modules (A, B, C)",
-      "4 hours personal consultations (€348 value)",
-      "Art expressive therapy materials kit",
-      "Additional Resilient Hubs access",
-      "All worksheets, meditations & exercises",
-    ],
-    buttonText: "Save with Premium Yearly",
-  },
-];
-
 const ResilientHubs = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [loadingTier, setLoadingTier] = useState<string | null>(null);
-
-  const createCheckoutSession = async (productType: string) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      toast.error("Please log in first");
-      navigate("/auth");
-      return;
-    }
-    setLoadingTier(productType);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            product_type: productType,
-            user_id: userData.user.id,
-            success_url: `${window.location.origin}/pricing/success`,
-            cancel_url: `${window.location.origin}/resilient-hubs`,
-          }),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create checkout session");
-      }
-      const data = await response.json();
-      if (data.url) window.location.href = data.url;
-      else throw new Error("No checkout URL returned");
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error(error.message || "Failed to start checkout");
-    } finally {
-      setLoadingTier(null);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <SEO
@@ -328,93 +212,8 @@ const ResilientHubs = () => {
                 </p>
               </div>
 
-              {/* 4 Pricing Cards — identical styling */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                {MEMBERSHIP_TIERS.map((tier) => (
-                  <Card
-                    key={tier.id}
-                    className="relative border-2 border-muted hover:border-primary/50 transition-all"
-                  >
-                    {tier.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <Badge className="bg-gradient-gold text-white px-4 py-1">
-                          {tier.badge}
-                        </Badge>
-                      </div>
-                    )}
-
-                    <CardHeader className="text-center pt-8">
-                      <div className="mb-4">
-                        {tier.name.includes("Premium") ? (
-                          <Crown className="h-10 w-10 mx-auto text-primary" />
-                        ) : (
-                          <Sparkles className="h-10 w-10 mx-auto text-primary" />
-                        )}
-                      </div>
-                      <CardTitle className="text-xl font-serif mb-2">
-                        {tier.name}
-                      </CardTitle>
-                      <div className="mb-4">
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-5xl font-extrabold text-primary">
-                            €{tier.price}
-                          </span>
-                          <span className="text-muted-foreground text-base font-medium">
-                            {tier.period}
-                          </span>
-                        </div>
-                        {tier.savings && (
-                          <Badge className="mt-3 bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
-                            {tier.savings}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6">
-                      <ul className="space-y-3">
-                        {tier.features.map((feature, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm">
-                            <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Button
-                        onClick={() => createCheckoutSession(tier.id)}
-                        disabled={loadingTier === tier.id}
-                        className="w-full bg-primary"
-                      >
-                        {loadingTier === tier.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          tier.buttonText
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Trust signals */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Shield size={18} className="text-primary" />
-                  <span>Secure payment via Stripe</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock size={18} className="text-primary" />
-                  <span>Cancel anytime — no lock-in</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Heart size={18} className="text-primary" />
-                  <span>Instant access after payment</span>
-                </div>
-              </div>
+              <PricingCards cancelUrl="/resilient-hubs" />
+              <PricingTrustSignals />
 
               {/* Free guide nudge */}
               <div className="text-center mt-8">

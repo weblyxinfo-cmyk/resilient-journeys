@@ -1,77 +1,10 @@
-import { Check, Sparkles, Crown, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import PricingCards, { PricingTrustSignals } from "@/components/PricingCards";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
-
-const MEMBERSHIP_TIERS = [
-  {
-    id: "monthly_basic",
-    name: "Basic Monthly",
-    price: 27,
-    period: "/month",
-    savings: null,
-    badge: null,
-    features: [
-      "Monthly foundational module (Module A)",
-      "Downloadable worksheets for Module A",
-      "Access to meditation library",
-      "Monthly content updates",
-    ],
-    buttonText: "Start Basic Monthly",
-  },
-  {
-    id: "yearly_basic",
-    name: "Basic Yearly",
-    price: 270,
-    period: "/year",
-    savings: "Save €54",
-    badge: "Best Value",
-    features: [
-      "All 4 transformational programs (12 months)",
-      "Complete access to all modules (A, B, C)",
-      "All downloadable worksheets & exercises",
-      "Full meditation & visualization library",
-    ],
-    buttonText: "Save with Basic Yearly",
-  },
-  {
-    id: "monthly_premium",
-    name: "Premium Monthly",
-    price: 47,
-    period: "/month",
-    savings: null,
-    badge: null,
-    features: [
-      "Modules A & B of current month",
-      "All Basic Monthly benefits",
-      "Access to additional Resilient Hub (Module A)",
-      "Priority support",
-    ],
-    buttonText: "Go Premium Monthly",
-  },
-  {
-    id: "yearly_premium",
-    name: "Premium Yearly",
-    price: 470,
-    period: "/year",
-    savings: "Save €94",
-    badge: "Most Popular",
-    features: [
-      "All 4 programs with all modules (A, B, C)",
-      "4 hours personal consultations (€348 value)",
-      "Art expressive therapy materials kit",
-      "Additional Resilient Hubs access",
-      "All worksheets, meditations & exercises",
-    ],
-    buttonText: "Save with Premium Yearly",
-  },
-];
 
 const SESSION_TIER = {
   name: "1:1 Session",
@@ -88,50 +21,6 @@ const SESSION_TIER = {
 };
 
 const Pricing = () => {
-  const navigate = useNavigate();
-  const [loadingTier, setLoadingTier] = useState<string | null>(null);
-
-  const createCheckoutSession = async (productType: string) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      toast.error("Please log in first");
-      navigate("/auth");
-      return;
-    }
-    setLoadingTier(productType);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            product_type: productType,
-            user_id: userData.user.id,
-            success_url: `${window.location.origin}/pricing/success`,
-            cancel_url: `${window.location.origin}/`,
-          }),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create checkout session");
-      }
-      const data = await response.json();
-      if (data.url) window.location.href = data.url;
-      else throw new Error("No checkout URL returned");
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error(error.message || "Failed to start checkout");
-    } finally {
-      setLoadingTier(null);
-    }
-  };
-
   return (
     <section className="relative py-24 overflow-hidden">
       {/* Background Image */}
@@ -164,111 +53,47 @@ const Pricing = () => {
         </div>
 
         {/* 4 Membership Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-8">
-          {MEMBERSHIP_TIERS.map((tier) => (
-            <Card
-              key={tier.id}
-              className="relative border-2 border-muted hover:border-primary/50 transition-all"
-            >
-              {tier.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-gold text-white px-4 py-1">
-                    {tier.badge}
-                  </Badge>
-                </div>
-              )}
-
-              <CardHeader className="text-center pt-8">
-                <div className="mb-4">
-                  {tier.name.includes("Premium") ? (
-                    <Crown className="h-10 w-10 mx-auto text-primary" />
-                  ) : (
-                    <Sparkles className="h-10 w-10 mx-auto text-primary" />
-                  )}
-                </div>
-                <CardTitle className="text-xl font-serif mb-2">
-                  {tier.name}
-                </CardTitle>
-                <div className="mb-4">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-extrabold text-primary">
-                      €{tier.price}
-                    </span>
-                    <span className="text-muted-foreground text-base font-medium">
-                      {tier.period}
-                    </span>
-                  </div>
-                  {tier.savings && (
-                    <Badge className="mt-3 bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
-                      {tier.savings}
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                <ul className="space-y-3">
-                  {tier.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={() => createCheckoutSession(tier.id)}
-                  disabled={loadingTier === tier.id}
-                  className="w-full bg-primary"
-                >
-                  {loadingTier === tier.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    tier.buttonText
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="max-w-7xl mx-auto mb-8">
+          <PricingCards cancelUrl="/" />
+          <PricingTrustSignals />
         </div>
 
         {/* 1:1 Session Card */}
-        <div className="max-w-md mx-auto">
-          <Card className="border-2 border-muted hover:border-primary/50 transition-all">
-            <CardHeader className="text-center pt-8">
-              <CardTitle className="text-xl font-serif mb-2">
+        <div className="max-w-md mx-auto mt-12">
+          <div className="bg-card/80 backdrop-blur-sm rounded-3xl border border-border/60 p-1 hover:border-primary/30 transition-all duration-300 hover:shadow-[0_8px_30px_-12px_hsla(30,25%,30%,0.12)]">
+            <div className="rounded-[1.25rem] bg-gradient-to-b from-background/60 to-background/30 p-6 pt-8">
+              <h3 className="text-center text-lg font-serif font-semibold text-foreground mb-5">
                 {SESSION_TIER.name}
-              </CardTitle>
-              <div className="mb-4">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-5xl font-extrabold text-primary">
-                    €{SESSION_TIER.price}
-                  </span>
-                  <span className="text-muted-foreground text-base font-medium">
-                    {SESSION_TIER.period}
+              </h3>
+              <div className="text-center mb-2">
+                <div className="inline-flex items-baseline gap-0.5">
+                  <span className="text-sm font-sans font-medium text-muted-foreground/70 -mr-0.5">€</span>
+                  <span className="text-4xl font-serif font-bold tracking-tight text-foreground">
+                    {SESSION_TIER.price}
                   </span>
                 </div>
+                <div className="text-sm font-sans text-muted-foreground mt-0.5">
+                  {SESSION_TIER.period}
+                </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
+              <div className="w-12 h-px bg-border/80 mx-auto my-5" />
+              <ul className="space-y-3 mb-8">
                 {SESSION_TIER.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
+                  <li key={i} className="flex items-start gap-2.5 text-[13px] leading-relaxed text-foreground/80">
+                    <div className="w-4 h-4 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check size={10} className="text-primary" strokeWidth={3} />
+                    </div>
+                    <span className="font-sans">{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link to="/booking">
-                <Button className="w-full bg-primary">
+                <Button className="w-full rounded-full h-11 font-sans font-medium text-sm bg-primary hover:bg-primary/90 transition-all">
                   {SESSION_TIER.buttonText}
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </section>

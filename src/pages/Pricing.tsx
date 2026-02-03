@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
+import PricingCards, { PricingTrustSignals } from "@/components/PricingCards";
 import {
   Check,
   Crown,
@@ -23,79 +23,6 @@ import {
   User,
   Zap,
 } from "lucide-react";
-
-// Membership tiers configuration
-const MEMBERSHIP_TIERS = [
-  {
-    id: "monthly_basic",
-    name: "Basic Monthly",
-    price: 27,
-    period: "/month",
-    savings: null,
-    badge: null,
-    description: "Access to foundational Module A of current program theme each month.",
-    features: [
-      "Monthly foundational module (Module A)",
-      "Downloadable worksheets for Module A",
-      "Access to meditation library",
-      "Monthly content updates",
-    ],
-    buttonText: "Start Monthly",
-    highlighted: false,
-  },
-  {
-    id: "yearly_basic",
-    name: "Basic Yearly",
-    price: 270,
-    period: "/year",
-    savings: "Save €54",
-    badge: "Best Value",
-    description: "Complete access to all 4 programs (12 months) with all modules.",
-    features: [
-      "All 4 transformational programs (12 months)",
-      "Complete access to all modules (A, B, C)",
-      "All downloadable worksheets & exercises",
-      "Full meditation & visualization library",
-    ],
-    buttonText: "Save with Yearly",
-    highlighted: true,
-  },
-  {
-    id: "monthly_premium",
-    name: "Premium Monthly",
-    price: 47,
-    period: "/month",
-    savings: null,
-    badge: null,
-    description: "Enhanced access to foundational and advanced modules (A & B).",
-    features: [
-      "Modules A & B of current month",
-      "All Basic Monthly benefits",
-      "Access to additional Resilient Hub (Module A)",
-      "Priority support",
-    ],
-    buttonText: "Go Premium",
-    highlighted: false,
-  },
-  {
-    id: "yearly_premium",
-    name: "Premium Yearly",
-    price: 470,
-    period: "/year",
-    savings: "Save €94",
-    badge: "Most Popular",
-    description: "Complete program access with personal consultations and materials kit.",
-    features: [
-      "All 4 programs with all modules (A, B, C)",
-      "4 hours personal consultations (€348 value)",
-      "Art expressive therapy materials kit",
-      "Additional Resilient Hubs access",
-      "All worksheets, meditations & exercises",
-    ],
-    buttonText: "Save with Yearly",
-    highlighted: true,
-  },
-];
 
 // Additional hubs that can be purchased separately
 const ADDITIONAL_HUBS = [
@@ -134,8 +61,7 @@ const Pricing = () => {
   const { user } = useAuth();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
-  const createCheckoutSession = async (productType: string, hubSlug?: string) => {
-    // Check if user is logged in
+  const createHubCheckout = async (hubSlug: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       toast.error("Please log in first");
@@ -143,7 +69,7 @@ const Pricing = () => {
       return;
     }
 
-    setLoadingTier(productType);
+    setLoadingTier(`hub_${hubSlug}`);
 
     try {
       const response = await fetch(
@@ -152,11 +78,11 @@ const Pricing = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
-            product_type: productType,
+            product_type: "hub",
             user_id: userData.user.id,
             hub_slug: hubSlug,
             success_url: `${window.location.origin}/pricing/success`,
@@ -194,46 +120,47 @@ const Pricing = () => {
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Product",
-          "name": "Resilient Mind Membership",
-          "description": "Membership plans for art expressive therapy programs for expatriates.",
-          "brand": {
+          name: "Resilient Mind Membership",
+          description:
+            "Membership plans for art expressive therapy programs for expatriates.",
+          brand: {
             "@type": "Organization",
-            "name": "Resilient Mind"
+            name: "Resilient Mind",
           },
-          "offers": [
+          offers: [
             {
               "@type": "Offer",
-              "name": "Basic Monthly",
-              "price": "27",
-              "priceCurrency": "EUR",
-              "availability": "https://schema.org/InStock",
-              "url": "https://resilient-journeys.vercel.app/pricing"
+              name: "Basic Monthly",
+              price: "27",
+              priceCurrency: "EUR",
+              availability: "https://schema.org/InStock",
+              url: "https://resilient-journeys.vercel.app/pricing",
             },
             {
               "@type": "Offer",
-              "name": "Basic Yearly",
-              "price": "270",
-              "priceCurrency": "EUR",
-              "availability": "https://schema.org/InStock",
-              "url": "https://resilient-journeys.vercel.app/pricing"
+              name: "Basic Yearly",
+              price: "270",
+              priceCurrency: "EUR",
+              availability: "https://schema.org/InStock",
+              url: "https://resilient-journeys.vercel.app/pricing",
             },
             {
               "@type": "Offer",
-              "name": "Premium Monthly",
-              "price": "47",
-              "priceCurrency": "EUR",
-              "availability": "https://schema.org/InStock",
-              "url": "https://resilient-journeys.vercel.app/pricing"
+              name: "Premium Monthly",
+              price: "47",
+              priceCurrency: "EUR",
+              availability: "https://schema.org/InStock",
+              url: "https://resilient-journeys.vercel.app/pricing",
             },
             {
               "@type": "Offer",
-              "name": "Premium Yearly",
-              "price": "470",
-              "priceCurrency": "EUR",
-              "availability": "https://schema.org/InStock",
-              "url": "https://resilient-journeys.vercel.app/pricing"
-            }
-          ]
+              name: "Premium Yearly",
+              price: "470",
+              priceCurrency: "EUR",
+              availability: "https://schema.org/InStock",
+              url: "https://resilient-journeys.vercel.app/pricing",
+            },
+          ],
         }}
       />
       <Navbar />
@@ -241,22 +168,23 @@ const Pricing = () => {
       <main className="pt-20 pb-16">
         {/* Hero Section */}
         <PageHero>
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-                <Crown size={16} className="text-primary" />
-                <span className="text-sm font-sans font-medium text-primary">
-                  Membership Pricing
-                </span>
-              </div>
-
-              <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-                Choose Your Journey
-              </h1>
-
-              <p className="text-lg text-muted-foreground font-sans">
-                Select the membership tier that fits your needs. All plans include access to our transformative 12-month program.
-              </p>
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+              <Crown size={16} className="text-primary" />
+              <span className="text-sm font-sans font-medium text-primary">
+                Membership Pricing
+              </span>
             </div>
+
+            <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
+              Choose Your Journey
+            </h1>
+
+            <p className="text-lg text-muted-foreground font-sans">
+              Select the membership tier that fits your needs. All plans include
+              access to our transformative 12-month program.
+            </p>
+          </div>
         </PageHero>
 
         {/* Main Membership Tiers */}
@@ -267,79 +195,8 @@ const Pricing = () => {
                 Main Membership Plans
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {MEMBERSHIP_TIERS.map((tier) => (
-                  <Card
-                    key={tier.id}
-                    className="relative border-2 border-muted hover:border-primary/50 transition-all"
-                  >
-                    {tier.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <Badge className="bg-gradient-gold text-white px-4 py-1">
-                          {tier.badge}
-                        </Badge>
-                      </div>
-                    )}
-
-                    <CardHeader className="text-center pt-8">
-                      <div className="mb-4">
-                        {tier.name.includes("Premium") ? (
-                          <Crown className="h-10 w-10 mx-auto text-primary" />
-                        ) : (
-                          <Sparkles className="h-10 w-10 mx-auto text-primary" />
-                        )}
-                      </div>
-                      <CardTitle className="text-xl font-serif mb-2">
-                        {tier.name}
-                      </CardTitle>
-                      <div className="mb-4">
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-5xl font-extrabold text-primary">
-                            €{tier.price}
-                          </span>
-                          <span className="text-muted-foreground text-base font-medium">
-                            {tier.period}
-                          </span>
-                        </div>
-                        {tier.savings && (
-                          <Badge className="mt-3 bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
-                            {tier.savings}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6">
-                      <ul className="space-y-3">
-                        {tier.features.map((feature, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm">
-                            <Check
-                              size={16}
-                              className="text-primary flex-shrink-0 mt-0.5"
-                            />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Button
-                        onClick={() => createCheckoutSession(tier.id)}
-                        disabled={loadingTier === tier.id}
-                        className="w-full bg-primary"
-                      >
-                        {loadingTier === tier.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          tier.buttonText
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <PricingCards cancelUrl="/pricing" />
+              <PricingTrustSignals />
             </div>
           </div>
         </section>
@@ -353,55 +210,61 @@ const Pricing = () => {
                   Additional Specialized Hubs
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Deep-dive programs focusing on specific challenges. Can be purchased separately or included with Premium membership.
+                  Deep-dive programs focusing on specific challenges. Can be
+                  purchased separately or included with Premium membership.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
                 {ADDITIONAL_HUBS.map((hub) => {
                   const IconComponent = hub.icon;
                   return (
-                    <Card
+                    <div
                       key={hub.id}
-                      className="border-2 border-muted hover:border-primary/50 transition-all"
+                      className="group bg-card/80 backdrop-blur-sm rounded-3xl border border-border/60 p-1 hover:border-primary/30 transition-all duration-300 hover:shadow-[0_8px_30px_-12px_hsla(30,25%,30%,0.12)]"
                     >
-                      <CardHeader>
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="p-3 bg-primary/10 rounded-full">
-                            <IconComponent className="h-6 w-6 text-primary" />
+                      <div className="rounded-[1.25rem] bg-gradient-to-b from-background/60 to-background/30 p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-11 h-11 rounded-2xl bg-primary/8 flex items-center justify-center group-hover:bg-primary/12 transition-colors">
+                            <IconComponent size={20} className="text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="text-xl font-serif">
+                            <h3 className="text-lg font-serif font-semibold">
                               {hub.name}
-                            </CardTitle>
-                            <div className="text-2xl font-bold text-primary mt-1">
-                              €{hub.price}
+                            </h3>
+                            <div className="inline-flex items-baseline gap-0.5 mt-1">
+                              <span className="text-xs font-sans text-muted-foreground/70">€</span>
+                              <span className="text-2xl font-serif font-bold text-foreground">
+                                {hub.price}
+                              </span>
                             </div>
                           </div>
                         </div>
-                        <CardDescription className="text-sm">
+                        <p className="text-sm text-muted-foreground font-sans mb-4">
                           {hub.description}
-                        </CardDescription>
-                      </CardHeader>
+                        </p>
 
-                      <CardContent className="space-y-6">
-                        <ul className="space-y-2">
+                        <div className="w-12 h-px bg-border/80 my-4" />
+
+                        <ul className="space-y-2.5 mb-6">
                           {hub.features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm">
-                              <Check
-                                size={16}
-                                className="text-primary flex-shrink-0 mt-0.5"
-                              />
-                              <span>{feature}</span>
+                            <li
+                              key={i}
+                              className="flex items-start gap-2.5 text-[13px] leading-relaxed text-foreground/80"
+                            >
+                              <div className="w-4 h-4 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Check size={10} className="text-primary" strokeWidth={3} />
+                              </div>
+                              <span className="font-sans">{feature}</span>
                             </li>
                           ))}
                         </ul>
 
                         <Button
-                          onClick={() => createCheckoutSession("hub", hub.slug)}
+                          onClick={() => createHubCheckout(hub.slug)}
                           disabled={loadingTier === `hub_${hub.slug}`}
                           variant="outline"
-                          className="w-full border-primary text-primary hover:bg-primary hover:text-white"
+                          className="w-full rounded-full h-11 font-sans font-medium text-sm border-primary/30 text-primary hover:bg-primary hover:text-white transition-all"
                         >
                           {loadingTier === `hub_${hub.slug}` ? (
                             <>
@@ -413,11 +276,11 @@ const Pricing = () => {
                           )}
                         </Button>
 
-                        <p className="text-xs text-center text-muted-foreground">
+                        <p className="text-xs text-center text-muted-foreground/60 mt-3 font-sans">
                           Included free with Premium membership
                         </p>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -433,54 +296,41 @@ const Pricing = () => {
                 What's Included
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <Card className="border-muted">
-                  <CardHeader>
-                    <div className="p-3 bg-primary/10 rounded-full w-fit mb-3">
-                      <Video className="h-6 w-6 text-primary" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {[
+                  {
+                    icon: Video,
+                    title: "Video Content",
+                    desc: "48 weekly videos covering EFT tapping, art therapy, and guided meditations throughout the 12-month journey.",
+                  },
+                  {
+                    icon: FileText,
+                    title: "Workbooks",
+                    desc: "Downloadable worksheets, reflection exercises, and practical tools to support your transformation.",
+                  },
+                  {
+                    icon: User,
+                    title: "Personal Support",
+                    desc: "Premium members receive individual consultation sessions and priority support throughout their journey.",
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="group bg-card/80 backdrop-blur-sm rounded-3xl border border-border/60 p-1 hover:border-primary/30 transition-all duration-300"
+                  >
+                    <div className="rounded-[1.25rem] bg-gradient-to-b from-background/60 to-background/30 p-6">
+                      <div className="w-11 h-11 rounded-2xl bg-primary/8 flex items-center justify-center mb-4 group-hover:bg-primary/12 transition-colors">
+                        <item.icon size={20} className="text-primary" />
+                      </div>
+                      <h3 className="text-lg font-serif font-semibold mb-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                        {item.desc}
+                      </p>
                     </div>
-                    <CardTitle className="text-lg font-serif">
-                      Video Content
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      48 weekly videos covering EFT tapping, art therapy, and guided meditations throughout the 12-month journey.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-muted">
-                  <CardHeader>
-                    <div className="p-3 bg-primary/10 rounded-full w-fit mb-3">
-                      <FileText className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg font-serif">
-                      Workbooks
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Downloadable worksheets, reflection exercises, and practical tools to support your transformation.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-muted">
-                  <CardHeader>
-                    <div className="p-3 bg-primary/10 rounded-full w-fit mb-3">
-                      <User className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg font-serif">
-                      Personal Support
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Premium members receive individual consultation sessions and priority support throughout their journey.
-                    </p>
-                  </CardContent>
-                </Card>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -493,8 +343,9 @@ const Pricing = () => {
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
                 Ready to Begin Your Journey?
               </h2>
-              <p className="text-muted-foreground mb-6">
-                Choose the plan that resonates with you. You can upgrade or change your membership at any time.
+              <p className="text-muted-foreground mb-6 font-sans">
+                Choose the plan that resonates with you. You can upgrade or
+                change your membership at any time.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -502,12 +353,12 @@ const Pricing = () => {
                     if (!user) {
                       navigate("/auth");
                     } else {
-                      const element = document.querySelector('section');
-                      element?.scrollIntoView({ behavior: 'smooth' });
+                      const element = document.querySelector("section");
+                      element?.scrollIntoView({ behavior: "smooth" });
                     }
                   }}
                   size="lg"
-                  className="bg-gradient-gold text-white"
+                  className="bg-gradient-gold text-white rounded-full"
                 >
                   <Crown className="mr-2 h-5 w-5" />
                   Get Started
@@ -516,7 +367,7 @@ const Pricing = () => {
                   onClick={() => navigate("/about")}
                   size="lg"
                   variant="outline"
-                  className="border-primary text-primary"
+                  className="border-primary/30 text-primary rounded-full"
                 >
                   Learn More
                 </Button>
