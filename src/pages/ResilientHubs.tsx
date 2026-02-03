@@ -336,83 +336,87 @@ const ResilientHubs = () => {
                 </p>
               </div>
 
-              {/* 4 Pricing Cards */}
+              {/* 4 Pricing Cards — same as /pricing */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-                {MEMBERSHIP_TIERS.map((tier) => {
-                  const IconComp = tier.icon;
-                  return (
-                    <Card
-                      key={tier.id}
-                      className={`relative border-2 transition-all hover:shadow-lg ${
-                        tier.highlighted
-                          ? "border-primary shadow-elevated scale-[1.02] lg:scale-105"
-                          : "border-muted hover:border-primary/50"
-                      }`}
-                    >
-                      {tier.badge && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                          <Badge className="bg-gradient-gold text-white px-4 py-1 shadow-md">
-                            {tier.badge}
+                {MEMBERSHIP_TIERS.map((tier) => (
+                  <Card
+                    key={tier.id}
+                    className={`relative border-2 transition-all ${
+                      tier.highlighted
+                        ? "border-primary shadow-elevated scale-105"
+                        : "border-muted hover:border-primary/50"
+                    }`}
+                  >
+                    {tier.badge && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="bg-gradient-gold text-white px-4 py-1">
+                          {tier.badge}
+                        </Badge>
+                      </div>
+                    )}
+
+                    <CardHeader className="text-center pt-8">
+                      <div className="mb-4">
+                        {tier.name.includes("Premium") ? (
+                          <Crown className="h-10 w-10 mx-auto text-primary" />
+                        ) : (
+                          <Sparkles className="h-10 w-10 mx-auto text-primary" />
+                        )}
+                      </div>
+                      <CardTitle className="text-xl font-serif mb-2">
+                        {tier.name}
+                      </CardTitle>
+                      <div className="mb-4">
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className={`text-5xl font-extrabold ${tier.highlighted ? 'text-transparent bg-clip-text bg-gradient-gold' : 'text-primary'}`}>
+                            €{tier.price}
+                          </span>
+                          <span className="text-muted-foreground text-base font-medium">
+                            {tier.period}
+                          </span>
+                        </div>
+                        {tier.savings && (
+                          <Badge className="mt-3 bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
+                            {tier.savings}
                           </Badge>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </CardHeader>
 
-                      <CardHeader className="text-center pt-8">
-                        <div className="mb-4">
-                          <IconComp className={`h-10 w-10 mx-auto ${tier.highlighted ? 'text-primary' : 'text-primary/70'}`} />
-                        </div>
-                        <CardTitle className="text-xl font-serif mb-3">
-                          {tier.name}
-                        </CardTitle>
-                        <div className="mb-2">
-                          <div className="flex items-baseline justify-center gap-1">
-                            <span className={`text-5xl font-extrabold ${tier.highlighted ? 'text-transparent bg-clip-text bg-gradient-gold' : 'text-primary'}`}>
-                              €{tier.price}
-                            </span>
-                            <span className="text-muted-foreground text-base font-medium">
-                              {tier.period}
-                            </span>
-                          </div>
-                          {tier.savings && (
-                            <Badge className="mt-3 bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
-                              {tier.savings}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
+                    <CardContent className="space-y-6">
+                      <ul className="space-y-3">
+                        {tier.features.map((feature, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm">
+                            <Check
+                              size={16}
+                              className="text-primary flex-shrink-0 mt-0.5"
+                            />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
 
-                      <CardContent className="space-y-6">
-                        <ul className="space-y-3">
-                          {tier.features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm">
-                              <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-
-                        <Button
-                          onClick={() => createCheckoutSession(tier.id)}
-                          disabled={loadingTier === tier.id}
-                          className={`w-full py-5 ${
-                            tier.highlighted
-                              ? "bg-gradient-gold text-white shadow-gold hover:shadow-elevated"
-                              : "bg-primary"
-                          }`}
-                        >
-                          {loadingTier === tier.id ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            tier.buttonText
-                          )}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      <Button
+                        onClick={() => createCheckoutSession(tier.id)}
+                        disabled={loadingTier === tier.id}
+                        className={`w-full ${
+                          tier.highlighted
+                            ? "bg-gradient-gold text-white"
+                            : "bg-primary"
+                        }`}
+                      >
+                        {loadingTier === tier.id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          tier.buttonText
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
               {/* Trust signals */}
