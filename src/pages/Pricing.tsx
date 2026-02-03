@@ -311,9 +311,6 @@ const Pricing = () => {
                           </Badge>
                         )}
                       </div>
-                      <CardDescription className="text-sm">
-                        {tier.description}
-                      </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
