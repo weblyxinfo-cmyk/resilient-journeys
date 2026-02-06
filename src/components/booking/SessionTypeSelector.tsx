@@ -157,14 +157,20 @@ export const SessionTypeSelector = ({
               onClick={() => canSelect && onSelectType(type)}
               disabled={!canSelect}
               className={cn(
-                'relative text-left p-4 rounded-xl border transition-all',
+                'relative text-left p-4 rounded-xl border-2 transition-all duration-200',
                 isSelected
-                  ? 'border-gold bg-gold/10 shadow-gold'
+                  ? 'border-gold bg-gold/15 shadow-[0_0_0_3px_rgba(196,155,65,0.2)] scale-[1.02]'
                   : canSelect
                   ? 'border-border hover:border-gold/50 hover:bg-gold/5'
                   : 'border-border bg-muted/50 opacity-60 cursor-not-allowed'
               )}
             >
+              {isSelected && (
+                <div className="absolute -top-2.5 left-4 px-3 py-0.5 bg-gold text-white text-xs font-semibold rounded-full">
+                  Selected
+                </div>
+              )}
+
               {isPremiumOnly && (
                 <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 bg-gradient-gold text-white text-xs font-medium rounded-full">
                   <Crown className="h-3 w-3" />
@@ -177,7 +183,9 @@ export const SessionTypeSelector = ({
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold">{type.title}</h4>
                     {isSelected && (
-                      <Check className="h-4 w-4 text-gold" />
+                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-gold">
+                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                      </div>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
