@@ -47,7 +47,7 @@ const hubConfigs: Record<string, {
     description: 'Carrying Your Strength Across Borders'
   },
   'endometriosis': {
-    priceAmount: 12700,
+    priceAmount: 14700,
     name: 'Endometriosis Management Hub',
     description: 'Managing chronic pain while living abroad'
   },

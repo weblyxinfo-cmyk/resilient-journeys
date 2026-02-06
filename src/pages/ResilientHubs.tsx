@@ -2,14 +2,26 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProgramOverview from "@/components/ProgramOverview";
 import { Check, Sparkles, Download, ArrowRight, Heart, Brain, Users, Globe, Crown, Star, Zap, Video, FileText, Headphones, Shield, Clock, ChevronDown, MessageCircle, Palette, Activity } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 import PricingCards, { PricingTrustSignals } from "@/components/PricingCards";
 
+const scrollToPricing = (e?: React.MouseEvent) => {
+  if (e) e.preventDefault();
+  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+};
+
 const ResilientHubs = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === '#pricing') {
+      setTimeout(() => scrollToPricing(), 100);
+    }
+  }, [location]);
 
   const faqs = [
     {
@@ -72,13 +84,13 @@ const ResilientHubs = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <a
-                href="#pricing"
+              <button
+                onClick={scrollToPricing}
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
               >
                 See Plans & Pricing
                 <ArrowRight size={18} />
-              </a>
+              </button>
               <Link
                 to="/free-guide"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-card/80 backdrop-blur-sm border border-border text-foreground font-sans font-medium rounded-full hover:bg-card transition-all"
@@ -356,13 +368,13 @@ const ResilientHubs = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="#pricing"
+                <button
+                  onClick={scrollToPricing}
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
                 >
                   Start Your Transformation Today
                   <ArrowRight size={18} />
-                </a>
+                </button>
                 <Link
                   to="/free-guide"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-card border border-border font-sans font-medium rounded-full hover:bg-secondary transition-all"

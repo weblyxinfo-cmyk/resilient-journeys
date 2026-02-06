@@ -314,7 +314,7 @@ const ResilientHub = () => {
                     </ul>
                   </div>
                   <div className="flex-shrink-0 text-right">
-                    <div className="text-3xl font-serif font-bold text-gold mb-2">€127</div>
+                    <div className="text-3xl font-serif font-bold text-gold mb-2">€147</div>
                     <div className="text-xs text-muted-foreground">One-time fee</div>
                   </div>
                 </div>

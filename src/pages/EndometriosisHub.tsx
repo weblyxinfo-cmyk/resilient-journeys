@@ -41,7 +41,7 @@ const EndometriosisHub = () => {
               </p>
 
               <div className="inline-flex items-center gap-4 px-6 py-3 bg-card rounded-full border border-border">
-                <span className="text-3xl font-serif font-bold text-gold">€127</span>
+                <span className="text-3xl font-serif font-bold text-gold">€147</span>
                 <span className="text-sm text-muted-foreground">One-time fee</span>
               </div>
             </div>

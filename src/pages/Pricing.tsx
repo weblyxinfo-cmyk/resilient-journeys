@@ -46,7 +46,7 @@ const ADDITIONAL_HUBS = [
     id: "endometriosis",
     name: "Endometriosis Hub",
     slug: "endometriosis",
-    price: 127,
+    price: 147,
     description: "Managing chronic pain while living abroad",
     features: [
       "1 hour individual session",

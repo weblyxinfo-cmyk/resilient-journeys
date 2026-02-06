@@ -240,7 +240,7 @@ const VideoPlayer = () => {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button asChild className="bg-gradient-gold text-white">
-                    <Link to="/resilient-hub#pricing">View pricing</Link>
+                    <Link to="/resilient-hubs#pricing">View pricing</Link>
                   </Button>
                   <Button variant="outline" asChild>
                     <Link to="/resilient-hub">
