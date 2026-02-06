@@ -136,6 +136,7 @@ serve(async (req) => {
         customer: customerId,
         mode: "payment",
         payment_method_types: ["card"],
+        allow_promotion_codes: true,
         line_items: [
           {
             price_data: {
@@ -169,6 +170,7 @@ serve(async (req) => {
         customer: customerId,
         mode: "subscription",
         payment_method_types: ["card"],
+        allow_promotion_codes: true,
         line_items: [
           {
             price_data: {

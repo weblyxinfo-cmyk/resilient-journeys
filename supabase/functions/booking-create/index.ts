@@ -232,6 +232,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
+      allow_promotion_codes: true,
       success_url: `${req.headers.get("origin") || "https://resilientmind.io"}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin") || "https://resilientmind.io"}/booking?cancelled=true`,
       customer_email: client_email,
