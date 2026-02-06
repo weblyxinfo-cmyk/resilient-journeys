@@ -34,14 +34,13 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    console.log("Request body:", JSON.stringify(requestBody));
-
     const { session_type, client_name, client_email, start_time, notes } = requestBody;
+
+    console.log("Booking request:", session_type, start_time);
 
     // Validation
     if (!session_type || !client_name || !client_email || !start_time) {
-      const error = `Missing required fields. Received: ${JSON.stringify({ session_type, client_name, client_email, start_time })}`;
-      console.error(error);
+      console.error("Missing required fields for booking");
       throw new Error(error);
     }
 

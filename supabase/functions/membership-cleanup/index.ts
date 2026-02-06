@@ -63,12 +63,8 @@ serve(async (req) => {
 
       console.log(`Successfully updated ${userIds.length} users to free tier`);
 
-      // Log the cleaned up users for audit trail
-      expiredUsers.forEach((user) => {
-        console.log(
-          `Cleaned up: ${user.email} (expired: ${user.membership_expires_at})`
-        );
-      });
+      // Log count only (no PII)
+      console.log(`Cleaned up ${expiredUsers.length} expired memberships`);
     }
 
     return new Response(
@@ -76,11 +72,7 @@ serve(async (req) => {
         success: true,
         cleaned: expiredCount,
         timestamp: now,
-        users: expiredUsers?.map((u) => ({
-          email: u.email,
-          previous_type: u.membership_type,
-          expired_at: u.membership_expires_at,
-        })),
+        user_ids: expiredUsers?.map((u) => u.user_id),
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
