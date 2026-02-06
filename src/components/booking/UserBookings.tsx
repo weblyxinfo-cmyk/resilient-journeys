@@ -14,7 +14,7 @@ interface Booking {
   session_type: string;
   session_date: string;
   duration_minutes: number;
-  price_paid: number;
+  price_cents: number;
   status: string;
   booking_notes: string | null;
   is_premium_credit: boolean;

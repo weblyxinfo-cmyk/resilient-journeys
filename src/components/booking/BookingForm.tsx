@@ -108,7 +108,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
         session_type: selectedType.session_type as 'discovery' | 'one_on_one' | 'family' | 'premium_consultation',
         session_date: selectedTime,
         duration_minutes: selectedType.duration_minutes,
-        price_paid: selectedType.price_eur,
+        price_cents: selectedType.price_eur * 100,
         is_premium_credit: selectedType.available_for_premium_credit,
         status: 'scheduled' as const,
         booking_notes: notes || null,
