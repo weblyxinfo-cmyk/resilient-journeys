@@ -175,7 +175,7 @@ const ResilientHub = () => {
                 {[
                   { icon: Video, title: "4 Video Lessons", desc: "Each month" },
                   { icon: Download, title: "Worksheets", desc: "Printable PDFs" },
-                  { icon: BookOpen, title: "Meditation Library", desc: "Guided audio" },
+                  { icon: BookOpen, title: "Meditation", desc: "Guided audio" },
                   { icon: Users, title: "Community", desc: "Private access" },
                 ].map((item, index) => (
                   <div key={index} className="text-center p-6 bg-card rounded-2xl border border-border">
@@ -275,59 +275,122 @@ const ResilientHub = () => {
           </div>
         </section>
 
-        {/* Additional Resilient Hubs — visible from 1 June 2026 */}
-        {new Date() >= new Date('2026-06-01T00:00:00') && (
+        {/* Additional Resilient Hubs */}
         <section className="py-16 md:py-24 bg-card">
           <div className="container px-4">
-            <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="max-w-4xl mx-auto text-center mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+                <Sparkles size={16} className="text-primary" />
+                <span className="text-sm font-sans font-medium text-primary">
+                  Premium Membership Bonus
+                </span>
+              </div>
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
                 Additional <span className="text-gradient-gold">Resilient Hubs</span>
               </h2>
-              <p className="text-muted-foreground font-sans">
-                Specialized programs for specific challenges
+              <p className="text-muted-foreground font-sans max-w-2xl mx-auto mb-3">
+                Specialized modules that go beyond the core 12-month program. These additional hubs are included in the Premium Membership at no extra cost.
+              </p>
+              <p className="text-sm text-muted-foreground/80 font-sans max-w-2xl mx-auto">
+                Each additional hub contains 2 specialized video lessons and 2 workbooks with reflective exercises.
               </p>
             </div>
 
-            <div className="max-w-3xl mx-auto">
-              <Link
-                to="/endometriosis-hub"
-                className="block bg-background rounded-2xl p-8 border border-border hover:shadow-soft transition-all group"
-              >
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-serif font-semibold mb-3 group-hover:text-gold transition-colors">
-                      Navigating Expat Life with Endometriosis & Chronic Pain
-                    </h3>
-                    <p className="text-muted-foreground font-sans mb-4">
-                      Specialized support for women managing chronic conditions like endometriosis while living abroad. Focus on nervous system regulation, emotional resilience, and identity integrity.
+            <div className="max-w-4xl mx-auto space-y-6 mt-12">
+              {/* The Transformed Self */}
+              <div className="bg-background rounded-2xl border border-border overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Sparkles size={24} className="text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl md:text-2xl font-serif font-semibold mb-1">
+                        The Transformed Self: Carrying Your Strength Across Borders
+                      </h3>
+                      <p className="text-sm italic text-foreground/70 font-sans">
+                        "My journey makes sense when I stop judging the timeline."
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-muted-foreground font-sans mb-5 leading-relaxed">
+                    Recognizing the profound inner transformation that occurs through expatriation challenges. Embracing your newfound resilience, courage and boundary-setting abilities as permanent aspects of your identity. Honoring how difficult moments shaped your capacity for gratitude and appreciation of everyday joys. Developing a global mindset that sees possibilities rather than obstacles in new beginnings. Creating a personal manifesto that anchors your hard-won wisdom as you navigate future transitions with confidence.
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 mb-5">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Video size={16} className="text-primary" />
+                      <span>2 specialized videos</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <BookOpen size={16} className="text-primary" />
+                      <span>2 workbooks</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-warm rounded-xl p-4">
+                    <p className="text-sm font-sans">
+                      <span className="font-semibold text-foreground">Outcome:</span>{" "}
+                      <span className="text-foreground/80">You carry resilience, clarity, and self-trust into any future transition.</span>
                     </p>
-                    <ul className="space-y-2 mb-4">
-                      {[
-                        "1 hour individual session",
-                        "1 hour Reiki treatment",
-                        "Art Therapy tool kit for chronic pain",
-                      ].map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <Check size={16} className="text-primary mt-0.5 flex-shrink-0" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex-shrink-0 text-right">
-                    <div className="text-3xl font-serif font-bold text-gold mb-2">€147</div>
-                    <div className="text-xs text-muted-foreground">One-time fee</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-primary font-sans font-medium group-hover:underline">
-                  Learn more
-                  <ArrowRight size={18} />
+              </div>
+
+              {/* Endometriosis & Chronic Pain */}
+              <div className="bg-background rounded-2xl border border-border overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Calendar size={24} className="text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl md:text-2xl font-serif font-semibold mb-1">
+                        Navigating Expat Life with Endometriosis & Chronic Pain
+                      </h3>
+                      <p className="text-sm italic text-foreground/70 font-sans">
+                        This optional module is not a medical or therapeutic treatment.
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-muted-foreground font-sans mb-5 leading-relaxed">
+                    Designed for women living abroad while managing endometriosis or chronic pain. The focus is on nervous system regulation, emotional resilience, self-trust, and identity integrity while living with pain.
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 mb-5">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Video size={16} className="text-primary" />
+                      <span>2 specialized videos</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <BookOpen size={16} className="text-primary" />
+                      <span>2 workbooks</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-warm rounded-xl p-4">
+                    <p className="text-sm font-sans">
+                      <span className="font-semibold text-foreground">Outcome:</span>{" "}
+                      <span className="text-foreground/80">You navigate life abroad with chronic pain from a place of inner stability and self-compassion.</span>
+                    </p>
+                  </div>
                 </div>
-              </Link>
+              </div>
+            </div>
+
+            {/* Summary note */}
+            <div className="max-w-4xl mx-auto mt-10 text-center">
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-warm rounded-full">
+                <Video size={16} className="text-primary" />
+                <span className="text-sm font-sans text-foreground/80">
+                  <span className="font-semibold">52 video lessons in total</span> — 48 core program + 4 from Additional Hubs
+                </span>
+              </div>
             </div>
           </div>
         </section>
-        )}
 
         {/* Pricing */}
         <div id="pricing">
