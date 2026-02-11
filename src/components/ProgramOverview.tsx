@@ -111,12 +111,12 @@ const ProgramOverview = () => {
     );
   }
 
-  const displayedCategories = categories.slice(0, visibleCategories);
-  const hasMoreCategories = visibleCategories < categories.length;
+  const validCategories = categories.filter(c => c.month_number >= 1 && c.month_number <= 12);
+  const displayedCategories = validCategories.slice(0, visibleCategories);
+  const hasMoreCategories = visibleCategories < validCategories.length;
 
   return (
     <div className="space-y-4">
-      {/* Categories with videos */}
       {displayedCategories.map((category) => {
         const IconComponent = iconMap[category.icon] || Heart;
         const categoryVideos = videos.filter(v => v.category_id === category.id);
@@ -130,6 +130,14 @@ const ProgramOverview = () => {
             description={category.description}
             icon={<IconComponent className="h-6 w-6 text-gold" />}
             isLocked={locked}
+            onViewAll={() => {
+              setVisibleCategories(validCategories.length);
+              if (!user) {
+                setTimeout(() => {
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }
+            }}
           >
             {categoryVideos.length > 0 ? (
               categoryVideos.map((video) => (
@@ -169,7 +177,7 @@ const ProgramOverview = () => {
             onClick={() => setVisibleCategories(prev => prev + 3)}
             className="border-gold text-gold hover:bg-gold hover:text-white mb-4"
           >
-            Show More Months ({categories.length - visibleCategories} remaining)
+            Show More Months ({validCategories.length - visibleCategories} remaining)
           </Button>
         )}
 

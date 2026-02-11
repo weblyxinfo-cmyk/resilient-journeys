@@ -90,7 +90,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
                   </span>
                 )}
                 {hasDiscount && (
-                  <span className="inline-flex items-center px-4 py-1.5 bg-foreground text-background text-xs font-sans font-semibold rounded-full shadow-md whitespace-nowrap">
+                  <span className="inline-flex items-center px-4 py-1.5 bg-muted text-muted-foreground text-xs font-sans font-semibold rounded-full shadow-md whitespace-nowrap">
                     Early Bird
                   </span>
                 )}
@@ -145,7 +145,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
                 disabled={loadingTier === tier.id}
                 className={`w-full rounded-full h-12 font-sans font-semibold text-sm transition-all ${
                   isPremium
-                    ? "bg-gradient-gold text-white shadow-gold hover:shadow-elevated hover:scale-[1.02]"
+                    ? "bg-muted-foreground/60 text-background hover:bg-muted-foreground/70"
                     : "bg-muted-foreground/60 text-background hover:bg-muted-foreground/70"
                 }`}
               >
