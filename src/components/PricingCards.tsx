@@ -84,13 +84,13 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
             {(tier.badge || hasDiscount) && (
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
                 {tier.badge && (
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-background border border-primary/30 text-primary text-xs font-sans font-medium rounded-full shadow-sm">
-                    {isPremium && <Crown size={12} />}
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-background border border-primary/30 text-primary text-xs font-sans font-medium rounded-full shadow-sm whitespace-nowrap">
+                    {isPremium && <Crown size={12} className="flex-shrink-0" />}
                     {tier.badge}
                   </span>
                 )}
                 {hasDiscount && (
-                  <span className="inline-flex items-center px-4 py-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-sans font-medium rounded-full">
+                  <span className="inline-flex items-center px-4 py-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-sans font-medium rounded-full whitespace-nowrap">
                     Early Bird
                   </span>
                 )}
