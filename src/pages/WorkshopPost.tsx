@@ -125,6 +125,9 @@ const WorkshopPost = () => {
                   src={workshop.featured_image_url}
                   alt={workshop.title}
                   className="w-full h-96 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                  }}
                 />
               </div>
             )}
@@ -164,6 +167,9 @@ const WorkshopPost = () => {
                       src={image}
                       alt={`${workshop.title} - Image ${idx + 1}`}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                      }}
                     />
                   </div>
                 ))}

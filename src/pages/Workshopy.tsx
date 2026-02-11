@@ -108,6 +108,9 @@ const Workshopy = () => {
                             src={workshop.featured_image_url}
                             alt={workshop.title}
                             className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                            }}
                           />
                         </div>
                       )}
@@ -122,6 +125,9 @@ const Workshopy = () => {
                                   src={image}
                                   alt={`${workshop.title} preview ${idx + 1}`}
                                   className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                                  }}
                                 />
                               </div>
                             ))}
