@@ -1,4 +1,4 @@
-import { Check, Sparkles, Crown, Loader2, Shield, Clock, Heart, Leaf, Star } from "lucide-react";
+import { Check, Crown, Loader2, Shield, Clock, Heart, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,17 +17,9 @@ interface PricingCardsProps {
   cancelUrl?: string;
 }
 
-const tierEmoji: Record<string, string> = {
-  basic_monthly: '',
-  basic_yearly: '',
-  premium_monthly: '',
-  premium_yearly: '',
-};
-
 const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
   const navigate = useNavigate();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const visibleTiers = getVisibleTiers();
   const earlyBird = isEarlyBird();
 
@@ -72,153 +64,89 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
     }
   };
 
-  const gridCols = visibleTiers.length <= 2 ? "lg:grid-cols-2" : "lg:grid-cols-4";
-
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 ${gridCols} gap-5 max-w-5xl mx-auto`}>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
       {visibleTiers.map((tier) => {
         const currentPrice = getTierPrice(tier);
         const hasDiscount = earlyBird && tier.regularPrice !== tier.earlyBirdPrice;
-        const isSelected = selectedTier === tier.id;
+        const isPremium = tier.membershipType === 'premium';
 
         return (
           <div
             key={tier.id}
-            onClick={() => setSelectedTier(tier.id)}
-            className={`group relative bg-card/80 backdrop-blur-sm rounded-3xl border-2 p-1 transition-all duration-300 cursor-pointer ${
-              isSelected
-                ? "border-primary bg-primary/5 shadow-[0_0_0_3px_rgba(196,155,65,0.2)] scale-[1.02]"
-                : "border-border/60 hover:border-primary/30 hover:shadow-[0_8px_30px_-12px_hsla(30,25%,30%,0.12)]"
+            className={`group relative rounded-3xl transition-all duration-300 ${
+              isPremium
+                ? "bg-gradient-to-b from-primary/8 to-primary/3 border-2 border-primary/30 shadow-[0_8px_40px_-12px_hsla(30,25%,30%,0.18)]"
+                : "bg-card border border-border/60 hover:border-primary/20 hover:shadow-[0_8px_30px_-12px_hsla(30,25%,30%,0.1)]"
             }`}
           >
-            {/* Badge */}
-            {tier.badge && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span className="inline-flex items-center gap-1 px-4 py-1.5 bg-gradient-gold text-white text-xs font-sans font-semibold rounded-full shadow-gold">
-                  {tier.badge}
-                </span>
+            {/* Badges */}
+            {(tier.badge || hasDiscount) && (
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+                {tier.badge && (
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-background border border-primary/30 text-primary text-xs font-sans font-medium rounded-full shadow-sm">
+                    {isPremium && <Crown size={12} />}
+                    {tier.badge}
+                  </span>
+                )}
+                {hasDiscount && (
+                  <span className="inline-flex items-center px-4 py-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-sans font-medium rounded-full">
+                    Early Bird
+                  </span>
+                )}
               </div>
             )}
 
-            {/* Early Bird Badge */}
-            {hasDiscount && (
-              <div className="absolute -top-3 right-4 z-10">
-                <span className="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-sans font-semibold rounded-full">
-                  Early Bird
-                </span>
+            <div className="p-8 pt-10 h-full flex flex-col">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-serif font-semibold text-foreground mb-1.5">
+                  {tier.name}
+                </h3>
+                <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                  {tier.subtitle}
+                </p>
               </div>
-            )}
-
-            {/* Selected indicator */}
-            {isSelected && (
-              <div className="absolute -top-2.5 left-4 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full z-10">
-                Selected
-              </div>
-            )}
-
-            <div className="rounded-[1.25rem] bg-gradient-to-b from-background/60 to-background/30 p-6 pt-8 h-full flex flex-col">
-              {/* Icon */}
-              <div className="mb-4 flex justify-center">
-                <div className="w-11 h-11 rounded-2xl bg-primary/8 flex items-center justify-center group-hover:bg-primary/12 transition-colors">
-                  {tier.membershipType === 'premium' ? (
-                    <Crown size={20} className="text-primary" />
-                  ) : (
-                    <Leaf size={20} className="text-primary" />
-                  )}
-                </div>
-              </div>
-
-              {/* Name */}
-              <h3 className="text-center text-lg font-serif font-semibold text-foreground mb-2">
-                {tier.name}
-              </h3>
-
-              {/* Subtitle */}
-              <p className="text-center text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
-                {tier.subtitle}
-              </p>
 
               {/* Price */}
-              <div className="text-center mb-2">
+              <div className="text-center mb-6">
                 {hasDiscount && (
-                  <div className="text-sm font-sans text-muted-foreground line-through mb-1">
+                  <div className="text-sm font-sans text-muted-foreground/60 line-through mb-0.5">
                     €{tier.regularPrice}
                   </div>
                 )}
-                <div className="inline-flex items-baseline gap-0.5">
-                  <span className="text-sm font-sans font-medium text-muted-foreground/70 -mr-0.5">€</span>
-                  <span className="text-4xl font-serif font-bold tracking-tight text-foreground">
+                <div className="inline-flex items-baseline">
+                  <span className="text-lg font-sans text-muted-foreground/70">€</span>
+                  <span className="text-5xl font-serif font-bold tracking-tight text-foreground">
                     {currentPrice}
                   </span>
                 </div>
-                <div className="text-sm font-sans text-muted-foreground mt-0.5">
+                <div className="text-sm font-sans text-muted-foreground">
                   {tier.period}
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="w-12 h-px bg-border/80 mx-auto my-4" />
+              <div className="w-full h-px bg-border/60 mb-6" />
 
-              {/* What's included */}
-              <p className="text-xs font-sans font-semibold text-foreground/70 uppercase tracking-wider mb-3">
-                What's included
-              </p>
-              <ul className="space-y-2.5 mb-5">
+              {/* Features */}
+              <ul className="space-y-3 mb-8 flex-grow">
                 {tier.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-[13px] leading-relaxed text-foreground/80">
-                    <div className="w-4 h-4 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check size={10} className="text-primary" strokeWidth={3} />
-                    </div>
+                  <li key={i} className="flex items-start gap-3 text-sm text-foreground/80">
+                    <Check size={16} className="text-primary flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <span className="font-sans">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {/* Quote */}
-              {tier.quote && (
-                <p className="text-xs text-muted-foreground italic font-sans text-center mb-4 px-2">
-                  {tier.quote}
-                </p>
-              )}
-
-              {/* Ideal for */}
-              {tier.idealFor && tier.idealFor.length > 0 && (
-                <div className="mb-5">
-                  <p className="text-xs font-sans font-semibold text-foreground/70 uppercase tracking-wider mb-2">
-                    This is for you if you
-                  </p>
-                  <ul className="space-y-1.5">
-                    {tier.idealFor.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-[12px] text-muted-foreground font-sans">
-                        <Star size={10} className="text-primary mt-0.5 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Spacer to push button to bottom */}
-              <div className="flex-grow" />
-
-              {/* Pause note */}
-              <p className="text-[11px] text-center text-muted-foreground/60 font-sans mb-3">
-                {tier.interval === 'month'
-                  ? 'You can pause anytime. Continue when it feels right.'
-                  : 'Self-paced — the program stays open until you finish.'}
-              </p>
-
               {/* Button */}
               <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  createCheckoutSession(tier.id);
-                }}
+                onClick={() => createCheckoutSession(tier.id)}
                 disabled={loadingTier === tier.id}
-                className={`w-full rounded-full h-11 font-sans font-medium text-sm transition-all ${
-                  isSelected
-                    ? "bg-gradient-gold text-white shadow-gold hover:shadow-elevated"
-                    : "bg-primary hover:bg-primary/90"
+                className={`w-full rounded-full h-12 font-sans font-semibold text-sm transition-all ${
+                  isPremium
+                    ? "bg-gradient-gold text-white shadow-gold hover:shadow-elevated hover:scale-[1.02]"
+                    : "bg-foreground text-background hover:bg-foreground/90"
                 }`}
               >
                 {loadingTier === tier.id ? (
