@@ -41,7 +41,7 @@ serve(async (req) => {
     // Validation
     if (!session_type || !client_name || !client_email || !start_time) {
       console.error("Missing required fields for booking");
-      throw new Error(error);
+      throw new Error("Missing required fields: session_type, client_name, client_email, start_time");
     }
 
     if (!SESSION_DURATIONS[session_type]) {

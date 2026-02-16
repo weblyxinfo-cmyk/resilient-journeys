@@ -169,7 +169,7 @@ const EndometriosisHub = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  to="/checkout"
+                  to="/checkout?product=hub&hub=endometriosis"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all"
                 >
                   Purchase Access
