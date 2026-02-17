@@ -58,51 +58,27 @@ const FreeGuide = () => {
     }
 
     try {
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('user_id, email')
-        .eq('email', formData.email)
-        .maybeSingle();
-
-      if (existingUser) {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: formData.email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard?free_guide=true`,
-          },
+      // Save lead to database
+      await supabase
+        .from('lead_magnets')
+        .insert({ email: formData.email, name: formData.name, source: 'free_guide' })
+        .then(({ error }) => {
+          // Ignore duplicate email errors (23505)
+          if (error && !error.message?.includes('duplicate') && error.code !== '23505') {
+            console.error('Lead save error:', error);
+          }
         });
-        if (error) throw error;
 
-        // Fire-and-forget: add contact to Brevo + send free guide email
-        supabase.functions.invoke('brevo-add-contact', {
-          body: { email: formData.email, name: formData.name || undefined },
-        }).catch(() => {});
-        supabase.functions.invoke('send-free-guide', {
-          body: { email: formData.email, name: formData.name || undefined },
-        }).catch(() => {});
-      } else {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: formData.email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard?free_guide=true`,
-            data: {
-              full_name: formData.name,
-              source: 'free_guide',
-            },
-          },
-        });
-        if (error) throw error;
+      // Send free guide email + add to Brevo (fire-and-forget)
+      await supabase.functions.invoke('send-free-guide', {
+        body: { email: formData.email, name: formData.name || undefined },
+      });
 
-        // Fire-and-forget: add contact to Brevo + send free guide email
-        supabase.functions.invoke('brevo-add-contact', {
-          body: { email: formData.email, name: formData.name || undefined },
-        }).catch(() => {});
-        supabase.functions.invoke('send-free-guide', {
-          body: { email: formData.email, name: formData.name || undefined },
-        }).catch(() => {});
-      }
+      supabase.functions.invoke('brevo-add-contact', {
+        body: { email: formData.email, name: formData.name || undefined },
+      }).catch(() => {});
 
-      toast.success('Check your email for the magic link!');
+      toast.success('Your free practice kit is on the way!');
       setIsSuccess(true);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -142,7 +118,7 @@ const FreeGuide = () => {
                   Your Free 7-Day Practice Kit Is Ready!
                 </CardTitle>
                 <CardDescription className="text-base mt-2">
-                  We've also sent a magic link to <span className="font-medium text-foreground">{formData.email}</span> for full dashboard access.
+                  We've also sent the kit to <span className="font-medium text-foreground">{formData.email}</span> so you can access it anytime.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -185,7 +161,7 @@ const FreeGuide = () => {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">Guided EFT Tapping Video</p>
-                    <p className="text-sm text-muted-foreground">Access via your dashboard after email login</p>
+                    <p className="text-sm text-muted-foreground">Create a free account at resilientmind.io/auth to access</p>
                   </div>
                   <Mail className="h-5 w-5 text-muted-foreground" />
                 </div>
