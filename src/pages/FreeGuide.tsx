@@ -75,7 +75,7 @@ const FreeGuide = () => {
       });
 
       supabase.functions.invoke('brevo-add-contact', {
-        body: { email: formData.email, name: formData.name || undefined, listIds: [2, 7] },
+        body: { email: formData.email, name: formData.name || undefined, listIds: [2] },
       }).catch(() => {});
 
       toast.success('Your free practice kit is on the way!');
