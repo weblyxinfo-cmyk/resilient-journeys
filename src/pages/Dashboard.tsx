@@ -121,6 +121,14 @@ const Dashboard = () => {
 
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 
+  const canAccessVideo = useCallback((video: Video) => {
+    if (video.is_free) return true;
+    if (!profile) return false;
+
+    const membershipOrder = { free: 0, basic: 1, premium: 2 };
+    return membershipOrder[profile.membership_type] >= membershipOrder[video.min_membership];
+  }, [profile]);
+
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
@@ -132,10 +140,14 @@ const Dashboard = () => {
         setCheckingAdmin(false);
         return;
       }
-      const { data } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      if (data) {
-        navigate('/admin', { replace: true });
-        return;
+      try {
+        const { data } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+        if (data) {
+          navigate('/admin', { replace: true });
+          return;
+        }
+      } catch (err) {
+        console.error('Admin check failed:', err);
       }
       setCheckingAdmin(false);
     };
@@ -158,80 +170,89 @@ const Dashboard = () => {
     }
   }, [user, loading, searchParams, setSearchParams]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   useEffect(() => {
     const fetchContent = async () => {
-      // Fetch categories
-      const { data: categoriesData } = await supabase
-        .from('video_categories')
-        .select('*')
-        .order('month_number');
+      try {
+        // Fetch categories
+        const { data: categoriesData } = await supabase
+          .from('video_categories')
+          .select('*')
+          .order('month_number');
 
-      if (categoriesData) {
-        setCategories(categoriesData);
-      }
-
-      // Fetch videos
-      const { data: videosData } = await supabase
-        .from('videos')
-        .select('*')
-        .order('sort_order');
-
-      if (videosData) {
-        setVideos(videosData as Video[]);
-
-        // Calculate accessible videos
-        const accessible = (videosData as Video[]).filter(v => canAccessVideo(v));
-        setTotalAccessibleVideos(accessible.length);
-      }
-
-      // Fetch user progress
-      if (user) {
-        const { data: progressData } = await supabase
-          .from('user_progress')
-          .select('completed')
-          .eq('user_id', user.id)
-          .eq('completed', true);
-
-        if (progressData) {
-          setCompletedVideos(progressData.length);
+        if (categoriesData) {
+          setCategories(categoriesData);
         }
-      }
 
-      // Fetch resources (RLS will filter by membership)
-      const { data: resourcesData } = await supabase
-        .from('resources')
-        .select('*')
-        .order('sort_order');
+        // Fetch videos
+        const { data: videosData } = await supabase
+          .from('videos')
+          .select('*')
+          .order('sort_order');
 
-      if (resourcesData) {
-        setResources(resourcesData as Resource[]);
-      }
+        if (videosData) {
+          setVideos(videosData as Video[]);
 
-      // Fetch premium credits if user is premium
-      if (user && profile?.membership_type === 'premium') {
-        const currentYear = new Date().getFullYear();
-        const { data: creditsData } = await supabase
-          .from('premium_credits')
-          .select('total_credits, used_credits')
-          .eq('user_id', user.id)
-          .eq('year', currentYear)
-          .maybeSingle();
-
-        if (creditsData) {
-          setPremiumCredits({
-            total: creditsData.total_credits,
-            used: creditsData.used_credits
-          });
-        } else {
-          // Create credits for current year if not exists
-          await supabase.from('premium_credits').insert({
-            user_id: user.id,
-            year: currentYear,
-            total_credits: 4,
-            used_credits: 0
-          });
-          setPremiumCredits({ total: 4, used: 0 });
+          // Calculate accessible videos
+          const accessible = (videosData as Video[]).filter(v => canAccessVideo(v));
+          setTotalAccessibleVideos(accessible.length);
         }
+
+        // Fetch user progress
+        if (user) {
+          const { data: progressData } = await supabase
+            .from('user_progress')
+            .select('completed')
+            .eq('user_id', user.id)
+            .eq('completed', true);
+
+          if (progressData) {
+            setCompletedVideos(progressData.length);
+          }
+        }
+
+        // Fetch resources (RLS will filter by membership)
+        const { data: resourcesData } = await supabase
+          .from('resources')
+          .select('*')
+          .order('sort_order');
+
+        if (resourcesData) {
+          setResources(resourcesData as Resource[]);
+        }
+
+        // Fetch premium credits if user is premium
+        if (user && profile?.membership_type === 'premium') {
+          const currentYear = new Date().getFullYear();
+          const { data: creditsData } = await supabase
+            .from('premium_credits')
+            .select('total_credits, used_credits')
+            .eq('user_id', user.id)
+            .eq('year', currentYear)
+            .maybeSingle();
+
+          if (creditsData) {
+            setPremiumCredits({
+              total: creditsData.total_credits,
+              used: creditsData.used_credits
+            });
+          } else {
+            // Create credits for current year if not exists
+            await supabase.from('premium_credits').insert({
+              user_id: user.id,
+              year: currentYear,
+              total_credits: 4,
+              used_credits: 0
+            });
+            setPremiumCredits({ total: 4, used: 0 });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard content:', err);
       }
 
       setLoadingContent(false);
@@ -241,19 +262,6 @@ const Dashboard = () => {
       fetchContent();
     }
   }, [user, canAccessVideo, profile?.membership_type]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const canAccessVideo = useCallback((video: Video) => {
-    if (video.is_free) return true;
-    if (!profile) return false;
-
-    const membershipOrder = { free: 0, basic: 1, premium: 2 };
-    return membershipOrder[profile.membership_type] >= membershipOrder[video.min_membership];
-  }, [profile]);
 
   const getResourceIcon = (type: Resource['resource_type']) => {
     switch (type) {
