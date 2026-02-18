@@ -54,16 +54,29 @@ const Checkout = () => {
   const { user, profile, loading: authLoading } = useAuth();
 
   const plans = buildPlans();
+  const productParam = searchParams.get('product');
+  const hubSlug = searchParams.get('hub');
+  const isHubPurchase = productParam === 'hub' && !!hubSlug;
   const planId = (searchParams.get('plan') || 'basic_monthly') as PlanId;
   const plan = plans[planId] || plans.basic_monthly;
   const earlyBird = isEarlyBird();
+
+  // Hub display info
+  const hubInfo: Record<string, { name: string; price: number; description: string }> = {
+    'endometriosis': { name: 'Endometriosis Management Hub', price: 147, description: 'Managing chronic pain while living abroad' },
+    'transformed-self': { name: 'The Transformed Self Hub', price: 127, description: 'Carrying Your Strength Across Borders' },
+  };
+  const hub = hubSlug ? hubInfo[hubSlug] : null;
 
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCheckout = async () => {
     if (!user) {
-      navigate('/auth?redirect=/checkout?plan=' + planId);
+      const redirect = isHubPurchase
+        ? `/checkout?product=hub&hub=${hubSlug}`
+        : `/checkout?plan=${planId}`;
+      navigate('/auth?redirect=' + encodeURIComponent(redirect));
       return;
     }
 
@@ -71,13 +84,21 @@ const Checkout = () => {
     setError(null);
 
     try {
-      // Call the checkout edge function
+      const body = isHubPurchase
+        ? {
+            product_type: 'hub',
+            hub_slug: hubSlug,
+            successUrl: `${window.location.origin}/checkout/success`,
+            cancelUrl: `${window.location.origin}/checkout?product=hub&hub=${hubSlug}`,
+          }
+        : {
+            planId,
+            successUrl: `${window.location.origin}/checkout/success`,
+            cancelUrl: `${window.location.origin}/checkout?plan=${planId}`,
+          };
+
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          planId,
-          successUrl: `${window.location.origin}/checkout/success`,
-          cancelUrl: `${window.location.origin}/checkout?plan=${planId}`,
-        },
+        body,
       });
 
       if (fnError) {
@@ -85,7 +106,6 @@ const Checkout = () => {
       }
 
       if (data?.url) {
-        // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
         throw new Error('Could not get payment link');
@@ -132,41 +152,59 @@ const Checkout = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {/* Early-bird notice */}
-                {earlyBird && plan.regularPrice !== plan.price && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-center text-sm text-green-800 font-medium">
-                    Early-bird pricing active until {formatEarlyBirdEnd()}!
+                {isHubPurchase && hub ? (
+                  /* Hub purchase summary */
+                  <div className="p-4 bg-gradient-warm rounded-xl">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-serif font-semibold text-lg">{hub.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{hub.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-serif font-bold">€{hub.price}</span>
+                        <span className="text-muted-foreground text-sm"> one-time</span>
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    {/* Early-bird notice */}
+                    {earlyBird && plan.regularPrice !== plan.price && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-center text-sm text-green-800 font-medium">
+                        Early-bird pricing active until {formatEarlyBirdEnd()}!
+                      </div>
+                    )}
+
+                    {/* Plan summary */}
+                    <div className="p-4 bg-gradient-warm rounded-xl">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-serif font-semibold text-lg">
+                            {plan.name} - {plan.subtitle}
+                          </h3>
+                        </div>
+                        <div className="text-right">
+                          {earlyBird && plan.regularPrice !== plan.price && (
+                            <span className="text-sm text-muted-foreground line-through mr-2">
+                              €{plan.regularPrice}
+                            </span>
+                          )}
+                          <span className="text-2xl font-serif font-bold">€{plan.price}</span>
+                          <span className="text-muted-foreground text-sm">/{plan.interval}</span>
+                        </div>
+                      </div>
+
+                      <ul className="space-y-2 mt-4">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-gold flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
                 )}
-
-                {/* Plan summary */}
-                <div className="p-4 bg-gradient-warm rounded-xl">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-serif font-semibold text-lg">
-                        {plan.name} - {plan.subtitle}
-                      </h3>
-                    </div>
-                    <div className="text-right">
-                      {earlyBird && plan.regularPrice !== plan.price && (
-                        <span className="text-sm text-muted-foreground line-through mr-2">
-                          €{plan.regularPrice}
-                        </span>
-                      )}
-                      <span className="text-2xl font-serif font-bold">€{plan.price}</span>
-                      <span className="text-muted-foreground text-sm">/{plan.interval}</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-2 mt-4">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 text-gold flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
 
                 {/* Error message */}
                 {error && (
@@ -197,7 +235,7 @@ const Checkout = () => {
                   ) : (
                     <>
                       <CreditCard className="mr-2 h-5 w-5" />
-                      Pay €{plan.price}
+                      Pay €{isHubPurchase && hub ? hub.price : plan.price}
                     </>
                   )}
                 </Button>
@@ -220,7 +258,8 @@ const Checkout = () => {
               </CardContent>
             </Card>
 
-            {/* Other plans (only visible/monthly) */}
+            {/* Other plans (only visible/monthly) - hide for hub purchases */}
+            {!isHubPurchase && (
             <div className="mt-8 text-center">
               <p className="text-muted-foreground mb-3">Different plan?</p>
               <div className="flex flex-wrap justify-center gap-2">
@@ -237,6 +276,7 @@ const Checkout = () => {
                 ))}
               </div>
             </div>
+            )}
           </div>
         </div>
       </main>

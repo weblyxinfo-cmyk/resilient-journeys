@@ -154,7 +154,7 @@ serve(async (req) => {
         cancel_url: cancelUrl,
         metadata: {
           user_id: user.id,
-          purchase_type: 'one_time_hub',
+          product_type: 'hub',
           hub_slug: hub_slug,
         },
       });
