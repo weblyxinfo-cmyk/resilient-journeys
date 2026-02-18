@@ -131,6 +131,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!loading && !user) {
+      setCheckingAdmin(false);
       navigate('/auth');
       return;
     }
@@ -144,6 +145,7 @@ const Dashboard = () => {
         const { data } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
         if (data) {
           navigate('/admin', { replace: true });
+          // setCheckingAdmin stays true; component will unmount due to navigation
           return;
         }
       } catch (err) {
@@ -258,10 +260,10 @@ const Dashboard = () => {
       setLoadingContent(false);
     };
 
-    if (user) {
+    if (user && profile) {
       fetchContent();
     }
-  }, [user, canAccessVideo, profile?.membership_type]);
+  }, [user, profile, canAccessVideo]);
 
   const getResourceIcon = (type: Resource['resource_type']) => {
     switch (type) {

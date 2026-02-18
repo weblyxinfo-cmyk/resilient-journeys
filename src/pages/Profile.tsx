@@ -130,8 +130,16 @@ const Profile = () => {
     );
   }
 
-  if (!user || !profile) {
+  if (!user) {
     return null;
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-gold">Loading profile...</div>
+      </div>
+    );
   }
 
   const formatDate = (dateStr: string | null) => {
