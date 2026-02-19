@@ -28,13 +28,14 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error("Please log in first");
+        alert("DEBUG: No session - not logged in");
         navigate("/auth");
         setLoadingTier(null);
         return;
       }
 
-      // Use direct fetch instead of supabase.functions.invoke to avoid hanging
+      alert("DEBUG: Session OK, calling checkout...");
+
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
 
@@ -59,6 +60,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
       clearTimeout(timeout);
 
       const result = await response.json();
+      alert(`DEBUG: Response ${response.status}: ${JSON.stringify(result).slice(0, 200)}`);
 
       if (!response.ok) {
         throw new Error(result?.error || `Server error (${response.status})`);
@@ -70,12 +72,8 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
       }
       throw new Error("No checkout URL returned");
     } catch (error: any) {
-      console.error("Checkout error:", error);
-      if (error.name === 'AbortError') {
-        toast.error("Request timed out. Please try again.");
-      } else {
-        toast.error(error.message || "Failed to start checkout");
-      }
+      alert(`DEBUG: Error - ${error.name}: ${error.message}`);
+      toast.error(error.message || "Failed to start checkout");
       setLoadingTier(null);
     }
   };
