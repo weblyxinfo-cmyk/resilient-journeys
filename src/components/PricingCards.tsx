@@ -24,14 +24,15 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
   const earlyBird = isEarlyBird();
 
   const createCheckoutSession = async (productType: string) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      toast.error("Please log in first");
-      navigate("/auth");
-      return;
-    }
     setLoadingTier(productType);
     try {
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      if (authError || !userData.user) {
+        toast.error("Please log in first");
+        navigate("/auth");
+        return;
+      }
+
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
         body: {
           planId: productType,
