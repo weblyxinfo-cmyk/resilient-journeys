@@ -26,21 +26,21 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
   const createCheckoutSession = async (productType: string) => {
     setLoadingTier(productType);
 
-    // Safety timeout - always reset button after 20s no matter what
+    // Safety timeout - always reset button after 15s no matter what
     const safetyTimeout = setTimeout(() => {
       setLoadingTier(null);
       toast.error("Request timed out. Please try again.");
-    }, 20000);
+    }, 15000);
 
     try {
-      const { data: userData, error: authError } = await supabase.auth.getUser();
-      if (authError || !userData.user) {
+      // Check session locally (no network call) instead of getUser()
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast.error("Please log in first");
         navigate("/auth");
+        setLoadingTier(null);
         return;
       }
-
-      console.log("Calling create-checkout for plan:", productType);
 
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -50,17 +50,20 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
         },
       });
 
-      console.log("create-checkout response:", { data, error: fnError });
-
       if (fnError) {
-        const errorMsg = typeof fnError === 'object' && fnError.message
-          ? fnError.message
-          : "Failed to create checkout session";
+        // FunctionsHttpError wraps the response - try to extract the real message
+        let errorMsg = "Failed to create checkout session";
+        try {
+          if (fnError.context) {
+            const errBody = await fnError.context.json();
+            errorMsg = errBody?.error || errorMsg;
+          }
+        } catch {}
         throw new Error(errorMsg);
       }
       if (data?.url) {
         window.location.href = data.url;
-        return; // Don't reset loading - page is navigating away
+        return;
       }
       throw new Error("No checkout URL returned");
     } catch (error: any) {
