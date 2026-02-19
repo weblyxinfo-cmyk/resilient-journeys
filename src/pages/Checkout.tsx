@@ -259,7 +259,7 @@ const Checkout = () => {
                 {!user && (
                   <div className="text-center text-sm text-muted-foreground">
                     Don't have an account?{' '}
-                    <Link to={`/auth?redirect=/checkout?plan=${planId}`} className="text-gold hover:underline">
+                    <Link to={`/auth?redirect=${encodeURIComponent(`/checkout?plan=${planId}`)}`} className="text-gold hover:underline">
                       Sign up
                     </Link>
                   </div>

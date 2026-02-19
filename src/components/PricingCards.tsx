@@ -1,8 +1,7 @@
-import { Check, Crown, Loader2, Shield, Clock, Heart, Leaf } from "lucide-react";
+import { Check, Crown, Loader2, Shield, Clock, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -10,7 +9,6 @@ import {
   getTierPrice,
   isEarlyBird,
   formatEarlyBirdEnd,
-  type MembershipTier,
 } from "@/lib/pricing";
 
 interface PricingCardsProps {
@@ -53,7 +51,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'apikey': supabaseKey,
         },
         body: JSON.stringify({
