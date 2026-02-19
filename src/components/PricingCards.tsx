@@ -25,6 +25,13 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
 
   const createCheckoutSession = async (productType: string) => {
     setLoadingTier(productType);
+
+    // Safety timeout - always reset button after 20s no matter what
+    const safetyTimeout = setTimeout(() => {
+      setLoadingTier(null);
+      toast.error("Request timed out. Please try again.");
+    }, 20000);
+
     try {
       const { data: userData, error: authError } = await supabase.auth.getUser();
       if (authError || !userData.user) {
@@ -33,8 +40,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
         return;
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      console.log("Calling create-checkout for plan:", productType);
 
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -44,22 +50,25 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
         },
       });
 
-      clearTimeout(timeout);
+      console.log("create-checkout response:", { data, error: fnError });
 
       if (fnError) {
-        throw new Error(fnError.message || "Failed to create checkout session");
+        const errorMsg = typeof fnError === 'object' && fnError.message
+          ? fnError.message
+          : "Failed to create checkout session";
+        throw new Error(errorMsg);
       }
-      if (data?.url) window.location.href = data.url;
-      else throw new Error("No checkout URL returned");
+      if (data?.url) {
+        window.location.href = data.url;
+        return; // Don't reset loading - page is navigating away
+      }
+      throw new Error("No checkout URL returned");
     } catch (error: any) {
       console.error("Checkout error:", error);
-      if (error.name === 'AbortError') {
-        toast.error("Request timed out. Please try again.");
-      } else {
-        toast.error(error.message || "Failed to start checkout");
-      }
-    } finally {
+      toast.error(error.message || "Failed to start checkout");
       setLoadingTier(null);
+    } finally {
+      clearTimeout(safetyTimeout);
     }
   };
 

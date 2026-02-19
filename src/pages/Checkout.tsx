@@ -83,6 +83,12 @@ const Checkout = () => {
     setProcessing(true);
     setError(null);
 
+    // Safety timeout - always reset button after 20s
+    const safetyTimeout = setTimeout(() => {
+      setProcessing(false);
+      setError('Request timed out. Please try again.');
+    }, 20000);
+
     try {
       const body = isHubPurchase
         ? {
@@ -97,24 +103,32 @@ const Checkout = () => {
             cancelUrl: `${window.location.origin}/checkout?plan=${planId}`,
           };
 
+      console.log("Calling create-checkout:", body);
+
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
         body,
       });
 
+      console.log("create-checkout response:", { data, error: fnError });
+
       if (fnError) {
-        throw new Error(fnError.message || 'Error creating payment');
+        const errorMsg = typeof fnError === 'object' && fnError.message
+          ? fnError.message
+          : 'Error creating payment';
+        throw new Error(errorMsg);
       }
 
       if (data?.url) {
         window.location.href = data.url;
-      } else {
-        throw new Error('Could not get payment link');
+        return; // Don't reset - page is navigating
       }
+      throw new Error('Could not get payment link');
     } catch (err: any) {
       console.error('Checkout error:', err);
       setError(err.message || 'An error occurred while processing payment');
-    } finally {
       setProcessing(false);
+    } finally {
+      clearTimeout(safetyTimeout);
     }
   };
 
