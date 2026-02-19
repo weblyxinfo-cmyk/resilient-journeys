@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let initialSessionHandled = false;
 
     // Safety timeout — if auth takes too long, stop loading so UI is usable
     const timeout = setTimeout(() => {
@@ -74,25 +75,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }, 4000);
 
+    const handleSession = async (session: Session | null) => {
+      if (!isMounted) return;
+
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id);
+        if (isMounted) {
+          setProfile(profileData);
+          setLoading(false);
+        }
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    };
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          // Fetch profile BEFORE setting loading to false
-          const profileData = await fetchProfile(session.user.id);
-          if (isMounted) {
-            setProfile(profileData);
-            setLoading(false);
-          }
-        } else {
-          setProfile(null);
-          setLoading(false);
+        // Skip INITIAL_SESSION if getSession already handled it
+        if (event === 'INITIAL_SESSION') {
+          if (initialSessionHandled) return;
+          initialSessionHandled = true;
         }
+
+        await handleSession(session);
       }
     );
 
@@ -100,19 +112,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession()
       .then(async ({ data: { session } }) => {
         if (!isMounted) return;
-
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
-          if (isMounted) {
-            setProfile(profileData);
-            setLoading(false);
-          }
-        } else {
-          setLoading(false);
-        }
+        initialSessionHandled = true;
+        await handleSession(session);
       })
       .catch((err) => {
         console.error('Auth getSession failed:', err);

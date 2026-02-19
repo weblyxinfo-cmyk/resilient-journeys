@@ -5,20 +5,25 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Crown, Loader2, ArrowRight, Video, FileText, Calendar } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const PricingSuccess = () => {
   const [searchParams] = useSearchParams();
   const [processing, setProcessing] = useState(true);
+  const { refreshProfile, profile } = useAuth();
   const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
-    // Simulate processing time
-    const timer = setTimeout(() => {
+    // Wait for webhook to process, then refresh profile
+    const refreshMembership = async () => {
+      await refreshProfile();
       setProcessing(false);
-    }, 2000);
+    };
+
+    const timer = setTimeout(refreshMembership, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [refreshProfile]);
 
   return (
     <div className="min-h-screen bg-background">

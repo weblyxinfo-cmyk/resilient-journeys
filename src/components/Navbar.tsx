@@ -185,6 +185,13 @@ const Navbar = () => {
                   >
                     Dashboard
                   </Link>
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="font-sans text-base font-medium px-2 py-2 text-foreground/80"
+                  >
+                    Profile Settings
+                  </Link>
                   <button
                     onClick={() => {
                       handleSignOut();

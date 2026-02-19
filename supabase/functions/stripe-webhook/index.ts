@@ -102,13 +102,14 @@ serve(async (req) => {
           console.log(`Processing one-time payment - Product type: ${productType}`);
 
           try {
-            // Handle yearly membership purchases
-            if (productType === "yearly_basic" || productType === "yearly_premium") {
+            // Handle yearly membership purchases (support both naming conventions)
+            if (productType === "yearly_basic" || productType === "yearly_premium" ||
+                productType === "basic_yearly" || productType === "premium_yearly") {
               // Set membership for 12 months
               const expiresAt = new Date();
               expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-              const membershipType = productType === "yearly_basic" ? "basic" : "premium";
+              const membershipType = (productType === "yearly_basic" || productType === "basic_yearly") ? "basic" : "premium";
 
               const { error } = await supabaseAdmin
                 .from("profiles")

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,8 +18,11 @@ const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
+
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -35,9 +38,9 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/dashboard');
+      navigate(redirectTo);
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, redirectTo]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +80,7 @@ const Auth = () => {
         title: 'Welcome back!',
         description: 'You have successfully signed in'
       });
-      navigate('/dashboard');
+      navigate(redirectTo);
     }
 
     setIsLoading(false);
@@ -120,7 +123,7 @@ const Auth = () => {
         title: 'Account Created!',
         description: 'Welcome to Resilient Mind'
       });
-      navigate('/dashboard');
+      navigate(redirectTo);
     }
 
     setIsLoading(false);
