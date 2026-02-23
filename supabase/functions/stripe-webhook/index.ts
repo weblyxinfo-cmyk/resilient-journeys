@@ -261,6 +261,44 @@ serve(async (req) => {
         break;
       }
 
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const customerId = charge.customer as string;
+
+        if (!customerId) {
+          console.log("Refund received but no customer ID on charge");
+          break;
+        }
+
+        // Find user by customer ID
+        const { data: refundProfile } = await supabaseAdmin
+          .from("profiles")
+          .select("user_id, membership_type")
+          .eq("stripe_customer_id", customerId)
+          .single();
+
+        if (!refundProfile) {
+          console.log(`No profile found for customer ${customerId} on refund`);
+          break;
+        }
+
+        // Full refund → downgrade to free
+        if (charge.amount_captured > 0 && charge.amount_refunded === charge.amount_captured) {
+          await supabaseAdmin
+            .from("profiles")
+            .update({
+              membership_type: "free",
+              membership_expires_at: null,
+            })
+            .eq("user_id", refundProfile.user_id);
+
+          console.log(`Full refund processed for user ${refundProfile.user_id} — downgraded to free`);
+        } else {
+          console.log(`Partial refund for user ${refundProfile.user_id}: ${charge.amount_refunded}/${charge.amount_captured}`);
+        }
+        break;
+      }
+
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`Payment failed for invoice ${invoice.id}`);

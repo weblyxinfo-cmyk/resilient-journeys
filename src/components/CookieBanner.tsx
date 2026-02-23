@@ -12,16 +12,21 @@ const CookieBanner = () => {
     const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!consent) {
       setVisible(true);
+    } else if (consent === "accepted") {
+      // Restore granted state for returning visitors
+      window.gtag?.("consent", "update", { analytics_storage: "granted" });
     }
   }, []);
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
+    window.gtag?.("consent", "update", { analytics_storage: "granted" });
     setVisible(false);
   };
 
   const handleDecline = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
+    window.gtag?.("consent", "update", { analytics_storage: "denied" });
     setVisible(false);
   };
 

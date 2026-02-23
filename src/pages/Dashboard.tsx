@@ -34,7 +34,9 @@ import {
   Music,
   File,
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  GraduationCap,
+  Video
 } from 'lucide-react';
 import UserBookings from '@/components/booking/UserBookings';
 import FreeGuideKit from '@/components/FreeGuideKit';
@@ -630,6 +632,72 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Premium Community - Skool & Zoom */}
+          {profile?.membership_type === 'premium' && (
+            <div className="mb-8">
+              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-4 flex items-center gap-2">
+                <Crown className="h-5 w-5 text-gold" />
+                Premium Community
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="border-gold/20 hover:shadow-elegant transition-all">
+                  <CardHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-3 bg-gold/10 rounded-full">
+                        <GraduationCap className="h-6 w-6 text-gold" />
+                      </div>
+                      <div>
+                        <CardTitle className="font-serif text-lg">Skool Community</CardTitle>
+                        <CardDescription>Connect with fellow premium members</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Join our private Skool community for discussions, resources, and peer support from expats around the world.
+                    </p>
+                    <Button
+                      className="w-full bg-gold hover:bg-gold-dark text-white"
+                      onClick={() => window.open('https://www.skool.com/resilient-mind-expats-premium-3871', '_blank')}
+                    >
+                      <GraduationCap className="h-4 w-4 mr-2" />
+                      Join Community
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card className="border-gold/20 hover:shadow-elegant transition-all">
+                  <CardHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-3 bg-gold/10 rounded-full">
+                        <Video className="h-6 w-6 text-gold" />
+                      </div>
+                      <div>
+                        <CardTitle className="font-serif text-lg">Live Group Sessions</CardTitle>
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          <Video className="h-3 w-3 mr-1" />
+                          Zoom
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Join our live group therapy sessions via Zoom. Dates and links are shared in the Skool community.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="w-full border-gold text-gold hover:bg-gold hover:text-white"
+                      onClick={() => window.open('https://www.skool.com/resilient-mind-expats-premium-3871', '_blank')}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      See Schedule
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
 
           {/* Free Guide Kit - shown for free members */}
           {profile?.membership_type === 'free' && (

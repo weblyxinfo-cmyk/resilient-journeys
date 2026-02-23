@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Crown, User, Mail, Calendar, CreditCard, Lock } from 'lucide-react';
+import { ArrowLeft, Crown, User, Mail, Calendar, CreditCard, Lock, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const membershipLabels = {
@@ -36,6 +36,46 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  const handleManagePayment = async () => {
+    setIsOpeningPortal(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: 'Error', description: 'Please sign in again', variant: 'destructive' });
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal-session`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ returnUrl: window.location.href }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('Portal error:', err);
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to open payment portal',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsOpeningPortal(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -307,15 +347,18 @@ const Profile = () => {
                     <Button
                       variant="outline"
                       className="w-full border-gold/30"
-                      onClick={() => {
-                        window.location.href = 'mailto:contact@resilientmind.io?subject=Payment%20Management%20Request';
-                      }}
+                      onClick={handleManagePayment}
+                      disabled={isOpeningPortal}
                     >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Manage Payment
+                      {isOpeningPortal ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CreditCard className="h-4 w-4 mr-2" />
+                      )}
+                      {isOpeningPortal ? 'Opening...' : 'Manage Payment'}
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                      Contact us to manage your payment details
+                      View invoices, update payment method, or cancel subscription
                     </p>
                   </div>
                 )}
