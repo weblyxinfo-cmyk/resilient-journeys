@@ -224,19 +224,14 @@ const Workshopy = () => {
           </div>
         </section>
 
-        {/* Dynamic Workshops from CMS */}
-        <section className="py-16 md:py-24 bg-card">
-          <div className="container px-4">
-            <div className="max-w-4xl mx-auto">
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-pulse text-gold">Loading workshops...</div>
-                </div>
-              ) : workshops.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No workshops published yet. Check back soon!</p>
-                </div>
-              ) : (
+        {/* Dynamic Workshops from CMS — only show when there are published workshops */}
+        {!loading && workshops.length > 0 && (
+          <section className="py-16 md:py-24 bg-card">
+            <div className="container px-4">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-8 text-center">
+                  Upcoming Workshops
+                </h2>
                 <div className="grid gap-8">
                   {workshops.map((workshop) => (
                     <article
@@ -256,7 +251,6 @@ const Workshopy = () => {
                         </div>
                       )}
 
-                      {/* Gallery Preview */}
                       {workshop.gallery_images && workshop.gallery_images.length > 0 && (
                         <div className="mb-6">
                           <div className="grid grid-cols-4 gap-2">
@@ -273,12 +267,6 @@ const Workshopy = () => {
                               </div>
                             ))}
                           </div>
-                          {(workshop.gallery_images.length > 4 || (workshop.video_urls && workshop.video_urls.length > 0)) && (
-                            <p className="text-xs text-muted-foreground mt-2 font-sans">
-                              {workshop.gallery_images.length} photos
-                              {workshop.video_urls && workshop.video_urls.length > 0 && ` • ${workshop.video_urls.length} videos`}
-                            </p>
-                          )}
                         </div>
                       )}
 
@@ -325,12 +313,16 @@ const Workshopy = () => {
                     </article>
                   ))}
                 </div>
-              )}
-
-              {/* Inquiry Form */}
-              <div className="mt-16">
-                <WorkshopInquiryForm />
               </div>
+            </div>
+          </section>
+        )}
+
+        {/* Inquiry Form */}
+        <section className="py-16 md:py-24 bg-card">
+          <div className="container px-4">
+            <div className="max-w-4xl mx-auto">
+              <WorkshopInquiryForm />
             </div>
           </div>
         </section>
