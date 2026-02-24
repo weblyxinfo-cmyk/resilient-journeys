@@ -62,7 +62,7 @@ interface Video {
   min_membership: 'free' | 'basic' | 'premium';
   category_id: string;
   week_number?: number;
-  video_type?: 'eft' | 'art' | 'meditation';
+  video_type?: 'eft' | 'art' | 'art_therapy' | 'meditation';
   is_intro?: boolean;
 }
 
@@ -405,7 +405,7 @@ const Dashboard = () => {
     // Get videos for selected week
     const weekVideos = categoryVideos.filter(v => v.week_number === selectedWeek && !v.is_intro);
     const eftVideo = weekVideos.find(v => v.video_type === 'eft') || null;
-    const artVideo = weekVideos.find(v => v.video_type === 'art') || null;
+    const artVideo = weekVideos.find(v => v.video_type === 'art' || v.video_type === 'art_therapy') || null;
     const meditationVideo = weekVideos.find(v => v.video_type === 'meditation') || null;
 
     // Get resources for selected week
