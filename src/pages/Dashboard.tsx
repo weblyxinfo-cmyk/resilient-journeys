@@ -310,16 +310,15 @@ const Dashboard = () => {
     }
   };
 
-  if (loading || checkingAdmin) {
+  if (loading || checkingAdmin || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-gold">Loading...</div>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center pt-24" style={{ minHeight: 'calc(100vh - 6rem)' }}>
+          <div className="animate-pulse text-gold">Loading...</div>
+        </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   // VideoCard Component
