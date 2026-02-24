@@ -385,6 +385,11 @@ const Booking = () => {
                                 </li>
                               ))}
                             </ul>
+                            {(session.type === 'family' || session.type === 'endometriosis_support') && (
+                              <p className="text-xs text-amber-600 font-medium mt-4">
+                                Available for booking from June 2026. Currently being refined to offer you the best possible experience.
+                              </p>
+                            )}
                           </CardContent>
                         </Card>
                       );
