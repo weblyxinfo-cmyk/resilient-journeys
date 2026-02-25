@@ -26,6 +26,28 @@ const membershipHierarchy: Record<MembershipType, number> = {
   premium: 2,
 };
 
+/** Convert any YouTube / Vimeo URL into its embeddable form. */
+const getEmbedUrl = (url: string): string => {
+  // youtube.com/watch?v=ID  or  youtube.com/watch?...&v=ID
+  const ytWatch = url.match(
+    /(?:youtube\.com\/watch\?(?:[^&]*&)*v=)([a-zA-Z0-9_-]+)/
+  );
+  if (ytWatch) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+
+  // youtu.be/ID
+  const ytShort = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}`;
+
+  // youtube.com/embed/ID — already correct
+  if (url.includes('youtube.com/embed/')) return url;
+
+  // vimeo.com/ID
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+  return url;
+};
+
 const VideoPlayer = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const navigate = useNavigate();
@@ -288,7 +310,7 @@ const VideoPlayer = () => {
             <div className="aspect-video bg-foreground rounded-2xl overflow-hidden mb-6">
               {video?.video_url ? (
                 <iframe
-                  src={video.video_url}
+                  src={getEmbedUrl(video.video_url)}
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen

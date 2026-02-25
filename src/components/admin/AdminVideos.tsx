@@ -48,6 +48,18 @@ const typeConfig: Record<string, { label: string; emoji: string }> = {
   other: { label: 'Other', emoji: '📹' },
 };
 
+/** Convert YouTube / Vimeo URL to embed format for iframe playback. */
+const toEmbedUrl = (url: string): string => {
+  const ytWatch = url.match(/(?:youtube\.com\/watch\?(?:[^&]*&)*v=)([a-zA-Z0-9_-]+)/);
+  if (ytWatch) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+  const ytShort = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}`;
+  if (url.includes('youtube.com/embed/')) return url;
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  return url;
+};
+
 const AdminVideos = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -229,7 +241,7 @@ const AdminVideos = () => {
       const videoData = {
         title: formData.title,
         description: formData.description || null,
-        video_url: formData.video_url,
+        video_url: toEmbedUrl(formData.video_url.trim()),
         thumbnail_url: formData.thumbnail_url || null,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         is_free: formData.is_free,
@@ -343,8 +355,26 @@ const AdminVideos = () => {
 
               {/* Video URL */}
               <div>
-                <Label>Video URL</Label>
-                <Input type="url" value={formData.video_url} onChange={(e) => setFormData({ ...formData, video_url: e.target.value })} required placeholder="https://youtube.com/..." />
+                <Label>Video URL (YouTube, Vimeo, or embed link)</Label>
+                <Input
+                  value={formData.video_url}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    setFormData({ ...formData, video_url: url });
+                    // Auto-fill thumbnail from YouTube
+                    if (!formData.thumbnail_url) {
+                      const ytId = url.match(/(?:youtube\.com\/watch\?(?:[^&]*&)*v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+                      if (ytId) setFormData(prev => ({ ...prev, video_url: url, thumbnail_url: `https://img.youtube.com/vi/${ytId[1]}/hqdefault.jpg` }));
+                    }
+                  }}
+                  required
+                  placeholder="https://youtube.com/watch?v=... or https://youtu.be/..."
+                />
+                {formData.video_url && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Will be saved as: {toEmbedUrl(formData.video_url.trim()).substring(0, 60)}...
+                  </p>
+                )}
               </div>
 
               {/* Description */}
@@ -425,8 +455,8 @@ const AdminVideos = () => {
               </div>
 
               <div>
-                <Label>Thumbnail URL (optional)</Label>
-                <Input type="url" value={formData.thumbnail_url} onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })} />
+                <Label>Thumbnail URL (optional — auto-filled for YouTube)</Label>
+                <Input value={formData.thumbnail_url} onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })} placeholder="Auto-fills for YouTube videos" />
               </div>
 
               {/* Workbook PDF */}
