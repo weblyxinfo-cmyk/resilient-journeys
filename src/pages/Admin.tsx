@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,42 +21,16 @@ import AdminWeekOverview from '@/components/admin/AdminWeekOverview';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const { user, loading, isAdmin } = useAuth();
 
   useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user) {
-        setCheckingAdmin(false);
-        return;
-      }
-      const { data, error } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      if (error) {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(data);
-      }
-      setCheckingAdmin(false);
-    };
-    if (!loading) checkAdminRole();
-
-    // Safety timeout — never stay on loading forever
-    const timeout = setTimeout(() => {
-      setCheckingAdmin(false);
-    }, 3000);
-    return () => clearTimeout(timeout);
-  }, [user, loading]);
-
-  useEffect(() => {
-    if (!loading && !checkingAdmin) {
+    if (!loading) {
       if (!user) navigate('/auth');
       else if (!isAdmin) navigate('/dashboard');
     }
-  }, [user, loading, isAdmin, checkingAdmin, navigate]);
+  }, [user, loading, isAdmin, navigate]);
 
-  if (loading || checkingAdmin || !user || !isAdmin) {
+  if (loading || !user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
