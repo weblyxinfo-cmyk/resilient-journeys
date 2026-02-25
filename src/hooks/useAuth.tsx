@@ -69,37 +69,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
     let initialSessionHandled = false;
+    let sessionProcessing = false;
 
-    // Safety timeout — if auth takes too long, stop loading so UI is usable
+    // Safety timeout — only fires if no session event was received at all
     const timeout = setTimeout(() => {
-      if (isMounted && loading) {
-        console.warn('Auth loading timeout — proceeding without session');
+      if (isMounted && !sessionProcessing && loading) {
+        console.warn('Auth: no session event received — proceeding without session');
         setLoading(false);
       }
-    }, 2000);
+    }, 5000);
 
     const handleSession = async (session: Session | null) => {
       if (!isMounted) return;
+      sessionProcessing = true;
 
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // Fetch profile and admin role in parallel
-        const [profileData, adminResult] = await Promise.all([
-          fetchProfile(session.user.id),
-          supabase.rpc('has_role', { _user_id: session.user.id, _role: 'admin' }),
-        ]);
-        if (isMounted) {
-          setProfile(profileData);
-          setIsAdmin(!!adminResult.data);
-          setLoading(false);
+        try {
+          // Fetch profile and admin role in parallel
+          const [profileData, adminResult] = await Promise.all([
+            fetchProfile(session.user.id),
+            supabase.rpc('has_role', { _user_id: session.user.id, _role: 'admin' }),
+          ]);
+          if (isMounted) {
+            setProfile(profileData);
+            if (adminResult.error) {
+              console.error('Admin role check failed:', adminResult.error);
+              setIsAdmin(false);
+            } else {
+              setIsAdmin(!!adminResult.data);
+            }
+          }
+        } catch (err) {
+          console.error('Auth session handling error:', err);
         }
       } else {
         setProfile(null);
         setIsAdmin(false);
-        setLoading(false);
       }
+
+      if (isMounted) setLoading(false);
     };
 
     // Set up auth state listener FIRST
