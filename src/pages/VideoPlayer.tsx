@@ -11,6 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
 type Video = Database['public']['Tables']['videos']['Row'];
 type MembershipType = Database['public']['Enums']['membership_type'];
 
@@ -59,26 +62,28 @@ const VideoPlayer = () => {
 
   const abortRef = useRef(0);
 
-  // ─── Fetch video data immediately (no auth wait) ───
+  // ─── Fetch video data immediately via direct REST (bypasses auth lock) ───
   useEffect(() => {
     if (!videoId) return;
 
     const fetchId = ++abortRef.current;
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
 
     const fetchVideo = async () => {
       setLoading(true);
       setFetchError(false);
 
       try {
-        const { data, error } = await supabase
-          .from('videos')
-          .select('*')
-          .eq('id', videoId)
-          .single();
+        // Direct REST call — does NOT wait for Supabase auth init
+        const videoRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/videos?id=eq.${videoId}&select=*&limit=1`,
+          { headers }
+        );
+        const videoArr = await videoRes.json();
 
         if (fetchId !== abortRef.current) return;
 
-        if (error || !data) {
+        if (!videoArr?.length) {
           setVideo(null);
           setCategoryInfo(null);
           setFetchError(true);
@@ -86,25 +91,28 @@ const VideoPlayer = () => {
           return;
         }
 
-        const { data: category } = await supabase
-          .from('video_categories')
-          .select('is_additional_hub, hub_slug')
-          .eq('id', data.category_id)
-          .single();
+        const data = videoArr[0] as Video;
+
+        // Fetch category + workbook in parallel
+        const [catRes, resRes] = await Promise.all([
+          fetch(
+            `${SUPABASE_URL}/rest/v1/video_categories?id=eq.${data.category_id}&select=is_additional_hub,hub_slug&limit=1`,
+            { headers }
+          ),
+          fetch(
+            `${SUPABASE_URL}/rest/v1/resources?video_id=eq.${videoId}&select=id,title,file_url&limit=1`,
+            { headers }
+          ),
+        ]);
 
         if (fetchId !== abortRef.current) return;
+
+        const catArr = await catRes.json();
+        const resArr = await resRes.json();
 
         setVideo(data);
-        setCategoryInfo(category ?? null);
-
-        const { data: resourceData } = await supabase
-          .from('resources')
-          .select('id, title, file_url')
-          .eq('video_id', videoId)
-          .maybeSingle();
-
-        if (fetchId !== abortRef.current) return;
-        setWorkbook(resourceData ?? null);
+        setCategoryInfo(catArr?.[0] ?? null);
+        setWorkbook(resArr?.[0] ?? null);
       } catch (err) {
         if (fetchId !== abortRef.current) return;
         console.error('Error fetching video:', err);
