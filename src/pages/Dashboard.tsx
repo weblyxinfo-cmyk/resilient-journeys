@@ -112,7 +112,7 @@ const membershipColors = {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading, signOut, isAdmin } = useAuth();
   const [categories, setCategories] = useState<VideoCategory[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -124,6 +124,7 @@ const Dashboard = () => {
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
 
   const canAccessVideo = useCallback((video: Video) => {
+    if (isAdmin) return true;
     if (video.is_free) return true;
     if (!profile) return false;
 
@@ -135,7 +136,7 @@ const Dashboard = () => {
 
     const membershipOrder = { free: 0, basic: 1, premium: 2 };
     return membershipOrder[profile.membership_type] >= membershipOrder[video.min_membership];
-  }, [profile, categories]);
+  }, [profile, categories, isAdmin]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -527,32 +528,31 @@ const Dashboard = () => {
                     </Button>
                   </CardContent>
                 </Card>
-                <Card className="border-gold/20 hover:shadow-elegant transition-all">
+                <Card className="border-gold/20 opacity-60">
                   <CardHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-3 bg-gold/10 rounded-full">
-                        <Video className="h-6 w-6 text-gold" />
+                      <div className="p-3 bg-muted rounded-full">
+                        <Video className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <div>
-                        <CardTitle className="font-serif text-lg">Live Group Sessions</CardTitle>
-                        <Badge variant="outline" className="mt-1 text-xs">
-                          <Video className="h-3 w-3 mr-1" />
-                          Zoom
+                        <CardTitle className="font-serif text-lg text-muted-foreground">Live Group Sessions</CardTitle>
+                        <Badge variant="outline" className="mt-1 text-xs text-muted-foreground">
+                          Coming Soon
                         </Badge>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Join our live group therapy sessions via Zoom. Dates and links are shared in the Skool community.
+                      Live group sessions are being prepared. In the meantime, connect with fellow members in our Skool community.
                     </p>
                     <Button
                       variant="outline"
-                      className="w-full border-gold text-gold hover:bg-gold hover:text-white"
-                      onClick={() => window.open('https://www.skool.com/resilient-mind-expats-premium-3871', '_blank')}
+                      className="w-full"
+                      disabled
                     >
                       <Calendar className="h-4 w-4 mr-2" />
-                      See Schedule
+                      Coming Soon
                     </Button>
                   </CardContent>
                 </Card>

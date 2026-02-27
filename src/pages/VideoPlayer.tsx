@@ -51,7 +51,7 @@ const getEmbedUrl = (url: string): string => {
 const VideoPlayer = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const navigate = useNavigate();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, isAdmin } = useAuth();
 
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +64,7 @@ const VideoPlayer = () => {
 
   // Check if user has access based on membership or purchased hubs
   const hasAccess = useCallback((videoMinMembership: MembershipType, isFree: boolean, categoryIsHub?: boolean, categoryHubSlug?: string | null): boolean => {
+    if (isAdmin) return true;
     if (isFree) return true;
     if (!profile) return false;
 
@@ -82,7 +83,7 @@ const VideoPlayer = () => {
     }
 
     return userLevel >= requiredLevel;
-  }, [profile]);
+  }, [profile, isAdmin]);
 
   // Fetch user progress for this video
   const fetchProgress = useCallback(async () => {
@@ -187,10 +188,10 @@ const VideoPlayer = () => {
       }
     };
 
-    if (!authLoading) {
+    if (!authLoading || !user) {
       fetchVideo();
     }
-  }, [videoId, authLoading, profile, navigate, hasAccess, fetchProgress]);
+  }, [videoId, authLoading, user, profile, navigate, hasAccess, fetchProgress]);
 
   if (authLoading || loading) {
     return (
@@ -213,8 +214,8 @@ const VideoPlayer = () => {
     );
   }
 
-  // Not logged in - redirect to free guide
-  if (!user) {
+  // Not logged in and video is not free - show sign up prompt
+  if (!user && !video?.is_free) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />

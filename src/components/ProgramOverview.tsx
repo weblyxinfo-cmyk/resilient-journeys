@@ -47,7 +47,7 @@ const iconMap: { [key: string]: React.ElementType } = {
 
 const ProgramOverview = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [categories, setCategories] = useState<VideoCategory[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,9 +79,10 @@ const ProgramOverview = () => {
   }, []);
 
   const canAccessVideo = (video: Video) => {
+    if (isAdmin) return true;
     if (video.is_free) return true;
     if (!profile) return false;
-    
+
     const membershipOrder = { free: 0, basic: 1, premium: 2 };
     return membershipOrder[profile.membership_type as keyof typeof membershipOrder] >= membershipOrder[video.min_membership];
   };
@@ -151,11 +152,7 @@ const ProgramOverview = () => {
                   isFree={video.is_free}
                   membership={video.min_membership}
                   onClick={() => {
-                    if (!user && video.is_free) {
-                      navigate('/free-guide');
-                    } else {
-                      navigate(`/video/${video.id}`);
-                    }
+                    navigate(`/video/${video.id}`);
                   }}
                 />
               ))

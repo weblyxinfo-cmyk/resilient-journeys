@@ -26,7 +26,7 @@ const ResilientHubs = () => {
   const faqs = [
     {
       q: "Who is this program for?",
-      a: "This program is designed specifically for expatriates — people living abroad who face unique challenges like cultural displacement, loneliness, identity shifts, and building a new life far from home. Whether you just moved or have lived abroad for years, this program meets you where you are."
+      a: "Expat women navigating new cultures while staying connected to who they truly are. Women living abroad who feel emotionally stretched or unsupported, seeking grounded tools they can rely on anywhere. Globally mobile women facing constant change and wanting deeper inner stability, confidence, and clarity."
     },
     {
       q: "How much time do I need per week?",
@@ -34,15 +34,15 @@ const ResilientHubs = () => {
     },
     {
       q: "What's the difference between Basic and Premium?",
-      a: "Basic gives you the foundational module each month — perfect for self-guided learners. Premium unlocks all modules (A, B, C), gives you 4 hours of personal consultations with Silvie, an art therapy materials kit, and access to all Specialized Hubs. It's the full transformation experience."
+      a: "The Basic Monthly Membership includes one video each week and four weekly workbooks/exercises. The Premium Membership includes everything from the Basic Membership, plus access to the Additional Hub: The Transformed Self and Endometriosis & Chronic Pain, as well as access to the private Skool community."
     },
     {
       q: "Is this a subscription?",
       a: "No — every purchase is a one-time payment. Monthly plans give you access for 1 month with no auto-renewal. Yearly plans give you full access for 12 months with a 14-day money-back guarantee. You decide when and if you want to continue."
     },
     {
-      q: "Do I need any prior experience with therapy or art?",
-      a: "Not at all! The techniques are designed for beginners. EFT tapping, art therapy exercises, and guided meditations are all explained step-by-step. You don't need to be 'artistic' — the creative exercises are about expression, not perfection."
+      q: "Do I need any prior experience with counselling or expressive art?",
+      a: "Not at all. These techniques are gentle and beginner-friendly. EFT tapping, expressive creative art practices, and guided meditations are explained step-by-step. You don't need to be \"artistic\" — this is about expression, not perfection."
     },
     {
       q: "What if I'm not sure it's right for me?",
@@ -449,6 +449,28 @@ const ResilientHubs = () => {
                 The Membership program teaches you how to look after your mind, regulate stress, and grow self-awareness — one gentle practice at a time.
               </p>
               <PricingTrustSignals />
+
+              {/* Start in Four Simple Steps */}
+              <div className="max-w-2xl mx-auto mt-12 p-8 bg-card rounded-2xl border border-border">
+                <h3 className="text-xl md:text-2xl font-serif font-semibold mb-6 text-center">
+                  Start in Four Simple Steps
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { step: "1", text: "Choose the membership that suits you." },
+                    { step: "2", text: "Click Sign up to create your personal account." },
+                    { step: "3", text: "Complete your secure payment." },
+                    { step: "4", text: "Receive your welcome email with access to your private Dashboard and full 12-month programme." },
+                  ].map((item) => (
+                    <div key={item.step} className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-gradient-gold rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-bold text-white">{item.step}</span>
+                      </div>
+                      <p className="text-foreground/80 font-sans pt-1">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* Free guide nudge */}
               <div className="text-center mt-8">
