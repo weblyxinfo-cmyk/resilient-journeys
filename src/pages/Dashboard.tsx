@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -118,7 +118,6 @@ const Dashboard = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loadingContent, setLoadingContent] = useState(true);
   const [completedVideos, setCompletedVideos] = useState(0);
-  const [totalAccessibleVideos, setTotalAccessibleVideos] = useState(0);
   const [premiumCredits, setPremiumCredits] = useState<{ total: number; used: number } | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
@@ -137,6 +136,12 @@ const Dashboard = () => {
     const membershipOrder = { free: 0, basic: 1, premium: 2 };
     return membershipOrder[profile.membership_type] >= membershipOrder[video.min_membership];
   }, [profile, categories, isAdmin]);
+
+  // Derived — recalculates when videos/access changes, no re-fetch needed
+  const totalAccessibleVideos = useMemo(
+    () => videos.filter(v => canAccessVideo(v)).length,
+    [videos, canAccessVideo]
+  );
 
   useEffect(() => {
     if (!loading && !user) {
@@ -167,45 +172,23 @@ const Dashboard = () => {
     window.location.href = '/';
   };
 
+  // Fetch content once when user is available (no profile dependency = no double-fetch)
   useEffect(() => {
+    if (!user) return;
+
     const fetchContent = async () => {
       try {
-        // Run all queries in parallel for speed
         const [categoriesRes, videosRes, progressRes, resourcesRes] = await Promise.all([
           supabase.from('video_categories').select('*').order('month_number'),
           supabase.from('videos').select('*').order('sort_order'),
-          user ? supabase.from('user_progress').select('completed').eq('user_id', user.id).eq('completed', true) : Promise.resolve({ data: null }),
+          supabase.from('user_progress').select('completed').eq('user_id', user.id).eq('completed', true),
           supabase.from('resources').select('*').order('sort_order'),
         ]);
 
         if (categoriesRes.data) setCategories(categoriesRes.data);
-        if (videosRes.data) {
-          setVideos(videosRes.data as Video[]);
-          const accessible = (videosRes.data as Video[]).filter(v => canAccessVideo(v));
-          setTotalAccessibleVideos(accessible.length);
-        }
+        if (videosRes.data) setVideos(videosRes.data as Video[]);
         if (progressRes.data) setCompletedVideos(progressRes.data.length);
         if (resourcesRes.data) setResources(resourcesRes.data as Resource[]);
-
-        // Fetch premium credits if user is premium (separate, non-blocking)
-        if (user && profile?.membership_type === 'premium') {
-          const currentYear = new Date().getFullYear();
-          const { data: creditsData } = await supabase
-            .from('premium_credits')
-            .select('total_credits, used_credits')
-            .eq('user_id', user.id)
-            .eq('year', currentYear)
-            .maybeSingle();
-
-          if (creditsData) {
-            setPremiumCredits({ total: creditsData.total_credits, used: creditsData.used_credits });
-          } else {
-            await supabase.from('premium_credits').insert({
-              user_id: user.id, year: currentYear, total_credits: 4, used_credits: 0
-            });
-            setPremiumCredits({ total: 4, used: 0 });
-          }
-        }
       } catch (err) {
         console.error('Error fetching dashboard content:', err);
       }
@@ -213,10 +196,34 @@ const Dashboard = () => {
       setLoadingContent(false);
     };
 
-    if (user) {
-      fetchContent();
-    }
-  }, [user, profile, canAccessVideo]);
+    fetchContent();
+  }, [user]);
+
+  // Premium credits — separate effect, only when profile confirms premium
+  useEffect(() => {
+    if (!user || profile?.membership_type !== 'premium') return;
+
+    const fetchCredits = async () => {
+      const currentYear = new Date().getFullYear();
+      const { data: creditsData } = await supabase
+        .from('premium_credits')
+        .select('total_credits, used_credits')
+        .eq('user_id', user.id)
+        .eq('year', currentYear)
+        .maybeSingle();
+
+      if (creditsData) {
+        setPremiumCredits({ total: creditsData.total_credits, used: creditsData.used_credits });
+      } else {
+        await supabase.from('premium_credits').insert({
+          user_id: user.id, year: currentYear, total_credits: 4, used_credits: 0
+        });
+        setPremiumCredits({ total: 4, used: 0 });
+      }
+    };
+
+    fetchCredits();
+  }, [user, profile?.membership_type]);
 
   const getResourceIcon = (type: Resource['resource_type']) => {
     switch (type) {
