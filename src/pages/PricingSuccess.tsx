@@ -6,24 +6,67 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Crown, Loader2, ArrowRight, Video, FileText, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const PricingSuccess = () => {
   const [searchParams] = useSearchParams();
   const [processing, setProcessing] = useState(true);
-  const { refreshProfile, profile } = useAuth();
+  const { refreshProfile, profile, user } = useAuth();
   const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
-    // Wait for webhook to process, then refresh profile
-    const refreshMembership = async () => {
+    if (!sessionId || !user) return;
+
+    let cancelled = false;
+
+    const verifyAndActivate = async () => {
+      // Try up to 3 times with increasing delays (webhook may need time)
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (cancelled) return;
+
+        // Wait before each attempt (2s, 4s, 6s)
+        await new Promise(r => setTimeout(r, (attempt + 1) * 2000));
+
+        try {
+          // Call verify-checkout edge function — acts as fallback if webhook hasn't fired
+          const { data: { session: authSession } } = await supabase.auth.getSession();
+          if (!authSession) continue;
+
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-checkout`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authSession.access_token}`,
+                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+              body: JSON.stringify({ sessionId }),
+            }
+          );
+
+          if (res.ok) {
+            const result = await res.json();
+            if (result.status === "activated" || result.status === "already_active") {
+              await refreshProfile();
+              if (!cancelled) setProcessing(false);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("Verify attempt failed:", err);
+        }
+      }
+
+      // Final fallback: just refresh profile and hope webhook processed
       await refreshProfile();
-      setProcessing(false);
+      if (!cancelled) setProcessing(false);
     };
 
-    const timer = setTimeout(refreshMembership, 2000);
+    verifyAndActivate();
 
-    return () => clearTimeout(timer);
-  }, [refreshProfile]);
+    return () => { cancelled = true; };
+  }, [sessionId, user, refreshProfile]);
 
   return (
     <div className="min-h-screen bg-background">
