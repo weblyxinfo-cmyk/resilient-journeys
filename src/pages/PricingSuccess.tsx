@@ -4,18 +4,38 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Crown, Loader2, ArrowRight, Video, FileText, Calendar } from "lucide-react";
+import { CheckCircle, Crown, Loader2, ArrowRight, Video, FileText, Calendar, AlertTriangle, LogIn, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+
+type PageState = "loading" | "processing" | "success" | "error" | "no-session" | "not-authenticated";
 
 const PricingSuccess = () => {
   const [searchParams] = useSearchParams();
-  const [processing, setProcessing] = useState(true);
-  const { refreshProfile, profile, user } = useAuth();
+  const [pageState, setPageState] = useState<PageState>("loading");
+  const { refreshProfile, profile, user, session, loading } = useAuth();
   const sessionId = searchParams.get("session_id");
 
+  // Handle unauthenticated users and missing sessionId once auth loading finishes
   useEffect(() => {
-    if (!sessionId || !user) return;
+    if (loading) return;
+
+    if (!user) {
+      setPageState("not-authenticated");
+      return;
+    }
+
+    if (!sessionId) {
+      setPageState("no-session");
+      return;
+    }
+
+    // Auth is loaded, user exists, sessionId exists — start processing
+    setPageState("processing");
+  }, [loading, user, sessionId]);
+
+  // Verify checkout once we enter the processing state
+  useEffect(() => {
+    if (pageState !== "processing" || !sessionId || !session) return;
 
     let cancelled = false;
 
@@ -28,9 +48,8 @@ const PricingSuccess = () => {
         await new Promise(r => setTimeout(r, (attempt + 1) * 2000));
 
         try {
-          // Call verify-checkout edge function — acts as fallback if webhook hasn't fired
-          const { data: { session: authSession } } = await supabase.auth.getSession();
-          if (!authSession) continue;
+          // Use session from useAuth() instead of calling supabase.auth.getSession()
+          if (!session) continue;
 
           const res = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-checkout`,
@@ -38,7 +57,7 @@ const PricingSuccess = () => {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${authSession.access_token}`,
+                Authorization: `Bearer ${session.access_token}`,
                 apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               },
               body: JSON.stringify({ sessionId }),
@@ -49,7 +68,7 @@ const PricingSuccess = () => {
             const result = await res.json();
             if (result.status === "activated" || result.status === "already_active") {
               await refreshProfile();
-              if (!cancelled) setProcessing(false);
+              if (!cancelled) setPageState("success");
               return;
             }
           }
@@ -58,15 +77,28 @@ const PricingSuccess = () => {
         }
       }
 
-      // Final fallback: just refresh profile and hope webhook processed
+      // Final fallback: refresh profile and check membership
       await refreshProfile();
-      if (!cancelled) setProcessing(false);
+      if (!cancelled) {
+        // Re-read the profile to determine if activation actually worked
+        // profile state will be updated by refreshProfile() above
+        // We need to check after a microtask so React state has settled
+        setTimeout(() => {
+          if (cancelled) return;
+          // We'll set to success optimistically, then the render will
+          // check the profile to decide what to show
+          setPageState("success");
+        }, 100);
+      }
     };
 
     verifyAndActivate();
 
     return () => { cancelled = true; };
-  }, [sessionId, user, refreshProfile]);
+  }, [pageState, sessionId, session, refreshProfile]);
+
+  // Determine if we should show a warning instead of success
+  const activationFailed = pageState === "success" && profile && profile.membership_type === "free";
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,7 +108,54 @@ const PricingSuccess = () => {
         <section className="py-12">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto">
-              {processing ? (
+              {/* Unauthenticated user */}
+              {pageState === "not-authenticated" && (
+                <Card className="border-primary/20 text-center">
+                  <CardContent className="py-16">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full mb-6">
+                      <LogIn className="h-10 w-10 text-amber-600" />
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
+                      Please Log In to Activate Your Membership
+                    </h1>
+                    <p className="text-muted-foreground mb-6">
+                      You need to be logged in so we can activate your membership.
+                    </p>
+                    <Button asChild size="lg" className="bg-primary text-white hover:bg-primary/90">
+                      <Link to="/auth">
+                        Log In
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* No session ID */}
+              {pageState === "no-session" && (
+                <Card className="border-primary/20 text-center">
+                  <CardContent className="py-16">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full mb-6">
+                      <XCircle className="h-10 w-10 text-amber-600" />
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
+                      No Payment Session Found
+                    </h1>
+                    <p className="text-muted-foreground mb-6">
+                      If you completed a purchase, check your email or contact support.
+                    </p>
+                    <Button asChild size="lg" className="bg-primary text-white hover:bg-primary/90">
+                      <Link to="/dashboard">
+                        Go to Dashboard
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Loading auth state or processing payment */}
+              {(pageState === "loading" || pageState === "processing") && (
                 <Card className="border-primary/20 text-center">
                   <CardContent className="py-16">
                     <Loader2 className="h-16 w-16 text-primary animate-spin mx-auto mb-6" />
@@ -88,7 +167,57 @@ const PricingSuccess = () => {
                     </p>
                   </CardContent>
                 </Card>
-              ) : (
+              )}
+
+              {/* Success but activation failed — membership still free */}
+              {pageState === "success" && activationFailed && (
+                <div className="space-y-8">
+                  <Card className="border-amber-300 bg-amber-50">
+                    <CardContent className="py-12 text-center">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full mb-6">
+                        <AlertTriangle className="h-10 w-10 text-amber-600" />
+                      </div>
+
+                      <h1 className="text-3xl md:text-4xl font-serif font-semibold mb-4">
+                        Payment Processing
+                      </h1>
+
+                      <p className="text-lg text-muted-foreground mb-6">
+                        We're still processing your payment. If your membership isn't active within a few minutes, please contact support at{" "}
+                        <a href="mailto:contact@resilientmind.io" className="text-primary hover:underline font-medium">
+                          contact@resilientmind.io
+                        </a>
+                      </p>
+
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 rounded-full">
+                        <Loader2 size={16} className="text-amber-600 animate-spin" />
+                        <span className="text-sm font-medium text-amber-700">
+                          Activation Pending
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Support Info */}
+                  <Card className="bg-muted/30">
+                    <CardContent className="py-6 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Need help?{" "}
+                        <Link to="/booking" className="text-primary hover:underline font-medium">
+                          Book a free discovery call
+                        </Link>{" "}
+                        or reach out to us at{" "}
+                        <a href="mailto:contact@resilientmind.io" className="text-primary hover:underline font-medium">
+                          contact@resilientmind.io
+                        </a>
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* True success — membership activated */}
+              {pageState === "success" && !activationFailed && (
                 <div className="space-y-8">
                   {/* Success Message */}
                   <Card className="border-primary/20 bg-gradient-warm">

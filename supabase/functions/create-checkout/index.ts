@@ -7,6 +7,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Allowed origins for redirect URLs to prevent open-redirect attacks
+const ALLOWED_ORIGIN = 'https://resilientmind.io';
+const ALLOWED_ORIGINS = [ALLOWED_ORIGIN, 'https://www.resilientmind.io'];
+
+function isAllowedRedirectUrl(url: string): boolean {
+  return ALLOWED_ORIGINS.some((origin) => url.startsWith(origin + '/') || url === origin);
+}
+
+function validateRedirectUrl(url: string, label: string): string {
+  if (!url || !isAllowedRedirectUrl(url)) {
+    throw new Error(`Invalid ${label}: redirect URL must start with an allowed origin`);
+  }
+  return url;
+}
+
 // Early-bird cutoff — must match frontend (src/lib/pricing.ts)
 const EARLY_BIRD_END = new Date('2026-03-31T23:59:59Z');
 function isEarlyBird(): boolean {
@@ -98,9 +113,13 @@ serve(async (req) => {
       planId,
       product_type,
       hub_slug,
-      successUrl,
-      cancelUrl
+      successUrl: rawSuccessUrl,
+      cancelUrl: rawCancelUrl,
     } = await req.json();
+
+    // Validate redirect URLs to prevent open-redirect attacks
+    const successUrl = validateRedirectUrl(rawSuccessUrl, 'successUrl');
+    const cancelUrl = validateRedirectUrl(rawCancelUrl, 'cancelUrl');
 
     // Determine if this is a plan or hub purchase
     const productType = product_type || planId; // Support both naming conventions

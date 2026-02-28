@@ -56,14 +56,24 @@ serve(async (req) => {
     // Check current profile
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("membership_type, membership_expires_at, stripe_customer_id")
+      .select("membership_type, membership_expires_at, stripe_customer_id, purchased_hubs")
       .eq("user_id", user.id)
       .single();
 
     const membershipType = session.metadata?.membership_type;
 
-    // If profile already has correct membership, no action needed
-    if (profile?.membership_type === membershipType && profile?.membership_expires_at) {
+    // Validate membership_type before writing to DB
+    const validMembershipTypes = ["basic", "premium"];
+    if (membershipType && !validMembershipTypes.includes(membershipType)) {
+      throw new Error(`Invalid membership_type: ${membershipType}`);
+    }
+
+    // If profile already has correct membership and it hasn't expired, no action needed
+    if (
+      profile?.membership_type === membershipType &&
+      profile?.membership_expires_at &&
+      new Date(profile.membership_expires_at) > new Date()
+    ) {
       return new Response(
         JSON.stringify({ status: "already_active", membership_type: membershipType }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -75,9 +85,15 @@ serve(async (req) => {
 
     if (session.mode === "subscription" && session.subscription) {
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+
+      // Security: verify subscription is actually active (prevent replay with cancelled/refunded subscriptions)
+      if (subscription.status !== "active" && subscription.status !== "trialing") {
+        throw new Error(`Subscription is not active (status: ${subscription.status})`);
+      }
+
       const expiresAt = new Date(subscription.current_period_end * 1000);
 
-      await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from("profiles")
         .update({
           membership_type: membershipType,
@@ -86,7 +102,20 @@ serve(async (req) => {
           stripe_customer_id: session.customer as string,
         })
         .eq("user_id", user.id);
+      if (updateError) throw new Error(`Failed to update profile: ${updateError.message}`);
     } else if (session.mode === "payment") {
+      // Security: verify the payment hasn't been refunded (prevent replay attacks)
+      if (session.payment_intent) {
+        const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+        const latestCharge = paymentIntent.latest_charge;
+        if (latestCharge) {
+          const charge = await stripe.charges.retrieve(latestCharge as string);
+          if (charge.refunded) {
+            throw new Error("Payment has been refunded");
+          }
+        }
+      }
+
       // One-time payment (yearly or hub)
       const productType = session.metadata?.product_type;
 
@@ -95,17 +124,18 @@ serve(async (req) => {
         if (hubSlug) {
           const currentHubs = profile?.purchased_hubs || [];
           if (!currentHubs.includes(hubSlug)) {
-            await supabaseAdmin
+            const { error: updateError } = await supabaseAdmin
               .from("profiles")
               .update({ purchased_hubs: [...currentHubs, hubSlug] })
               .eq("user_id", user.id);
+            if (updateError) throw new Error(`Failed to update purchased_hubs: ${updateError.message}`);
           }
         }
       } else if (membershipType) {
         const expiresAt = new Date();
         expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-        await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
           .from("profiles")
           .update({
             membership_type: membershipType,
@@ -114,6 +144,7 @@ serve(async (req) => {
             stripe_customer_id: session.customer as string,
           })
           .eq("user_id", user.id);
+        if (updateError) throw new Error(`Failed to update profile: ${updateError.message}`);
       }
     }
 
