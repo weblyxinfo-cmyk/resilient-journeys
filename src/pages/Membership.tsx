@@ -88,58 +88,75 @@ const Membership = () => {
       <Navbar />
 
       <main className="pt-20">
-        {/* 1. HERO — Headline + Subheadline + mini benefits + CTA */}
+        {/* 1. HERO — split layout: text left + photo right */}
         <PageHero>
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-              <Sparkles size={16} className="text-primary" />
-              <span className="text-sm font-sans font-medium text-primary">
-                Resilient Mind Membership
-              </span>
-            </div>
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
+            {/* LEFT — text content */}
+            <div className="text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+                <Sparkles size={16} className="text-primary" />
+                <span className="text-sm font-sans font-medium text-primary">
+                  Resilient Mind Membership
+                </span>
+              </div>
 
-            <h1
-              className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold mb-5"
-              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.25)" }}
-            >
-              You moved abroad…<br />
-              so why do you still <span className="text-gradient-gold">feel off?</span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-foreground/85 font-sans leading-relaxed mb-10 max-w-2xl mx-auto">
-              Feel like yourself again.
-            </p>
-
-            {/* 4 mini-benefit pillars */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-10">
-              {[
-                { icon: Brain, label: "Understand your patterns" },
-                { icon: Heart, label: "Regulate emotions" },
-                { icon: Sun, label: "Create inner stability" },
-                { icon: Home, label: "Feel at home within yourself" },
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <item.icon size={22} className="text-primary" />
-                  </div>
-                  <span className="text-xs md:text-sm font-sans text-foreground/80 leading-tight">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <a
-                href="#offer"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-5 leading-tight"
+                style={{ textShadow: "0 2px 12px rgba(0,0,0,0.25)" }}
               >
-                Start your journey
-                <ArrowRight size={18} />
-              </a>
-              <p className="text-xs text-muted-foreground font-sans">
-                Pay as you go · Cancel anytime
+                You moved abroad…<br />
+                so why do you still <span className="text-gradient-gold">feel off?</span>
+              </h1>
+
+              <p className="text-lg md:text-xl text-foreground/85 font-sans leading-relaxed mb-3 italic">
+                Stop feeling overwhelmed and start feeling like <em>yourself</em> again.
               </p>
+
+              <p className="text-base text-muted-foreground font-sans mb-8">
+                Feel like yourself again.
+              </p>
+
+              {/* 4 mini-benefit pillars */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                {[
+                  { icon: Brain, label: "Understand your patterns" },
+                  { icon: Heart, label: "Regulate emotions" },
+                  { icon: Sun, label: "Create inner stability" },
+                  { icon: Home, label: "Feel at home within yourself" },
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <item.icon size={22} className="text-primary" />
+                    </div>
+                    <span className="text-xs font-sans text-foreground/80 leading-tight text-center">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col items-center md:items-start gap-2">
+                <a
+                  href="#offer"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
+                >
+                  Start your journey now
+                  <ArrowRight size={18} />
+                </a>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Pay as you go · Cancel anytime
+                </p>
+              </div>
+            </div>
+
+            {/* RIGHT — hero photo */}
+            <div className="relative order-first md:order-last">
+              <img
+                src="/membership-hero-photo.jpg"
+                alt="A woman writing in her journal, reconnecting with herself while living abroad"
+                className="w-full h-auto rounded-2xl shadow-elevated"
+                loading="eager"
+              />
             </div>
           </div>
         </PageHero>
@@ -292,13 +309,13 @@ const Membership = () => {
                 </p>
               </div>
 
-              <div className="max-w-4xl mx-auto mb-8 rounded-2xl overflow-hidden bg-gradient-warm border border-border aspect-[16/9] flex items-center justify-center">
-                <div className="text-center px-6">
-                  <Sparkles size={32} className="text-primary mx-auto mb-3 opacity-60" />
-                  <p className="text-sm text-muted-foreground font-sans italic">
-                    Transformation image
-                  </p>
-                </div>
+              <div className="max-w-5xl mx-auto mb-8 rounded-2xl overflow-hidden shadow-elevated">
+                <img
+                  src="/membership-transformation.jpg"
+                  alt="From feeling lost to feeling like yourself again — a visualization of the inner transformation"
+                  className="w-full h-auto block"
+                  loading="lazy"
+                />
               </div>
 
               <p className="text-center text-base md:text-lg text-foreground/80 font-sans italic max-w-2xl mx-auto leading-relaxed">
