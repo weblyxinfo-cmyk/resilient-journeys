@@ -180,6 +180,24 @@ const ResilientHub = () => {
             </div>
         </PageHero>
 
+        {/* Intro video from Silvie */}
+        <section className="py-12 md:py-16 bg-background">
+          <div className="container px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="relative w-full overflow-hidden rounded-2xl border border-border shadow-soft" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  src="https://www.youtube.com/embed/O2plWw__ciY"
+                  title="Resilient Hub — A message from Silvie"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* What if resilience... */}
         <section className="py-16 md:py-24 bg-background">
           <div className="container px-4">
