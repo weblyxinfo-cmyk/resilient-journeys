@@ -14,6 +14,7 @@ import {
   Sparkles,
   Hand,
   BookOpen,
+  Compass,
   Globe,
   Zap,
   Clock,
@@ -22,7 +23,7 @@ import {
   Check,
 } from "lucide-react";
 
-const Membership = () => {
+const Membership2 = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const faqs = [
@@ -55,20 +56,20 @@ const Membership = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Resilient Mind Membership — Feel Like Yourself Again | Online Support for Expat Women"
-        description="A gentle online membership for expat women who feel overwhelmed, disconnected, or not quite themselves. EFT tapping, expressive arts and nervous system regulation — feel calm, grounded, and at home within."
-        path="/membership"
-        keywords="expat women membership, EFT for expats, expat emotional support, feel like yourself abroad, nervous system regulation, expat loneliness, online therapy membership"
+        title="Resilient Mind Membership (backup) | Resilient Mind"
+        description="Backup version of the Resilient Mind Membership sales page."
+        path="/membership2"
+        noindex
         jsonLd={[
           breadcrumb([
             { name: "Home", path: "/" },
-            { name: "Membership", path: "/membership" },
+            { name: "Membership", path: "/membership2" },
           ]),
           product({
             name: "Resilient Mind Membership",
             description:
               "A gentle, structured online membership for expat women combining EFT tapping, expressive art therapy, nervous system regulation, and reflective workbooks. Pay as you go, cancel anytime.",
-            url: "https://resilientmind.io/membership",
+            url: "https://resilientmind.io/membership2",
             offers: [
               {
                 name: "Basic Monthly",
@@ -106,7 +107,11 @@ const Membership = () => {
               so why do you still <span className="text-gradient-gold">feel off?</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-foreground/85 font-sans leading-relaxed mb-10 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-foreground/85 font-sans leading-relaxed mb-3 max-w-2xl mx-auto italic">
+              Stop feeling overwhelmed and start feeling like <em>yourself</em> again.
+            </p>
+
+            <p className="text-base text-muted-foreground font-sans mb-10 max-w-2xl mx-auto">
               Feel like yourself again.
             </p>
 
@@ -134,7 +139,7 @@ const Membership = () => {
                 href="#offer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
               >
-                Start your journey
+                Start your journey now
                 <ArrowRight size={18} />
               </a>
               <p className="text-xs text-muted-foreground font-sans">
@@ -179,6 +184,12 @@ const Membership = () => {
         <section className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+                <Compass size={16} className="text-primary" />
+                <span className="text-sm font-sans font-medium text-primary">
+                  The gentle path home
+                </span>
+              </div>
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-6">
                 A <span className="text-gradient-gold">gentle, step-by-step space</span> to help you reconnect with yourself again
               </h2>
@@ -292,12 +303,57 @@ const Membership = () => {
                 </p>
               </div>
 
-              <div className="max-w-4xl mx-auto mb-8 rounded-2xl overflow-hidden bg-gradient-warm border border-border aspect-[16/9] flex items-center justify-center">
-                <div className="text-center px-6">
-                  <Sparkles size={32} className="text-primary mx-auto mb-3 opacity-60" />
-                  <p className="text-sm text-muted-foreground font-sans italic">
-                    Transformation image
-                  </p>
+              <div className="grid md:grid-cols-2 gap-6 mb-10">
+                {/* BEFORE */}
+                <div className="p-8 bg-card rounded-2xl border border-border">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-foreground/5 rounded-full mb-5">
+                    <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider">
+                      Before
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-serif font-semibold mb-5 text-foreground/85">
+                    Feeling overwhelmed &amp; disconnected
+                  </h3>
+                  <ul className="space-y-3">
+                    {[
+                      "Lonely, even in a crowd",
+                      "Not fully belonging anywhere",
+                      "Overthinking & emotionally drained",
+                      "Lost parts of yourself",
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm md:text-base text-muted-foreground font-sans">
+                        <span className="text-foreground/30 mt-1">◦</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* AFTER */}
+                <div className="p-8 bg-gradient-warm rounded-2xl border border-primary/20">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/15 rounded-full mb-5">
+                    <Sparkles size={12} className="text-primary" />
+                    <span className="text-xs font-sans font-semibold text-primary uppercase tracking-wider">
+                      After
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-serif font-semibold mb-5">
+                    Feeling calm, grounded &amp; connected
+                  </h3>
+                  <ul className="space-y-3">
+                    {[
+                      "Feel at home within yourself",
+                      "Emotional stability & inner safety",
+                      "Understand yourself & your patterns",
+                      "Stronger relationships & real connection",
+                      "Living with purpose & self-trust",
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm md:text-base text-foreground/85 font-sans">
+                        <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
@@ -576,4 +632,4 @@ const Membership = () => {
   );
 };
 
-export default Membership;
+export default Membership2;

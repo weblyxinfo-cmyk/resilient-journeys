@@ -30,6 +30,7 @@ const Checkout = lazy(() => import("./pages/Checkout"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Membership = lazy(() => import("./pages/Membership"));
+const Membership2 = lazy(() => import("./pages/Membership2"));
 const PricingSuccess = lazy(() => import("./pages/PricingSuccess"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -116,6 +117,7 @@ const App = () => (
                 <Route path="/checkout/success" element={<CheckoutSuccess />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/membership" element={<Membership />} />
+                <Route path="/membership2" element={<Membership2 />} />
                 <Route path="/pricing/success" element={<PricingSuccess />} />
                 <Route path="/thank-you-membership" element={<PricingSuccess />} />
                 <Route path="/admin" element={<Admin />} />

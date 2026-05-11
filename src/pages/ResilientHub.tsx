@@ -125,7 +125,7 @@ const ResilientHub = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Resilient Hub — A 12-Month Membership for Expat Women | Resilient Mind"
+        title="Resilient Hub — A Guided 12-Month Membership for Expat Women | Resilient Mind"
         description="A structured 12-month online membership combining EFT, nervous system regulation and reflective tools. Monthly themes, video lessons, and guided practices to support your emotional wellbeing while living abroad."
         path="/resilient-hub"
         keywords="12-month membership, expat women, EFT tapping, nervous system regulation, expressive art therapy, expatriate wellbeing, online program for expats"
@@ -163,7 +163,7 @@ const ResilientHub = () => {
               </div>
 
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-semibold mb-6">
-                <span className="text-gradient-gold">A 12-month membership</span>
+                <span className="text-gradient-gold">A guided 12-month membership</span>
                 <br />for expat women
               </h1>
 
