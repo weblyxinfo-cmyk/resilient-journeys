@@ -20,6 +20,7 @@ import {
   Star,
   ChevronDown,
   Check,
+  Shield,
 } from "lucide-react";
 
 const Membership = () => {
@@ -454,6 +455,56 @@ const Membership = () => {
                 >
                   Explore the full 12-month Membership
                 </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 9b. HOW TO GET STARTED */}
+        <section className="py-16 md:py-20 bg-card">
+          <div className="container px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-gradient-warm rounded-2xl border border-border p-8 md:p-12">
+                <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-10 text-center">
+                  How to Get Started
+                </h2>
+
+                <ol className="space-y-6">
+                  {[
+                    "Choose the membership that suits you.",
+                    "Click Sign Up to create your personal account.",
+                    "Complete your secure payment via Stripe.",
+                    "You'll receive a welcome email and instant access to your private Dashboard with the full 12-month programme.",
+                  ].map((step, i) => (
+                    <li key={i} className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-gold text-primary-foreground rounded-full flex items-center justify-center font-serif font-semibold">
+                        {i + 1}
+                      </div>
+                      <p className="text-base md:text-lg text-foreground/85 font-sans leading-relaxed pt-1.5">
+                        {step}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <p className="text-center text-base md:text-lg text-foreground/80 font-sans italic mt-8 max-w-2xl mx-auto leading-relaxed">
+                The Membership program teaches you how to look after your mind, regulate stress, and grow self-awareness — one gentle practice at a time.
+              </p>
+
+              <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-8 text-sm font-sans text-muted-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <Shield size={16} className="text-primary" />
+                  Secure payment via Stripe
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Clock size={16} className="text-primary" />
+                  One-time payment — no auto-renewal
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Heart size={16} className="text-primary" />
+                  Instant access after payment
+                </span>
               </div>
             </div>
           </div>
