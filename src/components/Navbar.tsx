@@ -17,7 +17,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/resilient-hub", label: "Resilient Hub" },
-  { href: "/resilient-hubs", label: "Membership" },
+  { href: "/membership", label: "Membership" },
   { href: "/blog", label: "Blog" },
   { href: "/workshopy", label: "Workshops" },
   { href: "/booking", label: "Booking" },
@@ -114,7 +114,7 @@ const Navbar = () => {
                   </Link>
                 </Button>
                 <Link
-                  to="/resilient-hubs"
+                  to="/membership"
                   className="inline-flex items-center justify-center px-6 py-2.5 bg-gradient-gold text-primary-foreground font-sans font-semibold text-sm rounded-full shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-105"
                 >
                   Get Started
@@ -198,7 +198,7 @@ const Navbar = () => {
                     Sign In
                   </Link>
                   <Link
-                    to="/resilient-hubs"
+                    to="/membership"
                     onClick={() => setIsOpen(false)}
                     className="inline-flex items-center justify-center px-6 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold text-sm rounded-full mt-2"
                   >

@@ -57,7 +57,7 @@ const Footer = () => {
               {[
                 { label: "Home", href: "/" },
                 { label: "About Me", href: "/about" },
-                { label: "Membership", href: "/resilient-hubs" },
+                { label: "Membership", href: "/membership" },
                 { label: "Book a Session", href: "/booking" },
                 { label: "Blog", href: "/blog" },
               ].map((link, index) => (
