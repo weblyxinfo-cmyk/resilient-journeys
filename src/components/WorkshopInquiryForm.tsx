@@ -93,37 +93,71 @@ const WorkshopInquiryForm = ({ workshopId, workshopTitle }: WorkshopInquiryFormP
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
             <Sparkles size={16} className="text-primary" />
             <span className="text-sm font-sans font-medium text-primary">
-              {workshopTitle ? 'Workshop Inquiry' : 'Custom Workshops'}
+              {workshopTitle ? 'Workshop Inquiry' : 'Our Workshops'}
             </span>
           </div>
 
           <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
             {workshopTitle
               ? <>Interested in <span className="text-gradient-gold">This Workshop</span>?</>
-              : <>Let's Create Something <span className="text-gradient-gold">Transformative</span></>
+              : <>Workshops for <span className="text-gradient-gold">Creativity, Connection &amp; Emotional Wellbeing</span></>
             }
           </h2>
 
           <p className="text-muted-foreground font-sans mb-6 leading-relaxed">
             {workshopTitle
               ? `I'd love to hear from you about "${workshopTitle}." Whether you're looking for a private session, a group experience, or a corporate event — let's find the perfect fit.`
-              : "I offer personalized workshops for expat communities, international schools, and organizations. Each workshop is tailored to your group's unique needs and goals."
+              : "I offer gentle, creative workshops designed for adults, children, teens, and families. Each experience combines creativity, emotional expression, mindfulness, and meaningful human connection in a safe and supportive space."
             }
           </p>
 
-          <ul className="space-y-3">
-            {[
-              "Tailored to your group's specific needs",
-              "Available in-person or online",
-              "For teams, communities, and organizations",
-              "Combining art therapy, psychology & creative practices",
-            ].map((item, index) => (
-              <li key={index} className="flex items-center gap-3 font-sans text-sm">
-                <CheckCircle size={18} className="text-primary flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          {workshopTitle ? (
+            <ul className="space-y-3">
+              {[
+                "Tailored to your group's specific needs",
+                "Available in-person or online",
+                "For teams, communities, and organizations",
+                "Combining art expressive therapy & creative practices",
+              ].map((item, index) => (
+                <li key={index} className="flex items-center gap-3 font-sans text-sm">
+                  <CheckCircle size={18} className="text-primary flex-shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="space-y-5">
+              {[
+                {
+                  title: "For Adults",
+                  description:
+                    "Mindful silk painting workshops with optional EFT (Emotional Freedom Techniques) sessions to support relaxation, emotional wellbeing, creativity, and self-expression.",
+                },
+                {
+                  title: "For Children & Teens",
+                  description:
+                    "Creative workshops that encourage emotional expression, confidence, imagination, and calm through art, mindfulness, silk painting, and gentle emotional support practices.",
+                },
+                {
+                  title: "For Parents & Children",
+                  description:
+                    "Connection-based workshops designed to create quality time, emotional bonding, communication, and shared creative experiences through expressive art activities.",
+                },
+              ].map((group, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <Sparkles size={18} className="text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-serif font-semibold text-base md:text-lg mb-1">
+                      {group.title}
+                    </h3>
+                    <p className="font-sans text-sm text-muted-foreground leading-relaxed">
+                      {group.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Form side */}

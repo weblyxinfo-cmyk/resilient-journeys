@@ -77,7 +77,7 @@ const Workshopy = () => {
               </h1>
 
               <p className="text-lg text-muted-foreground font-sans max-w-2xl mx-auto">
-                Hands-on workshops combining art expressive therapy, psychology, and creative practices
+                Hands-on workshops combining art expressive therapy and creative practices
                 to help you build resilience and thrive in your expat journey.
               </p>
             </div>

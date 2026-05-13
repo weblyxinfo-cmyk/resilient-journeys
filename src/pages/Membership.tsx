@@ -301,15 +301,6 @@ const Membership = () => {
         <section className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
-                  From feeling lost to feeling like <em className="text-gradient-gold not-italic">yourself</em> again
-                </h2>
-                <p className="text-base md:text-lg text-foreground/80 font-sans max-w-2xl mx-auto leading-relaxed">
-                  Resilient Mind is a gentle space to help expat women feel stable, grounded, and at home within themselves.
-                </p>
-              </div>
-
               <div className="max-w-5xl mx-auto mb-8 rounded-2xl overflow-hidden shadow-elevated">
                 <img
                   src="/membership-transformation.jpg"
