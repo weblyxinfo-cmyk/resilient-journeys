@@ -11,6 +11,7 @@ const LeadMagnet = () => {
   const [name, setName] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,19 +50,25 @@ const LeadMagnet = () => {
       }
     } else {
       setIsSubmitted(true);
-      toast({
-        title: 'Thank you!',
-        description: 'You will receive an email with the materials soon'
-      });
 
-      // Fire-and-forget: add contact to Brevo list
+      // Call Brevo: DOI mode sends a confirmation email; legacy mode adds directly.
+      let isDoi = false;
       try {
-        await supabase.functions.invoke('brevo-add-contact', {
+        const { data } = await supabase.functions.invoke('brevo-add-contact', {
           body: { email, name: name || undefined, listIds: [2] },
         });
+        isDoi = data?.mode === 'double-opt-in';
       } catch {
         // Non-blocking — Brevo failure should not affect user flow
       }
+
+      setNeedsConfirmation(isDoi);
+      toast({
+        title: isDoi ? 'Almost there!' : 'Thank you!',
+        description: isDoi
+          ? 'Check your inbox and click the confirmation link to receive your materials.'
+          : 'You will receive an email with the materials soon'
+      });
     }
 
     setIsLoading(false);
@@ -124,10 +131,12 @@ const LeadMagnet = () => {
                       <CheckCircle size={32} className="text-primary" />
                     </div>
                     <h3 className="text-xl font-serif font-semibold mb-2">
-                      Thank you!
+                      {needsConfirmation ? 'Almost there!' : 'Thank you!'}
                     </h3>
                     <p className="text-muted-foreground font-sans text-sm">
-                      Check your inbox for your free materials and access link.
+                      {needsConfirmation
+                        ? 'Check your inbox and click the confirmation link. We’ll send your free materials right after you confirm.'
+                        : 'Check your inbox for your free materials and access link.'}
                     </p>
                   </div>
                 ) : (

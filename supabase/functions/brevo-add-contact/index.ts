@@ -28,20 +28,45 @@ serve(async (req) => {
       throw new Error("Email is required");
     }
 
-    const body: Record<string, unknown> = {
-      email,
-      updateEnabled: true,
-    };
+    const doiTemplateIdRaw = Deno.env.get("BREVO_DOI_TEMPLATE_ID");
+    const doiTemplateId = doiTemplateIdRaw ? parseInt(doiTemplateIdRaw, 10) : null;
+    const doiRedirectUrl =
+      Deno.env.get("BREVO_DOI_REDIRECT_URL") || "https://resilientmind.io/thank-you";
+    const useDoi = doiTemplateId && Number.isFinite(doiTemplateId);
 
-    if (name) {
-      body.attributes = { FIRSTNAME: name };
+    const attributes: Record<string, unknown> | undefined = name
+      ? { FIRSTNAME: name }
+      : undefined;
+
+    let endpoint: string;
+    let body: Record<string, unknown>;
+
+    if (useDoi) {
+      // Double opt-in: Brevo sends a confirmation email and only adds the
+      // contact to includeListIds after the recipient clicks the confirmation link.
+      endpoint = "https://api.brevo.com/v3/contacts/doubleOptinConfirmation";
+      body = {
+        email,
+        templateId: doiTemplateId,
+        redirectionUrl: doiRedirectUrl,
+        includeListIds:
+          listIds && Array.isArray(listIds) && listIds.length > 0 ? listIds : [2],
+        ...(attributes ? { attributes } : {}),
+      };
+    } else {
+      // Fallback: legacy single opt-in until BREVO_DOI_TEMPLATE_ID is configured.
+      endpoint = "https://api.brevo.com/v3/contacts";
+      body = {
+        email,
+        updateEnabled: true,
+        ...(attributes ? { attributes } : {}),
+        ...(listIds && Array.isArray(listIds) && listIds.length > 0
+          ? { listIds }
+          : {}),
+      };
     }
 
-    if (listIds && Array.isArray(listIds) && listIds.length > 0) {
-      body.listIds = listIds;
-    }
-
-    const response = await fetch("https://api.brevo.com/v3/contacts", {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +86,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, mode: useDoi ? "double-opt-in" : "single-opt-in" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {

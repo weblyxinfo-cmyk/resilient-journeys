@@ -66,13 +66,23 @@ const FreeGuide = () => {
           }
         });
 
-      // Add contact to Brevo — automation in Brevo handles the welcome email
-      await supabase.functions.invoke('brevo-add-contact', {
+      // Add contact to Brevo. In DOI mode, Brevo sends a confirmation email and
+      // only adds the contact to List 2 (which triggers the welcome automation)
+      // after they click the link. In legacy single-opt-in mode it adds directly.
+      const { data } = await supabase.functions.invoke('brevo-add-contact', {
         body: { email: formData.email, name: formData.name || undefined, listIds: [2] },
       });
+      const isDoi = data?.mode === 'double-opt-in';
 
-      toast.success('Your free practice kit is on the way!');
-      navigate('/thank-you');
+      if (isDoi) {
+        toast.success(
+          'Please check your inbox and click the confirmation link to receive your kit.'
+        );
+        // Stay on this page — Brevo will redirect them to /thank-you after they confirm.
+      } else {
+        toast.success('Your free practice kit is on the way!');
+        navigate('/thank-you');
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Something went wrong. Please try again.');
