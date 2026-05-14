@@ -226,7 +226,13 @@ const WorkshopPost = () => {
           {/* Gallery Images — shown at the end of the workshop content */}
           {workshop.gallery_images && workshop.gallery_images.length > 0 && (
             <div className="mt-12">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div
+                className={
+                  workshop.gallery_images.length === 1
+                    ? 'max-w-2xl mx-auto'
+                    : 'grid grid-cols-1 sm:grid-cols-2 gap-6'
+                }
+              >
                 {workshop.gallery_images.map((image, idx) => (
                   <div key={idx} className="rounded-lg overflow-hidden">
                     <img
