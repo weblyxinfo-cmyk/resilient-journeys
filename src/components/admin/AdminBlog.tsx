@@ -23,6 +23,7 @@ interface BlogPost {
   content: string;
   category: 'blog' | 'workshop';
   featured_image_url: string | null;
+  gallery_images: string[] | null;
   is_published: boolean;
   published_at: string | null;
   scheduled_at: string | null;
@@ -52,7 +53,9 @@ const AdminBlog = () => {
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [activeCategory, setActiveCategory] = useState<'blog' | 'workshop'>('blog');
   const [uploading, setUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -61,6 +64,7 @@ const AdminBlog = () => {
     content: '',
     category: 'blog' as 'blog' | 'workshop',
     featured_image_url: '',
+    gallery_images: [] as string[],
     is_published: false,
     scheduled_at: '',
     min_membership: 'free' as 'free' | 'basic' | 'premium',
@@ -102,6 +106,7 @@ const AdminBlog = () => {
       content: '',
       category: activeCategory,
       featured_image_url: '',
+      gallery_images: [],
       is_published: false,
       scheduled_at: '',
       min_membership: 'free',
@@ -164,6 +169,58 @@ const AdminBlog = () => {
     }
   };
 
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setGalleryUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of files) {
+        const fileName = `gallery-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/\s+/g, '-')}`;
+        const { error } = await supabase.storage
+          .from('blog-images')
+          .upload(fileName, file, { contentType: file.type });
+
+        if (error) {
+          if (error.message?.includes('not found') || error.message?.includes('Bucket')) {
+            toast.error('Storage bucket "blog-images" not found.');
+          } else {
+            toast.error(`Upload error (${file.name}): ${error.message}`);
+          }
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(urlData.publicUrl);
+      }
+
+      if (uploadedUrls.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          gallery_images: [...prev.gallery_images, ...uploadedUrls],
+        }));
+        toast.success(`${uploadedUrls.length} image(s) uploaded to gallery!`);
+      }
+    } catch (err: any) {
+      toast.error('Gallery upload failed: ' + err.message);
+    } finally {
+      setGalleryUploading(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    }
+  };
+
+  const handleGalleryRemove = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery_images: prev.gallery_images.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleEdit = (post: BlogPost) => {
     setEditingPost(post);
     setFormData({
@@ -173,6 +230,7 @@ const AdminBlog = () => {
       content: post.content,
       category: post.category,
       featured_image_url: post.featured_image_url || '',
+      gallery_images: post.gallery_images || [],
       is_published: post.is_published,
       scheduled_at: post.scheduled_at || '',
       min_membership: post.min_membership,
@@ -213,6 +271,7 @@ const AdminBlog = () => {
       content: formData.content,
       category: formData.category,
       featured_image_url: formData.featured_image_url || null,
+      gallery_images: formData.category === 'workshop' && formData.gallery_images.length > 0 ? formData.gallery_images : null,
       is_published: shouldPublish,
       published_at: publishedAt,
       scheduled_at: scheduledAt,
@@ -440,6 +499,62 @@ const AdminBlog = () => {
                     />
                   </div>
                 </div>
+
+                {formData.category === 'workshop' && (
+                  <div className="space-y-2">
+                    <Label>Gallery Images (shown at the bottom of the workshop page)</Label>
+                    {formData.gallery_images.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                        {formData.gallery_images.map((url, idx) => (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Gallery ${idx + 1}`}
+                              className="w-full h-24 object-cover rounded border"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-90 group-hover:opacity-100"
+                              onClick={() => handleGalleryRemove(idx)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={galleryInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleGalleryUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => galleryInputRef.current?.click()}
+                        disabled={galleryUploading}
+                      >
+                        {galleryUploading ? (
+                          <>Uploading...</>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Gallery Images
+                          </>
+                        )}
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        You can select multiple files at once
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {formData.category === 'workshop' && (
                   <Card className="border-gold/30">

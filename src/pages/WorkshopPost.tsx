@@ -175,27 +175,6 @@ const WorkshopPost = () => {
             )}
           </header>
 
-          {/* Gallery Images - Public */}
-          {workshop.gallery_images && workshop.gallery_images.length > 0 && (
-            <div className="mb-12">
-              <h2 className="text-2xl font-serif font-semibold mb-6">Workshop Gallery</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {workshop.gallery_images.map((image, idx) => (
-                  <div key={idx} className="rounded-lg overflow-hidden aspect-square">
-                    <img
-                      src={image}
-                      alt={`${workshop.title} - Image ${idx + 1}`}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Video Content - Public */}
           {workshop.video_urls && workshop.video_urls.length > 0 && (
             <div className="mb-12">
@@ -241,6 +220,27 @@ const WorkshopPost = () => {
               >
                 {user ? "Upgrade Membership" : "Sign In to Continue"}
               </Link>
+            </div>
+          )}
+
+          {/* Gallery Images — shown at the end of the workshop content */}
+          {workshop.gallery_images && workshop.gallery_images.length > 0 && (
+            <div className="mt-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {workshop.gallery_images.map((image, idx) => (
+                  <div key={idx} className="rounded-lg overflow-hidden">
+                    <img
+                      src={image}
+                      alt={`${workshop.title} — Image ${idx + 1}`}
+                      className="w-full h-auto block"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
