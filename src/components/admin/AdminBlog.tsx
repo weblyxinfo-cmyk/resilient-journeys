@@ -69,8 +69,6 @@ const AdminBlog = () => {
     scheduled_at: '',
     min_membership: 'free' as 'free' | 'basic' | 'premium',
     tags: '',
-    meta_title: '',
-    meta_description: '',
     is_paid_workshop: false,
     workshop_price: 0,
     workshop_currency: 'EUR',
@@ -111,8 +109,6 @@ const AdminBlog = () => {
       scheduled_at: '',
       min_membership: 'free',
       tags: '',
-      meta_title: '',
-      meta_description: '',
       is_paid_workshop: false,
       workshop_price: 0,
       workshop_currency: 'EUR',
@@ -235,8 +231,6 @@ const AdminBlog = () => {
       scheduled_at: post.scheduled_at || '',
       min_membership: post.min_membership,
       tags: post.tags.join(', '),
-      meta_title: post.meta_title || '',
-      meta_description: post.meta_description || '',
       is_paid_workshop: post.is_paid_workshop || false,
       workshop_price: post.workshop_price || 0,
       workshop_currency: post.workshop_currency || 'CZK',
@@ -277,8 +271,8 @@ const AdminBlog = () => {
       scheduled_at: scheduledAt,
       min_membership: formData.min_membership,
       tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
-      meta_title: formData.meta_title || formData.title,
-      meta_description: formData.meta_description || formData.excerpt || formData.content.substring(0, 160),
+      meta_title: formData.title,
+      meta_description: formData.excerpt || formData.content.substring(0, 160),
       author_id: user?.id,
       is_paid_workshop: formData.category === 'workshop' ? formData.is_paid_workshop : false,
       workshop_price: formData.category === 'workshop' ? formData.workshop_price : 0,
@@ -624,26 +618,9 @@ const AdminBlog = () => {
                   </Card>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="meta_title">SEO: Meta Title</Label>
-                  <Input
-                    id="meta_title"
-                    value={formData.meta_title}
-                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                    placeholder="Leave empty to use post title"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="meta_description">SEO: Meta Description</Label>
-                  <Textarea
-                    id="meta_description"
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                    rows={2}
-                    placeholder="Leave empty to use excerpt"
-                  />
-                </div>
+                <p className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-2">
+                  SEO meta data are generated automatically from the title and excerpt above — no extra setup needed.
+                </p>
 
                 <div className="space-y-4 py-2">
                   <div className="space-y-2">
