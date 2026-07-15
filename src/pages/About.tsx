@@ -173,8 +173,8 @@ const About = () => {
                   },
                   {
                     icon: Heart,
-                    title: "Reiki Master",
-                    description: "Certified Reiki Master integrating energy work with personal development techniques.",
+                    title: "Reiki level III",
+                    description: "Certified Reiki level III integrating energy work with personal development techniques.",
                   },
                 ].map((item, index) => (
                   <div key={index} className="text-center p-6">
@@ -185,6 +185,19 @@ const About = () => {
                     <p className="text-muted-foreground font-sans">{item.description}</p>
                   </div>
                 ))}
+              </div>
+
+              {/* Reiki / practice video */}
+              <div className="max-w-3xl mx-auto mt-14">
+                <div className="rounded-2xl overflow-hidden shadow-elevated aspect-video">
+                  <iframe
+                    src="https://www.youtube.com/embed/nGOawA1GBAI"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Reiki with Silvie"
+                  />
+                </div>
               </div>
             </div>
           </div>

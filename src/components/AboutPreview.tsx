@@ -57,7 +57,7 @@ const AboutPreview = () => {
               </p>
 
               <p className="text-muted-foreground font-sans leading-relaxed mb-8">
-                Over the years, I've devoted myself to holistic approaches, obtaining a Certificate in Holistic Counselling, an Art Therapy Diploma (HH Dip A.Th), and Reiki Master certification. Through Resilient Mind, I guide individuals—especially women living abroad—toward inner strength and clarity.
+                Over the years, I've devoted myself to holistic approaches, obtaining a Certificate in Holistic Counselling, an Art Therapy Diploma (HH Dip A.Th), and Reiki level III certification. Through Resilient Mind, I guide individuals—especially women living abroad—toward inner strength and clarity.
               </p>
 
               {/* Skills */}
@@ -65,7 +65,7 @@ const AboutPreview = () => {
                 {[
                   { icon: Heart, label: "Holistic Counselling" },
                   { icon: Palette, label: "Art Therapy Diploma" },
-                  { icon: MapPin, label: "Reiki Master" },
+                  { icon: MapPin, label: "Reiki level III" },
                 ].map((skill, index) => (
                   <div
                     key={index}

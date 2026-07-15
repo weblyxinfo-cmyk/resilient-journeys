@@ -442,7 +442,7 @@ const Membership = () => {
               <div className="text-center mt-10">
                 <Link
                   to="/resilient-hubs"
-                  className="text-sm text-primary font-sans underline underline-offset-4 hover:text-primary/80"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
                 >
                   Explore the full 12-month Membership
                 </Link>
