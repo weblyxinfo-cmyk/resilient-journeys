@@ -24,6 +24,8 @@ const SESSION_LABELS: Record<string, string> = {
   discovery: 'Discovery Call',
   one_on_one: '1:1 Session',
   family: 'Family Session',
+  endometriosis_support: 'Endometriosis & Chronic Pain Support',
+  individual_eft_reiki_offer: 'Individual Session – EFT & Reiki',
   premium_consultation: 'Premium Consultation',
 };
 

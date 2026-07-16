@@ -12,8 +12,9 @@ const corsHeaders = {
 const SESSION_DURATIONS: Record<string, number> = {
   discovery: 30,
   one_on_one: 60,
-  family: 90,
-  endometriosis_support: 180,
+  family: 60,
+  endometriosis_support: 60,
+  individual_eft_reiki_offer: 60,
   premium_consultation: 60,
 };
 
@@ -22,7 +23,8 @@ const SESSION_PRICES: Record<string, number> = {
   discovery: 0,
   one_on_one: 10700, // €107
   family: 12700, // €127
-  endometriosis_support: 14700, // €147
+  endometriosis_support: 23700, // €237 (3-session package, €79/session)
+  individual_eft_reiki_offer: 5000, // €50 special offer
   premium_consultation: 8700, // €87
 };
 
@@ -46,6 +48,17 @@ serve(async (req) => {
 
     if (!SESSION_DURATIONS[session_type]) {
       throw new Error(`Invalid session type: ${session_type}`);
+    }
+
+    // Time-limited offers: reject bookings after the offer's end date
+    const SESSION_VALID_UNTIL: Record<string, string> = {
+      individual_eft_reiki_offer: "2026-07-31",
+    };
+    if (
+      SESSION_VALID_UNTIL[session_type] &&
+      new Date() > new Date(`${SESSION_VALID_UNTIL[session_type]}T23:59:59Z`)
+    ) {
+      throw new Error("This special offer has expired.");
     }
 
     // Validate email format
@@ -212,7 +225,8 @@ serve(async (req) => {
       discovery: "Discovery Call",
       one_on_one: "Individual Session",
       family: "Family Session",
-      endometriosis_support: "Endo & Chronic Pain Support",
+      endometriosis_support: "Endometriosis & Chronic Pain Support (3-session package)",
+      individual_eft_reiki_offer: "Special Offer – Individual Session (EFT & Reiki)",
       premium_consultation: "Premium Consultation",
     };
 

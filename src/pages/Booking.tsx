@@ -17,16 +17,39 @@ import SEO from "@/components/SEO";
 import { enUS } from "date-fns/locale";
 
 // Session types configuration
-const SESSION_TYPES = [
+interface SessionTypeConfig {
+  type: string;
+  title: string;
+  /** Optional badge/label shown above the card title */
+  badge?: string;
+  duration: number;
+  /** Optional custom duration label (overrides "{duration} min") */
+  durationLabel?: string;
+  price: number;
+  /** Optional small note shown under the price (e.g. "€79 per session") */
+  priceNote?: string;
+  description: string;
+  features: string[];
+  /** Optional paragraph shown after the feature list */
+  note?: string;
+  /** Optional ISO date (YYYY-MM-DD); the card hides after this day */
+  validUntil?: string;
+  /** Optional card image URL */
+  image?: string;
+}
+
+const SESSION_TYPES: SessionTypeConfig[] = [
   {
     type: "discovery",
     title: "Discovery Call",
     duration: 30,
     price: 0,
-    description: "A free introductory call to discuss your needs and see if we're a good fit.",
+    description:
+      "A complimentary introductory call to understand your needs, answer your questions, and explore whether we're the right fit.",
     features: [
-      "Understand your challenges",
-      "Explore working together",
+      "Understand your current challenges",
+      "Ask any questions you may have",
+      "Explore how I can support you",
       "No commitment required",
     ],
   },
@@ -35,45 +58,76 @@ const SESSION_TYPES = [
     title: "Individual Session",
     duration: 60,
     price: 107,
-    description: "A personalised 1:1 session focused on building emotional resilience and inner stability.",
+    description:
+      "A personalised 1:1 session designed to support emotional resilience, inner calm, and lasting wellbeing.",
     features: [
       "Holistic counselling approach",
-      "EFT tapping for emotional regulation",
+      "EFT Tapping for emotional regulation",
       "Byron Katie inquiry for clarity and perspective",
       "Expressive creative art (when supportive)",
-      "Practical tools to strengthen daily resilience",
+      "Distance Reiki (optional – available worldwide)",
     ],
   },
   {
     type: "family",
     title: "Family Session",
-    duration: 90,
+    duration: 60,
     price: 127,
-    description: "A supportive session designed to strengthen emotional resilience within the family system.",
+    description:
+      "A supportive family session designed to strengthen emotional resilience, communication, and connection.",
     features: [
       "Child-led expressive creative activities",
-      "Emotional regulation tools for parent and child",
-      "Guidance to improve communication and understanding",
-      "Holistic strategies to build emotional safety at home",
+      "Emotional regulation tools for parents and children, including EFT (Emotional Freedom Techniques), where appropriate",
+      "Reiki for parents available on request",
     ],
+    note: "Each session is individually tailored to the unique needs of the child and parent(s), depending on age, goals, and the focus of the session.",
   },
   {
     type: "endometriosis_support",
     title: "Endometriosis & Chronic Pain Support",
-    duration: 180,
-    price: 147,
-    description: "3-Session Holistic Support Package. Available worldwide online or in person in Dénia, Spain. A structured three-session journey designed to build emotional resilience while living with endometriosis or chronic pain.",
+    badge: "Complete Support Package",
+    duration: 60,
+    durationLabel: "3 × 60 min sessions",
+    price: 237,
+    priceNote: "€79 per session",
+    description:
+      "A structured three-session support package designed to help you better understand your body, reduce emotional overwhelm, and build resilience while living with endometriosis or chronic pain.",
     features: [
-      "Session 1 – Emotional clarity & resilience tools (60 min)",
-      "Session 2 – Reiki support for nervous system regulation (60 min)",
-      "Session 3 – Expressive creative art & integration (60 min)",
-      "Personalised coping strategies tailored to your experience",
-      "Sessions are booked individually within an agreed timeframe",
+      "Session 1 – Emotional clarity, support & resilience tools (60 min), including EFT (Emotional Freedom Techniques)",
+      "Session 2 – Distance Reiki to promote relaxation and support emotional wellbeing (60 min)",
+      "Session 3 – Expressive creative art for self-expression, reflection & integration (60 min)",
+      "Personalised support tailored to your unique experience",
+      "Available online or in person in Dénia, Spain",
     ],
+    note: "❤️ Complete Support Package – €237 (€79 per session). A valuable way to receive personalised support, guidance, and practical tools across three dedicated sessions.",
   },
-] as const;
+  {
+    type: "individual_eft_reiki_offer",
+    title: "Individual Session – EFT & Reiki",
+    badge: "❤️ Special Offer – Online & In Person",
+    duration: 60,
+    price: 50,
+    description:
+      "A special-offer 60-minute individual session combining EFT and Reiki — available online or in person in Dénia, Spain.",
+    features: [
+      "EFT (Emotional Freedom Techniques) for emotional regulation",
+      "Distance Reiki for relaxation and wellbeing",
+      "Available online or in person in Dénia, Spain",
+    ],
+    note: "Valid until 31 July 2026.",
+    validUntil: "2026-07-31",
+  },
+];
 
-type SessionType = typeof SESSION_TYPES[number]["type"];
+type SessionType = string;
+
+// Session types currently bookable (hides time-limited offers past their date)
+const getVisibleSessionTypes = () => {
+  const now = new Date();
+  return SESSION_TYPES.filter(
+    (s) => !s.validUntil || new Date(`${s.validUntil}T23:59:59`) >= now
+  );
+};
 
 const Booking = () => {
   const { user, profile } = useAuth();
@@ -337,7 +391,7 @@ const Booking = () => {
                   </h2>
 
                   <div className="grid md:grid-cols-2 gap-5">
-                    {SESSION_TYPES.map((session) => {
+                    {getVisibleSessionTypes().map((session) => {
                       const isSelected = selectedType === session.type;
                       return (
                         <Card
@@ -356,11 +410,26 @@ const Booking = () => {
                               Selected
                             </div>
                           )}
+                          {session.image && (
+                            <div className="aspect-video w-full overflow-hidden rounded-t-xl">
+                              <img
+                                src={session.image}
+                                alt={session.title}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          )}
                           <CardHeader>
+                            {session.badge && (
+                              <div className="inline-flex self-start items-center px-3 py-1 mb-1 bg-gradient-gold text-primary-foreground text-xs font-semibold rounded-full">
+                                {session.badge}
+                              </div>
+                            )}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Clock size={14} />
-                                <span>{session.duration} min</span>
+                                <span>{session.durationLabel || `${session.duration} min`}</span>
                               </div>
                               {isSelected && (
                                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary">
@@ -374,6 +443,11 @@ const Booking = () => {
                             <div className="text-2xl font-serif font-bold text-primary mt-2">
                               {session.price === 0 ? "Free" : `€${session.price}`}
                             </div>
+                            {session.priceNote && (
+                              <div className="text-sm text-muted-foreground">
+                                {session.priceNote}
+                              </div>
+                            )}
                           </CardHeader>
                           <CardContent>
                             <CardDescription className="mb-4">
@@ -381,15 +455,15 @@ const Booking = () => {
                             </CardDescription>
                             <ul className="space-y-2">
                               {session.features.map((feature, i) => (
-                                <li key={i} className="flex items-center gap-2 text-sm">
-                                  <Check size={16} className="text-primary flex-shrink-0" />
+                                <li key={i} className="flex items-start gap-2 text-sm">
+                                  <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
                                   <span>{feature}</span>
                                 </li>
                               ))}
                             </ul>
-                            {(session.type === 'family' || session.type === 'endometriosis_support') && (
-                              <p className="text-xs text-amber-600 font-medium mt-4">
-                                Available for booking from June 2026. Currently being refined to offer you the best possible experience.
+                            {session.note && (
+                              <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+                                {session.note}
                               </p>
                             )}
                           </CardContent>
@@ -418,7 +492,7 @@ const Booking = () => {
                       <ArrowLeft className="mr-2" size={16} /> Back
                     </Button>
                     <Badge variant="outline" className="text-sm">
-                      {selectedSessionType.title} - {selectedSessionType.duration} min
+                      {selectedSessionType.title} - {selectedSessionType.durationLabel || `${selectedSessionType.duration} min`}
                     </Badge>
                   </div>
 
@@ -604,7 +678,7 @@ const Booking = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Duration:</span>
-                        <span className="font-semibold">{selectedSessionType.duration} min</span>
+                        <span className="font-semibold">{selectedSessionType.durationLabel || `${selectedSessionType.duration} min`}</span>
                       </div>
                       <div className="flex justify-between text-lg pt-2 border-t">
                         <span className="font-semibold">Price:</span>
