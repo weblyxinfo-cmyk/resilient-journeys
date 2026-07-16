@@ -67,6 +67,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
       "Expressive creative art (when supportive)",
       "Distance Reiki (optional – available worldwide)",
     ],
+    note: "Questions? Call or WhatsApp Silvie: +34 602 413 244",
   },
   {
     type: "family",
