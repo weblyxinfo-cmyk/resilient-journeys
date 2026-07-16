@@ -19,7 +19,7 @@ const SESSION_TYPE_NAMES: Record<string, string> = {
   one_on_one: "Individual Consultation",
   family: "Family Session",
   endometriosis_support: "Endometriosis & Chronic Pain Support",
-  individual_eft_reiki_offer: "Individual Session – EFT & Reiki",
+  individual_eft_reiki_offer: "EFT Tapping & Reiki Session",
   premium_consultation: "Premium Consultation",
 };
 

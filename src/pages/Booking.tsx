@@ -38,6 +38,21 @@ interface SessionTypeConfig {
   image?: string;
   /** Optional contact phone (renders clickable Call + WhatsApp links) */
   phone?: string;
+  /** Optional heading shown above the main feature list */
+  featuresHeading?: string;
+  /** Optional extra sections (each with heading, intro text, own bullets, outro) */
+  extraSections?: {
+    heading?: string;
+    intro?: string;
+    features?: string[];
+    outro?: string;
+  }[];
+  /** Optional contact CTA email (renders clickable mailto link) */
+  email?: string;
+  /** Optional heading for the contact CTA block (e.g. "Book your session") */
+  contactHeading?: string;
+  /** When true the card is visually emphasised and spans the full width */
+  highlight?: boolean;
 }
 
 const SESSION_TYPES: SessionTypeConfig[] = [
@@ -106,18 +121,39 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   },
   {
     type: "individual_eft_reiki_offer",
-    title: "Individual Session – EFT & Reiki",
-    badge: "❤️ Special Offer – Online & In Person",
+    title: "EFT Tapping & Reiki Session",
+    badge: "❤️ Special Welcome Offer – In Person & Online",
+    highlight: true,
     duration: 60,
     price: 50,
     description:
-      "A special-offer 60-minute individual session combining EFT and Reiki — available online or in person in Dénia, Spain.",
+      "A gentle 60-minute session designed to help you calm your nervous system, release emotional stress, and reconnect with yourself.\n\nBy combining EFT (Emotional Freedom Techniques) with Reiki, each session is tailored to your unique needs, creating a safe and supportive space for emotional wellbeing, relaxation, and inner balance.",
+    featuresHeading: "This session may help you:",
     features: [
-      "EFT (Emotional Freedom Techniques) for emotional regulation",
-      "Distance Reiki for relaxation and wellbeing",
-      "Available online or in person in Dénia, Spain",
+      "Calm your nervous system",
+      "Release emotional stress and overwhelm",
+      "Feel lighter, calmer, and more balanced",
+      "Reconnect with yourself",
+      "Support emotional wellbeing through EFT & Reiki",
     ],
-    note: "Valid until 31 July 2026.",
+    extraSections: [
+      {
+        heading: "Continued Support After Your Session",
+        intro:
+          "Your healing doesn't end when the session finishes. To help you continue your practice at home, you'll also receive:",
+        features: [
+          "An Introduction to EFT Guide (printed or PDF) explaining what EFT is, how it works, and how to use it with confidence.",
+          "A beginner's EFT tapping script to help you become familiar with the technique if you're new to EFT.",
+          "A personalised follow-up EFT tapping video, created specifically for your needs after our session, so you can continue practising at home.",
+        ],
+        outro:
+          "As your confidence grows, you'll learn how to listen to your own emotions and body, using EFT in a way that feels natural and supportive for you.",
+      },
+    ],
+    note: "📍 Available online or in person in Dénia, Spain\n\n❤️ Special Welcome Offer valid until 31 July 2026.",
+    contactHeading: "Book your session",
+    phone: "+34 602 413 244",
+    email: "contact@resilientmind.io",
     validUntil: "2026-07-31",
   },
 ];
@@ -400,6 +436,10 @@ const Booking = () => {
                         <Card
                           key={session.type}
                           className={`relative cursor-pointer transition-all duration-200 hover:shadow-elevated ${
+                            session.highlight
+                              ? "md:col-span-2 ring-2 ring-primary/50 bg-gradient-to-br from-primary/[0.07] to-transparent shadow-elevated"
+                              : ""
+                          } ${
                             isSelected
                               ? "border-2 border-primary bg-primary/5 shadow-[0_0_0_3px_rgba(196,155,65,0.2)] scale-[1.02]"
                               : "border hover:border-primary/50"
@@ -453,9 +493,14 @@ const Booking = () => {
                             )}
                           </CardHeader>
                           <CardContent>
-                            <CardDescription className="mb-4">
+                            <CardDescription className="mb-4 whitespace-pre-line">
                               {session.description}
                             </CardDescription>
+                            {session.featuresHeading && (
+                              <p className="text-sm font-medium mb-2">
+                                {session.featuresHeading}
+                              </p>
+                            )}
                             <ul className="space-y-2">
                               {session.features.map((feature, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm">
@@ -464,12 +509,71 @@ const Booking = () => {
                                 </li>
                               ))}
                             </ul>
+                            {session.extraSections?.map((sec, si) => (
+                              <div key={si} className="mt-5">
+                                {sec.heading && (
+                                  <p className="font-serif font-semibold text-base mb-1">
+                                    {sec.heading}
+                                  </p>
+                                )}
+                                {sec.intro && (
+                                  <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                                    {sec.intro}
+                                  </p>
+                                )}
+                                {sec.features && (
+                                  <ul className="space-y-2">
+                                    {sec.features.map((feature, i) => (
+                                      <li key={i} className="flex items-start gap-2 text-sm">
+                                        <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                                        <span>{feature}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                                {sec.outro && (
+                                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                                    {sec.outro}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
                             {session.note && (
-                              <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+                              <p className="text-xs text-muted-foreground mt-4 leading-relaxed whitespace-pre-line">
                                 {session.note}
                               </p>
                             )}
-                            {session.phone && (
+                            {session.contactHeading ? (
+                              <div className="mt-5 pt-4 border-t border-border">
+                                <p className="font-serif font-semibold text-base mb-2">
+                                  {session.contactHeading}
+                                </p>
+                                {session.phone && (
+                                  <p className="text-sm flex items-center gap-2">
+                                    <span aria-hidden>📞</span>
+                                    <a
+                                      href={`tel:${session.phone.replace(/\s+/g, "")}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
+                                    >
+                                      {session.phone}
+                                    </a>
+                                  </p>
+                                )}
+                                {session.email && (
+                                  <p className="text-sm flex items-center gap-2 mt-1">
+                                    <span aria-hidden>✉️</span>
+                                    <a
+                                      href={`mailto:${session.email}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
+                                    >
+                                      {session.email}
+                                    </a>
+                                  </p>
+                                )}
+                              </div>
+                            ) : session.phone ? (
                               <p className="text-sm mt-4">
                                 <span className="text-muted-foreground">Questions? </span>
                                 <a
@@ -491,7 +595,7 @@ const Booking = () => {
                                 </a>
                                 <span className="text-muted-foreground"> Silvie: {session.phone}</span>
                               </p>
-                            )}
+                            ) : null}
                           </CardContent>
                         </Card>
                       );
