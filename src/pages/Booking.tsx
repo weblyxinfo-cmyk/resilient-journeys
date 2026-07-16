@@ -36,6 +36,8 @@ interface SessionTypeConfig {
   validUntil?: string;
   /** Optional card image URL */
   image?: string;
+  /** Optional contact phone (renders clickable Call + WhatsApp links) */
+  phone?: string;
 }
 
 const SESSION_TYPES: SessionTypeConfig[] = [
@@ -67,7 +69,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
       "Expressive creative art (when supportive)",
       "Distance Reiki (optional – available worldwide)",
     ],
-    note: "Questions? Call or WhatsApp Silvie: +34 602 413 244",
+    phone: "+34 602 413 244",
   },
   {
     type: "family",
@@ -465,6 +467,29 @@ const Booking = () => {
                             {session.note && (
                               <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
                                 {session.note}
+                              </p>
+                            )}
+                            {session.phone && (
+                              <p className="text-sm mt-4">
+                                <span className="text-muted-foreground">Questions? </span>
+                                <a
+                                  href={`tel:${session.phone.replace(/\s+/g, "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
+                                >
+                                  Call
+                                </a>
+                                <span className="text-muted-foreground"> · </span>
+                                <a
+                                  href={`https://wa.me/${session.phone.replace(/[^0-9]/g, "")}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
+                                >
+                                  WhatsApp
+                                </a>
+                                <span className="text-muted-foreground"> Silvie: {session.phone}</span>
                               </p>
                             )}
                           </CardContent>
