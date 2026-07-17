@@ -58,6 +58,7 @@ interface SessionTypeConfig {
 const SESSION_TYPES: SessionTypeConfig[] = [
   {
     type: "discovery",
+    image: "/booking/discovery.jpg",
     title: "Discovery Call",
     duration: 30,
     price: 0,
@@ -72,6 +73,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   },
   {
     type: "one_on_one",
+    image: "/booking/individual.jpg",
     title: "Individual Session",
     duration: 60,
     price: 107,
@@ -88,6 +90,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   },
   {
     type: "family",
+    image: "/booking/family.jpg",
     title: "Family Session",
     duration: 60,
     price: 127,
@@ -102,6 +105,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   },
   {
     type: "endometriosis_support",
+    image: "/booking/endometriosis.jpg",
     title: "Endometriosis & Chronic Pain Support",
     badge: "Complete Support Package",
     duration: 60,
@@ -121,6 +125,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   },
   {
     type: "individual_eft_reiki_offer",
+    image: "/booking/special-offer.jpg",
     title: "EFT Tapping & Reiki Session",
     badge: "❤️ Special Welcome Offer – In Person & Online",
     highlight: true,
