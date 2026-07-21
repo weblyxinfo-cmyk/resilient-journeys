@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import IntroVideo from "@/components/IntroVideo";
 import Services from "@/components/Services";
 import AboutPreview from "@/components/AboutPreview";
+import Testimonials from "@/components/Testimonials";
 import Pricing from "@/components/Pricing";
 import LeadMagnet from "@/components/LeadMagnet";
 import Footer from "@/components/Footer";
@@ -40,6 +41,7 @@ const Index = () => {
         <IntroVideo />
         <Services />
         <AboutPreview />
+        <Testimonials />
         <Pricing />
         <LeadMagnet />
       </main>
