@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Heart, MapPin, Palette, Award, BookOpen, Users } from "lucide-react";
+import { ArrowRight, Heart, MapPin, Palette, Award, BookOpen, Users, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PageHero from "@/components/PageHero";
@@ -159,7 +159,7 @@ const About = () => {
                 Qualifications & Expertise
               </h2>
 
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
                   {
                     icon: Award,
@@ -175,6 +175,11 @@ const About = () => {
                     icon: Heart,
                     title: "Reiki level III",
                     description: "Certified Reiki level III integrating energy work with personal development techniques.",
+                  },
+                  {
+                    icon: Sparkles,
+                    title: "EFT Level 2 Practitioner",
+                    description: "Certified in Emotional Freedom Techniques (EFT) Level 2, helping individuals reduce stress, process emotions, and build emotional resilience through gentle tapping techniques.",
                   },
                 ].map((item, index) => (
                   <div key={index} className="text-center p-6">
