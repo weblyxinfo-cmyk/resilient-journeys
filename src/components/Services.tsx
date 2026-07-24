@@ -1,4 +1,4 @@
-import { BookOpen, Users, Calendar, Sparkles, Target, Palette, Heart } from "lucide-react";
+import { BookOpen, Users, Calendar, Sparkles, Target, Palette, Heart, Check, Globe, Briefcase, Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
@@ -59,6 +59,53 @@ const whoItsFor = [
   "Globally mobile women facing constant change and wanting deeper inner stability, confidence, and clarity",
 ];
 
+const whyJoin = [
+  {
+    icon: Heart,
+    title: "Learn to regulate your nervous system",
+    description: "and create a greater sense of calm and emotional safety.",
+  },
+  {
+    icon: Globe,
+    title: "Develop practical tools",
+    description: "to navigate life's challenges with more confidence, clarity, and resilience.",
+  },
+  {
+    icon: Briefcase,
+    title: "Discover EFT, expressive art, meditation,",
+    description: "and other holistic practices you can use in everyday life.",
+  },
+  {
+    icon: Users,
+    title: "Join a supportive community",
+    description: "of like-minded expat women from around the world.",
+  },
+  {
+    icon: Sprout,
+    title: "Follow a step-by-step journey",
+    description:
+      "that helps you build lasting emotional resilience, deepen your self-awareness, and reconnect with who you truly are.",
+  },
+];
+
+const waysToWork = [
+  {
+    title: "Resilient Hub Membership",
+    description:
+      "Ongoing guidance, practical tools, and self-paced learning to build emotional resilience.",
+  },
+  {
+    title: "Individual Consultations",
+    description:
+      "Personalised one-to-one holistic counselling tailored to your unique needs and goals.",
+  },
+  {
+    title: "Workshops & Group Sessions",
+    description:
+      "Interactive wellbeing experiences featuring Expressive Art, Silk Painting, EFT Tapping, and mindfulness for communities and organisations.",
+  },
+];
+
 const Services = () => {
   return (
     <section className="relative py-24 overflow-hidden">
@@ -72,22 +119,28 @@ const Services = () => {
       </div>
 
       <div className="container relative z-10 px-4">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-            <Sparkles size={16} className="text-primary" />
-            <span className="text-sm font-sans font-medium text-primary">
-              Why Our Approach Works
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-6">
-            Transform Your <span className="text-gradient-gold">Expat Experience</span>
+        {/* Header — Why Join Resilient Mind? */}
+        <div className="max-w-3xl mx-auto mb-16">
+          <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-10 text-center">
+            Why Join <span className="text-gradient-gold">Resilient Mind?</span>
           </h2>
-          <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-8">
-            At Resilient Mind, we support expatriate women through the emotional and nervous-system challenges of living abroad. We help you gently transform cultural stress, loneliness, and constant change into emotional stability, self-trust, and a deep sense of inner safety.
-          </p>
-          <p className="text-base text-foreground/80 font-sans italic">
-            Through our signature blend of evidence-based techniques, EFT, expressive creative practices, and integrative mind–body approaches, you develop an unshakable "inner home" — a steady inner foundation you can carry with you wherever life takes you.
+          <ul className="space-y-6 max-w-2xl mx-auto">
+            {whyJoin.map((item, index) => (
+              <li key={index} className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <item.icon size={22} className="text-primary" />
+                </div>
+                <p className="text-foreground/85 font-sans leading-relaxed pt-1">
+                  <span className="font-serif font-semibold text-foreground">
+                    {item.title}
+                  </span>{" "}
+                  {item.description}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="text-lg md:text-xl text-gradient-gold font-serif italic text-center mt-12 max-w-2xl mx-auto leading-relaxed">
+            Because you deserve to feel emotionally safe, supported, and truly at home — wherever life takes you. ♡
           </p>
         </div>
 
@@ -125,6 +178,37 @@ const Services = () => {
                   <div className="w-2 h-2 bg-gold rounded-full" />
                 </div>
                 <p className="text-foreground/80 font-sans">{item}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Ways to Work Together */}
+        <div className="max-w-3xl mx-auto mb-14 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+            <Sparkles size={16} className="text-primary" />
+            <span className="text-sm font-sans font-medium text-primary">
+              How We Can Work Together
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
+            Ways to <span className="text-gradient-gold">Work Together</span>
+          </h2>
+          <p className="text-lg text-muted-foreground font-sans mb-10">
+            Choose the support that's right for your journey.
+          </p>
+          <ul className="space-y-5 text-left max-w-2xl mx-auto">
+            {waysToWork.map((way, index) => (
+              <li key={index} className="flex items-start gap-4">
+                <div className="w-7 h-7 bg-gradient-gold rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 shadow-soft">
+                  <Check size={16} className="text-primary-foreground" strokeWidth={3} />
+                </div>
+                <p className="text-foreground/85 font-sans leading-relaxed">
+                  <span className="font-serif font-semibold text-foreground">
+                    {way.title}
+                  </span>{" "}
+                  – {way.description}
+                </p>
               </li>
             ))}
           </ul>
