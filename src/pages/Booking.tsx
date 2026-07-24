@@ -36,9 +36,6 @@ interface SessionTypeConfig {
   validUntil?: string;
   /** Optional card image URL */
   image?: string;
-  /** Optional object-position class for the card image (default: object-center).
-   *  Landscape 3:2 sources need no adjustment; portrait sources want "object-top". */
-  imagePosition?: string;
   /** Optional contact phone (renders clickable Call + WhatsApp links) */
   phone?: string;
   /** Optional heading shown above the main feature list */
@@ -129,7 +126,6 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   {
     type: "individual_eft_reiki_offer",
     image: "/booking/special-offer.jpg",
-    imagePosition: "object-top",
     title: "EFT Tapping & Reiki Session",
     badge: "❤️ Special Welcome Offer – In Person & Online",
     highlight: true,
