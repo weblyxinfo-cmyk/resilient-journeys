@@ -463,13 +463,11 @@ const Booking = () => {
                             </div>
                           )}
                           {session.image && (
-                            <div className="aspect-[3/2] w-full overflow-hidden rounded-t-xl">
+                            <div className="w-full overflow-hidden rounded-t-xl bg-muted">
                               <img
                                 src={session.image}
                                 alt={session.title}
-                                className={`w-full h-full object-cover ${
-                                  session.imagePosition || "object-center"
-                                }`}
+                                className="w-full h-auto block"
                                 loading="lazy"
                               />
                             </div>
