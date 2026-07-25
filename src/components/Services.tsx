@@ -1,6 +1,7 @@
 import { BookOpen, Users, Calendar, Sparkles, Target, Palette, Heart, Check, Globe, Briefcase, Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
+import whyJoinImage from "@/assets/why-join.jpg";
 
 const services = [
   {
@@ -119,28 +120,45 @@ const Services = () => {
 
       <div className="container relative z-10 px-4">
         {/* Header — Why Join Resilient Mind? */}
-        <div className="max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-10 text-center">
-            Why Join <span className="text-gradient-gold">Resilient Mind?</span>
-          </h2>
-          <ul className="space-y-6 max-w-2xl mx-auto">
-            {whyJoin.map((item, index) => (
-              <li key={index} className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <item.icon size={22} className="text-primary" />
-                </div>
-                <p className="text-foreground font-sans leading-relaxed pt-1">
-                  <span className="font-sans font-bold text-foreground">
-                    {item.title}
-                  </span>{" "}
-                  {item.description}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <p className="text-lg md:text-xl text-gradient-gold font-serif italic text-center mt-12 max-w-2xl mx-auto leading-relaxed">
-            Because you deserve to feel emotionally safe, supported, and truly at home — wherever life takes you. ♡
-          </p>
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            {/* Text */}
+            <div className="order-2 lg:order-1">
+              <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-10 text-center lg:text-left">
+                Why Join <span className="text-gradient-gold">Resilient Mind?</span>
+              </h2>
+              <ul className="space-y-6">
+                {whyJoin.map((item, index) => (
+                  <li key={index} className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <item.icon size={22} className="text-primary" />
+                    </div>
+                    <p className="text-foreground font-sans leading-relaxed pt-1">
+                      <span className="font-sans font-bold text-foreground">
+                        {item.title}
+                      </span>{" "}
+                      {item.description}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-lg md:text-xl text-gradient-gold font-serif italic text-center lg:text-left mt-10 leading-relaxed">
+                Because you deserve to feel emotionally safe, supported, and truly at home — wherever life takes you. ♡
+              </p>
+            </div>
+
+            {/* Photo */}
+            <div className="order-1 lg:order-2">
+              <div className="relative rounded-3xl overflow-hidden shadow-elevated max-w-md mx-auto lg:max-w-none">
+                <img
+                  src={whyJoinImage}
+                  alt="A woman enjoying a calm moment with a warm drink"
+                  className="w-full h-auto block"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Why Our Approach Works */}
