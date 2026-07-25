@@ -48,21 +48,38 @@ const Testimonials = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 max-w-5xl mx-auto [column-fill:_balance]">
           {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="relative bg-card border border-border rounded-2xl p-8 hover:shadow-elevated transition-all duration-300">
-              <Quote size={32} className="text-primary/20 mb-4" />
+            <div
+              key={testimonial.id}
+              className="relative break-inside-avoid mb-6 bg-card border border-border/70 rounded-2xl p-7 shadow-soft hover:shadow-elevated hover:-translate-y-1 transition-all duration-300"
+            >
+              <Quote size={36} className="text-primary/25 mb-3" fill="currentColor" />
+
               <div className="flex gap-1 mb-4">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
-                  <Star key={i} size={16} className="text-primary fill-primary" />
+                  <Star key={i} size={15} className="text-primary fill-primary" />
                 ))}
               </div>
-              <p className="text-foreground font-sans leading-relaxed mb-6">
+
+              <p className="text-foreground/90 font-sans leading-relaxed mb-6">
                 "{testimonial.content}"
               </p>
-              <div>
-                <div className="font-serif font-semibold text-foreground">{testimonial.name}</div>
-                <div className="text-sm font-sans text-muted-foreground">{testimonial.role}</div>
+
+              <div className="flex items-center gap-3 pt-5 border-t border-border/60">
+                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-gold text-primary-foreground font-serif font-semibold text-lg flex-shrink-0">
+                  {testimonial.name.trim().charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="font-serif font-semibold text-foreground leading-tight">
+                    {testimonial.name}
+                  </div>
+                  {testimonial.role && (
+                    <div className="text-sm font-sans text-muted-foreground">
+                      {testimonial.role}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}

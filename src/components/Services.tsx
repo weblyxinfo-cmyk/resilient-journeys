@@ -114,8 +114,7 @@ const Services = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background" />
-        <div className="absolute inset-0 bg-foreground/5" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/90 to-background" />
       </div>
 
       <div className="container relative z-10 px-4">
@@ -130,8 +129,8 @@ const Services = () => {
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <item.icon size={22} className="text-primary" />
                 </div>
-                <p className="text-foreground/85 font-sans leading-relaxed pt-1">
-                  <span className="font-serif font-semibold text-foreground">
+                <p className="text-foreground font-sans leading-relaxed pt-1">
+                  <span className="font-sans font-bold text-foreground">
                     {item.title}
                   </span>{" "}
                   {item.description}
@@ -203,8 +202,8 @@ const Services = () => {
                 <div className="w-7 h-7 bg-gradient-gold rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 shadow-soft">
                   <Check size={16} className="text-primary-foreground" strokeWidth={3} />
                 </div>
-                <p className="text-foreground/85 font-sans leading-relaxed">
-                  <span className="font-serif font-semibold text-foreground">
+                <p className="text-foreground font-sans leading-relaxed">
+                  <span className="font-sans font-bold text-foreground">
                     {way.title}
                   </span>{" "}
                   – {way.description}
