@@ -19,6 +19,10 @@ import { enUS } from "date-fns/locale";
 // Session types configuration
 interface SessionTypeConfig {
   type: string;
+  /** Optional booking type sent to the backend (defaults to `type`).
+   *  Lets two cards share the same priced/booked session while keeping
+   *  distinct `type` values for UI selection. */
+  bookingType?: string;
   title: string;
   /** Optional badge/label shown above the card title */
   badge?: string;
@@ -161,7 +165,46 @@ const SESSION_TYPES: SessionTypeConfig[] = [
     email: "contact@resilientmind.io",
     validUntil: "2026-07-31",
   },
+  {
+    type: "eft_reiki_welcome",
+    bookingType: "individual_eft_reiki_offer",
+    image: "/booking/eft-welcome.jpg",
+    title: "EFT Tapping & Reiki Session",
+    badge: "❤️ Special Welcome Offer – In Person & Online",
+    highlight: true,
+    duration: 60,
+    price: 50,
+    description:
+      "Do you experience…\n\n• Stress, anxiety, or emotional overwhelm?\n• Difficulty switching off your mind?\n• Feeling disconnected from yourself?\n• Constantly putting everyone else first?\n\nTake a moment to pause, breathe, and reconnect.\n\nThis personalised 60-minute EFT Tapping & Reiki Session combines two gentle yet powerful techniques to help calm your nervous system, release emotional stress, and restore inner balance.",
+    featuresHeading: "Imagine leaving your session feeling…",
+    features: [
+      "More relaxed and at ease",
+      "More connected with yourself",
+      "Emotionally lighter",
+      "Calm, grounded, and balanced",
+      "Better equipped to navigate life's challenges",
+    ],
+    extraSections: [
+      {
+        heading: "Your session includes",
+        features: [
+          "A personalised 60-minute EFT & Reiki session",
+          "An Introduction to EFT Guide (PDF)",
+          "Guided EFT tapping videos to help you continue your practice at home",
+        ],
+      },
+    ],
+    note: "📍 In person: Dénia, Spain\n💻 Online: Available worldwide\n\n❤️ Special Welcome Offer valid until 31 July 2026.\n\nBook your session today and take the first step towards feeling calmer, lighter, and more connected with yourself.",
+    contactHeading: "Book your session",
+    phone: "+34 602 413 244",
+    email: "contact@resilientmind.io",
+    validUntil: "2026-07-31",
+  },
 ];
+
+/** Resolve the backend session type for a card's UI type (bookingType || type). */
+const resolveBookingType = (type: string | null) =>
+  SESSION_TYPES.find((s) => s.type === type)?.bookingType || type;
 
 type SessionType = string;
 
@@ -217,7 +260,7 @@ const Booking = () => {
     try {
       const monthStr = format(currentMonth, "yyyy-MM");
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-days?month=${monthStr}&type=${selectedType}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-days?month=${monthStr}&type=${resolveBookingType(selectedType)}`,
         {
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -246,7 +289,7 @@ const Booking = () => {
     setLoadingSlots(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-slots?date=${selectedDate}&type=${selectedType}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-slots?date=${selectedDate}&type=${resolveBookingType(selectedType)}`,
         {
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -303,7 +346,7 @@ const Booking = () => {
             "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
-            session_type: selectedType,
+            session_type: resolveBookingType(selectedType),
             client_name: formData.client_name,
             client_email: formData.client_email,
             start_time: startTime,
@@ -442,7 +485,7 @@ const Booking = () => {
                           key={session.type}
                           className={`relative cursor-pointer transition-all duration-200 hover:shadow-elevated ${
                             session.highlight
-                              ? "md:col-span-2 ring-2 ring-primary/50 bg-gradient-to-br from-primary/[0.07] to-transparent shadow-elevated"
+                              ? "ring-2 ring-primary/50 bg-gradient-to-br from-primary/[0.07] to-transparent shadow-elevated"
                               : ""
                           } ${
                             isSelected
