@@ -51,9 +51,7 @@ serve(async (req) => {
     }
 
     // Time-limited offers: reject bookings after the offer's end date
-    const SESSION_VALID_UNTIL: Record<string, string> = {
-      individual_eft_reiki_offer: "2026-07-31",
-    };
+    const SESSION_VALID_UNTIL: Record<string, string> = {};
     if (
       SESSION_VALID_UNTIL[session_type] &&
       new Date() > new Date(`${SESSION_VALID_UNTIL[session_type]}T23:59:59Z`)

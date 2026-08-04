@@ -159,11 +159,10 @@ const SESSION_TYPES: SessionTypeConfig[] = [
           "As your confidence grows, you'll learn how to listen to your own emotions and body, using EFT in a way that feels natural and supportive for you.",
       },
     ],
-    note: "📍 Available online or in person in Dénia, Spain\n\n❤️ Special Welcome Offer valid until 31 July 2026.",
+    note: "📍 Available online or in person in Dénia, Spain",
     contactHeading: "Book your session",
     phone: "+34 602 413 244",
     email: "contact@resilientmind.io",
-    validUntil: "2026-07-31",
   },
   {
     type: "eft_reiki_welcome",
@@ -194,11 +193,10 @@ const SESSION_TYPES: SessionTypeConfig[] = [
         ],
       },
     ],
-    note: "📍 In person: Dénia, Spain\n💻 Online: Available worldwide\n\n❤️ Special Welcome Offer valid until 31 July 2026.\n\nBook your session today and take the first step towards feeling calmer, lighter, and more connected with yourself.",
+    note: "📍 In person: Dénia, Spain\n💻 Online: Available worldwide\n\nBook your session today and take the first step towards feeling calmer, lighter, and more connected with yourself.",
     contactHeading: "Book your session",
     phone: "+34 602 413 244",
     email: "contact@resilientmind.io",
-    validUntil: "2026-07-31",
   },
 ];
 
