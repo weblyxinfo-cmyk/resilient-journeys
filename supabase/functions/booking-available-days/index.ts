@@ -8,10 +8,13 @@ const corsHeaders = {
 };
 
 // Session duration mapping (minutes)
+// Keep in sync with booking-create and booking-available-slots.
 const SESSION_DURATIONS: Record<string, number> = {
   discovery: 30,
   one_on_one: 60,
-  family: 90,
+  family: 60,
+  endometriosis_support: 60,
+  individual_eft_reiki_offer: 60,
   premium_consultation: 60,
 };
 
