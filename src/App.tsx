@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { CmsProvider } from "@/hooks/useCms";
 import { lazy, Suspense, useEffect, Component, ReactNode } from "react";
 import CookieBanner from "./components/CookieBanner";
 import { Loader2 } from "lucide-react";
@@ -89,52 +90,54 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/resilient-hub" element={<ResilientHub />} />
-                <Route path="/resilient-hubs" element={<ResilientHubs />} />
-                <Route path="/endometriosis-hub" element={<EndometriosisHub />} />
-                <Route path="/booking" element={<Booking />} />
-                <Route path="/booking/success" element={<BookingSuccess />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/workshopy" element={<Workshopy />} />
-                <Route path="/workshopy/:slug" element={<WorkshopPost />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/video/:videoId" element={<VideoPlayer />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/checkout/success" element={<CheckoutSuccess />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/membership" element={<Membership />} />
-                <Route path="/membership2" element={<Membership2 />} />
-                <Route path="/pricing/success" element={<PricingSuccess />} />
-                <Route path="/thank-you-membership" element={<PricingSuccess />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/free-guide" element={<FreeGuide />} />
-                <Route path="/thank-you" element={<FreeGuideThankYou />} />
-                <Route path="/cookies" element={<Cookies />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
-          <CookieBanner />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <CmsProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/resilient-hub" element={<ResilientHub />} />
+                  <Route path="/resilient-hubs" element={<ResilientHubs />} />
+                  <Route path="/endometriosis-hub" element={<EndometriosisHub />} />
+                  <Route path="/booking" element={<Booking />} />
+                  <Route path="/booking/success" element={<BookingSuccess />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/workshopy" element={<Workshopy />} />
+                  <Route path="/workshopy/:slug" element={<WorkshopPost />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/video/:videoId" element={<VideoPlayer />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/membership" element={<Membership />} />
+                  <Route path="/membership2" element={<Membership2 />} />
+                  <Route path="/pricing/success" element={<PricingSuccess />} />
+                  <Route path="/thank-you-membership" element={<PricingSuccess />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/free-guide" element={<FreeGuide />} />
+                  <Route path="/thank-you" element={<FreeGuideThankYou />} />
+                  <Route path="/cookies" element={<Cookies />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+            <CookieBanner />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </CmsProvider>
   </QueryClientProvider>
 );
 

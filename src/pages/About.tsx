@@ -6,8 +6,10 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
+import { useCms } from "@/hooks/useCms";
 
 const About = () => {
+  const { t } = useCms();
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoLoading, setVideoLoading] = useState(true);
 
@@ -92,16 +94,22 @@ const About = () => {
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                   <Heart size={16} className="text-primary" />
                   <span className="text-sm font-sans font-medium text-primary">
-                    About Me
+                    {t("about_intro_badge", "About Me")}
                   </span>
                 </div>
 
                 <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-6">
-                  Hi, I'm <span className="text-gradient-gold">Silvie</span>
+                  {t("about_intro_title", "Hi, I'm")}{" "}
+                  <span className="text-gradient-gold">
+                    {t("about_intro_title_highlight", "Silvie")}
+                  </span>
                 </h1>
 
                 <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-6">
-                  I help expatriates and globally mobile individuals build mental resilience, blending proven personal development techniques with insights from my own 13 years of living and thriving abroad.
+                  {t(
+                    "about_intro_text",
+                    "I help expatriates and globally mobile individuals build mental resilience, blending proven personal development techniques with insights from my own 13 years of living and thriving abroad."
+                  )}
                 </p>
 
                 {/* Video Section - configurable via Admin CMS (key: about_intro_video) */}

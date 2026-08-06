@@ -1,8 +1,11 @@
 import { ArrowRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
+import { useCms } from "@/hooks/useCms";
 
 const Hero = () => {
+  const { t } = useCms();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* Background Image */}
@@ -20,28 +23,37 @@ const Hero = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/20 backdrop-blur-sm rounded-full mb-8 animate-fade-in border border-gold/30">
             <span className="w-2 h-2 bg-gold rounded-full animate-pulse" />
             <span className="text-sm font-sans font-semibold text-gold-dark">
-              For Expats Ready to Thrive
+              {t("homepage_hero_badge", "For Expats Ready to Thrive")}
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold leading-tight mb-6 animate-slide-up" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
-            <span className="text-foreground">With</span>{" "}
-            <span className="text-gradient-gold" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 40px rgba(180,140,60,0.3)' }}>Resilient Mind</span>
+            <span className="text-foreground">{t("homepage_hero_title_prefix", "With")}</span>{" "}
+            <span className="text-gradient-gold" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 40px rgba(180,140,60,0.3)' }}>{t("homepage_hero_title_highlight", "Resilient Mind")}</span>
             <br />
-            <span className="text-foreground font-semibold">You Transform Uncertainty Into Your Greatest Strength</span>
+            <span className="text-foreground font-semibold">{t("homepage_hero_title", "You Transform Uncertainty Into Your Greatest Strength")}</span>
           </h1>
 
           {/* Subheading */}
           <div className="max-w-3xl mx-auto mb-10 space-y-4 animate-fade-in" style={{ animationDelay: "0.2s" }}>
             <p className="text-lg md:text-xl text-foreground/80 font-sans font-medium leading-relaxed drop-shadow-sm">
-              Living between worlds changes everything—your identity, relationships, and sense of belonging.
+              {t(
+                "homepage_hero_subtitle",
+                "Living between worlds changes everything—your identity, relationships, and sense of belonging."
+              )}
             </p>
             <p className="text-base md:text-lg text-foreground/75 font-sans leading-relaxed">
-              At Resilient Mind, we support expatriate women through the emotional and nervous-system challenges of living abroad. We help you gently transform cultural stress, loneliness, and constant change into emotional stability, self-trust, and a deep sense of inner safety.
+              {t(
+                "homepage_hero_description",
+                "At Resilient Mind, we support expatriate women through the emotional and nervous-system challenges of living abroad. We help you gently transform cultural stress, loneliness, and constant change into emotional stability, self-trust, and a deep sense of inner safety."
+              )}
             </p>
             <p className="text-base md:text-lg text-foreground/75 font-sans leading-relaxed">
-              Through our signature blend of evidence-based techniques, EFT, expressive creative practices, and integrative mind–body approaches, you develop an unshakable "inner home" — a steady inner foundation you can carry with you wherever life takes you.
+              {t(
+                "homepage_hero_description_2",
+                'Through our signature blend of evidence-based techniques, EFT, expressive creative practices, and integrative mind–body approaches, you develop an unshakable "inner home" — a steady inner foundation you can carry with you wherever life takes you.'
+              )}
             </p>
           </div>
 
