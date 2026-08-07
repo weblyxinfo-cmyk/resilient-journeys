@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, Settings, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare } from 'lucide-react';
+import { Shield, Video, Users, Star, Settings, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
+import AdminBookingCards from '@/components/admin/AdminBookingCards';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminTestimonials from '@/components/admin/AdminTestimonials';
 import AdminSettings from '@/components/admin/AdminSettings';
@@ -125,9 +126,13 @@ const Admin = () => {
                   <TabsTrigger value="availability" className="text-xs data-[state=active]:bg-white">
                     <Clock className="h-3.5 w-3.5 mr-1.5" /> Availability
                   </TabsTrigger>
+                  <TabsTrigger value="session-cards" className="text-xs data-[state=active]:bg-white">
+                    <Pencil className="h-3.5 w-3.5 mr-1.5" /> Session Cards
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="reservations"><AdminBookings /></TabsContent>
                 <TabsContent value="availability"><AdminAvailability /></TabsContent>
+                <TabsContent value="session-cards"><AdminBookingCards /></TabsContent>
               </Tabs>
             </TabsContent>
 
