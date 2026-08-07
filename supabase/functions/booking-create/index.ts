@@ -8,7 +8,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Session duration mapping (minutes)
+// Fallback only. booking_cards is the source of truth for price and duration —
+// see loadSessionConfig. These values stand in if the lookup fails, and cover
+// premium_consultation, which is booked from the dashboard rather than a card.
 const SESSION_DURATIONS: Record<string, number> = {
   discovery: 30,
   one_on_one: 60,
@@ -18,7 +20,6 @@ const SESSION_DURATIONS: Record<string, number> = {
   premium_consultation: 60,
 };
 
-// Session prices (in cents)
 const SESSION_PRICES: Record<string, number> = {
   discovery: 0,
   one_on_one: 10700, // €107
@@ -27,6 +28,67 @@ const SESSION_PRICES: Record<string, number> = {
   individual_eft_reiki_offer: 5000, // €50 special offer
   premium_consultation: 8700, // €87
 };
+
+interface SessionConfig {
+  durationMinutes: number;
+  priceCents: number;
+  validUntil: string | null;
+  title: string | null;
+}
+
+/**
+ * Price and duration for a session type, read from the card the admin edits.
+ *
+ * The client sends the backend session type, which may be shared by more than
+ * one card (two cards currently sell the same €50 EFT session), so match on
+ * booking_type first and fall back to card_key for cards that do not remap.
+ * Lowest sort_order wins if several cards share a type.
+ */
+// deno-lint-ignore no-explicit-any
+async function loadSessionConfig(
+  supabaseClient: any,
+  sessionType: string,
+): Promise<SessionConfig> {
+  const fallback: SessionConfig = {
+    durationMinutes: SESSION_DURATIONS[sessionType],
+    priceCents: SESSION_PRICES[sessionType],
+    validUntil: null,
+    title: null,
+  };
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("booking_cards")
+      .select("duration_minutes, price_eur, valid_until, title, booking_type, card_key")
+      .eq("is_active", true)
+      .or(`booking_type.eq.${sessionType},card_key.eq.${sessionType}`)
+      .order("sort_order")
+      .limit(1);
+
+    if (error) throw error;
+
+    const card = data?.[0];
+    // A type with no card (premium_consultation) keeps the hardcoded values.
+    if (!card) return fallback;
+
+    // Never let a bad row produce a free or negative charge.
+    const priceCents = Math.round(Number(card.price_eur) * 100);
+    if (!Number.isFinite(priceCents) || priceCents < 0) {
+      console.error("Invalid price on booking card, using fallback:", card.price_eur);
+      return fallback;
+    }
+
+    return {
+      durationMinutes: Number(card.duration_minutes) || fallback.durationMinutes,
+      priceCents,
+      validUntil: card.valid_until ?? null,
+      title: card.title ?? null,
+    };
+  } catch (err) {
+    console.error("booking_cards lookup failed, using fallback prices:", err);
+    return fallback;
+  }
+}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -46,19 +108,6 @@ serve(async (req) => {
       throw new Error("Missing required fields: session_type, client_name, client_email, start_time");
     }
 
-    if (!SESSION_DURATIONS[session_type]) {
-      throw new Error(`Invalid session type: ${session_type}`);
-    }
-
-    // Time-limited offers: reject bookings after the offer's end date
-    const SESSION_VALID_UNTIL: Record<string, string> = {};
-    if (
-      SESSION_VALID_UNTIL[session_type] &&
-      new Date() > new Date(`${SESSION_VALID_UNTIL[session_type]}T23:59:59Z`)
-    ) {
-      throw new Error("This special offer has expired.");
-    }
-
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(client_email)) {
@@ -69,18 +118,6 @@ serve(async (req) => {
     const startDate = new Date(start_time);
     if (isNaN(startDate.getTime())) {
       throw new Error("Invalid start_time format");
-    }
-
-    // Calculate end time
-    const duration = SESSION_DURATIONS[session_type];
-    const endDate = new Date(startDate);
-    endDate.setMinutes(endDate.getMinutes() + duration);
-
-    // Check 24h minimum notice
-    const minBookingDate = new Date();
-    minBookingDate.setHours(minBookingDate.getHours() + 24);
-    if (startDate < minBookingDate) {
-      throw new Error("Bookings must be made at least 24 hours in advance");
     }
 
     // Initialize Supabase client with service role
@@ -100,6 +137,34 @@ serve(async (req) => {
         persistSession: false
       }
     });
+
+    // Price and duration come from the card the admin edits, never from the
+    // request, so an edited price takes effect for Stripe on the next booking.
+    const sessionConfig = await loadSessionConfig(supabaseClient, session_type);
+
+    if (!sessionConfig.durationMinutes) {
+      throw new Error(`Invalid session type: ${session_type}`);
+    }
+
+    // Time-limited offers: reject bookings after the offer's end date
+    if (
+      sessionConfig.validUntil &&
+      new Date() > new Date(`${sessionConfig.validUntil}T23:59:59Z`)
+    ) {
+      throw new Error("This special offer has expired.");
+    }
+
+    // Calculate end time
+    const duration = sessionConfig.durationMinutes;
+    const endDate = new Date(startDate);
+    endDate.setMinutes(endDate.getMinutes() + duration);
+
+    // Check 24h minimum notice
+    const minBookingDate = new Date();
+    minBookingDate.setHours(minBookingDate.getHours() + 24);
+    if (startDate < minBookingDate) {
+      throw new Error("Bookings must be made at least 24 hours in advance");
+    }
 
     // Check if slot is still available (race condition protection)
     const dateStr = startDate.toISOString().split("T")[0];
@@ -167,7 +232,7 @@ serve(async (req) => {
     }
 
     // Get price
-    const priceInCents = SESSION_PRICES[session_type];
+    const priceInCents = sessionConfig.priceCents;
 
     // Create booking record
     const bookingData: any = {
@@ -235,7 +300,7 @@ serve(async (req) => {
           price_data: {
             currency: "eur",
             product_data: {
-              name: sessionNames[session_type] || session_type,
+              name: sessionConfig.title || sessionNames[session_type] || session_type,
               description: `${duration} minutes session with Silvie Bogdánová`,
             },
             unit_amount: priceInCents,

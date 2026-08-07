@@ -186,6 +186,87 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_cards: {
+        Row: {
+          badge: string | null
+          booking_type: string | null
+          card_key: string
+          contact_heading: string | null
+          created_at: string
+          description: string
+          duration_label: string | null
+          duration_minutes: number
+          email: string | null
+          extra_sections: Json
+          features: Json
+          features_heading: string | null
+          highlight: boolean
+          id: string
+          image: string | null
+          is_active: boolean
+          note: string | null
+          phone: string | null
+          price_eur: number
+          price_note: string | null
+          sort_order: number
+          title: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          badge?: string | null
+          booking_type?: string | null
+          card_key: string
+          contact_heading?: string | null
+          created_at?: string
+          description?: string
+          duration_label?: string | null
+          duration_minutes?: number
+          email?: string | null
+          extra_sections?: Json
+          features?: Json
+          features_heading?: string | null
+          highlight?: boolean
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          note?: string | null
+          phone?: string | null
+          price_eur?: number
+          price_note?: string | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          badge?: string | null
+          booking_type?: string | null
+          card_key?: string
+          contact_heading?: string | null
+          created_at?: string
+          description?: string
+          duration_label?: string | null
+          duration_minutes?: number
+          email?: string | null
+          extra_sections?: Json
+          features?: Json
+          features_heading?: string | null
+          highlight?: boolean
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          note?: string | null
+          phone?: string | null
+          price_eur?: number
+          price_note?: string | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       cms_content: {
         Row: {
           created_at: string
@@ -973,6 +1054,7 @@ export type Database = {
         | "family"
         | "premium_consultation"
         | "endometriosis_support"
+        | "individual_eft_reiki_offer"
       video_type: "eft" | "art_therapy" | "meditation" | "other"
     }
     CompositeTypes: {
@@ -1145,6 +1227,7 @@ export const Constants = {
         "family",
         "premium_consultation",
         "endometriosis_support",
+        "individual_eft_reiki_offer",
       ],
       video_type: ["eft", "art_therapy", "meditation", "other"],
     },

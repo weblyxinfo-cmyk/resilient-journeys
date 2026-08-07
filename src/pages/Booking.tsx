@@ -9,55 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useBookingCards, type SessionTypeConfig } from "@/hooks/useBookingCards";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addMonths, startOfMonth } from "date-fns";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 import { enUS } from "date-fns/locale";
-
-// Session types configuration
-interface SessionTypeConfig {
-  type: string;
-  /** Optional booking type sent to the backend (defaults to `type`).
-   *  Lets two cards share the same priced/booked session while keeping
-   *  distinct `type` values for UI selection. */
-  bookingType?: string;
-  title: string;
-  /** Optional badge/label shown above the card title */
-  badge?: string;
-  duration: number;
-  /** Optional custom duration label (overrides "{duration} min") */
-  durationLabel?: string;
-  price: number;
-  /** Optional small note shown under the price (e.g. "€79 per session") */
-  priceNote?: string;
-  description: string;
-  features: string[];
-  /** Optional paragraph shown after the feature list */
-  note?: string;
-  /** Optional ISO date (YYYY-MM-DD); the card hides after this day */
-  validUntil?: string;
-  /** Optional card image URL */
-  image?: string;
-  /** Optional contact phone (renders clickable Call + WhatsApp links) */
-  phone?: string;
-  /** Optional heading shown above the main feature list */
-  featuresHeading?: string;
-  /** Optional extra sections (each with heading, intro text, own bullets, outro) */
-  extraSections?: {
-    heading?: string;
-    intro?: string;
-    features?: string[];
-    outro?: string;
-  }[];
-  /** Optional contact CTA email (renders clickable mailto link) */
-  email?: string;
-  /** Optional heading for the contact CTA block (e.g. "Book your session") */
-  contactHeading?: string;
-  /** When true the card is visually emphasised and spans the full width */
-  highlight?: boolean;
-}
 
 const SESSION_TYPES: SessionTypeConfig[] = [
   {
@@ -200,22 +158,16 @@ const SESSION_TYPES: SessionTypeConfig[] = [
   },
 ];
 
-/** Resolve the backend session type for a card's UI type (bookingType || type). */
-const resolveBookingType = (type: string | null) =>
-  SESSION_TYPES.find((s) => s.type === type)?.bookingType || type;
-
 type SessionType = string;
-
-// Session types currently bookable (hides time-limited offers past their date)
-const getVisibleSessionTypes = () => {
-  const now = new Date();
-  return SESSION_TYPES.filter(
-    (s) => !s.validUntil || new Date(`${s.validUntil}T23:59:59`) >= now
-  );
-};
 
 const Booking = () => {
   const { user, profile } = useAuth();
+  const { visibleCards, allCards } = useBookingCards(SESSION_TYPES);
+
+  /** Resolve the backend session type for a card's UI type (bookingType || type). */
+  const resolveBookingType = (type: string | null) =>
+    allCards.find((s) => s.type === type)?.bookingType || type;
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -385,7 +337,7 @@ const Booking = () => {
     }
   };
 
-  const selectedSessionType = SESSION_TYPES.find((s) => s.type === selectedType);
+  const selectedSessionType = allCards.find((s) => s.type === selectedType);
   const currentYear = currentMonth.getFullYear();
   const currentMonthNum = currentMonth.getMonth();
 
@@ -476,7 +428,7 @@ const Booking = () => {
                   </h2>
 
                   <div className="grid md:grid-cols-2 gap-5">
-                    {getVisibleSessionTypes().map((session) => {
+                    {visibleCards.map((session) => {
                       const isSelected = selectedType === session.type;
                       return (
                         <Card

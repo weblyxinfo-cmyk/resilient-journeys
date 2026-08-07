@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 // Session duration mapping (minutes)
-// Keep in sync with booking-create and booking-available-days.
+// Fallback only; booking_cards is the source of truth (see loadDuration).
 const SESSION_DURATIONS: Record<string, number> = {
   discovery: 30,
   one_on_one: 60,
@@ -58,6 +58,30 @@ function getAvailabilityForDate(
   );
 }
 
+/**
+ * Session length from the card the admin edits, falling back to the map above.
+ * Kept in sync with booking-create's loadSessionConfig.
+ */
+// deno-lint-ignore no-explicit-any
+async function loadDuration(supabaseClient: any, sessionType: string): Promise<number> {
+  try {
+    const { data, error } = await supabaseClient
+      .from("booking_cards")
+      .select("duration_minutes")
+      .eq("is_active", true)
+      .or(`booking_type.eq.${sessionType},card_key.eq.${sessionType}`)
+      .order("sort_order")
+      .limit(1);
+
+    if (error) throw error;
+    const minutes = Number(data?.[0]?.duration_minutes);
+    if (Number.isFinite(minutes) && minutes > 0) return minutes;
+  } catch (err) {
+    console.error("booking_cards lookup failed, using fallback duration:", err);
+  }
+  return SESSION_DURATIONS[sessionType];
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -72,10 +96,6 @@ serve(async (req) => {
     // Validation
     if (!date || !sessionType) {
       throw new Error("Missing required parameters: date and type");
-    }
-
-    if (!SESSION_DURATIONS[sessionType]) {
-      throw new Error(`Invalid session type: ${sessionType}`);
     }
 
     // Parse date
@@ -102,13 +122,17 @@ serve(async (req) => {
     }
 
     const dayOfWeek = requestedDate.getUTCDay();
-    const sessionDuration = SESSION_DURATIONS[sessionType];
 
     // Initialize Supabase client with service role
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    const sessionDuration = await loadDuration(supabaseClient, sessionType);
+    if (!sessionDuration) {
+      throw new Error(`Invalid session type: ${sessionType}`);
+    }
 
     // Check if date is blocked
     const { data: blockedDate, error: blockedError } = await supabaseClient
