@@ -1,34 +1,14 @@
-import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, Heart, MapPin, Palette, Award, BookOpen, Users, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 import { useCms } from "@/hooks/useCms";
 
 const About = () => {
   const { t } = useCms();
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [videoLoading, setVideoLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchVideo = async () => {
-      try {
-        const { data } = await supabase
-          .from('cms_content')
-          .select('value')
-          .eq('key', 'about_intro_video')
-          .maybeSingle();
-        if (data?.value) setVideoUrl(data.value);
-      } catch (err) {
-        console.error('Failed to fetch intro video:', err);
-      }
-      setVideoLoading(false);
-    };
-    fetchVideo();
-  }, []);
+  const videoUrl = t('about_intro_video', '');
 
   const getEmbedUrl = (url: string) => {
     // YouTube
@@ -113,9 +93,7 @@ const About = () => {
                 </p>
 
                 {/* Video Section - configurable via Admin CMS (key: about_intro_video) */}
-                {videoLoading ? (
-                  <div className="bg-muted rounded-xl mb-6 aspect-video animate-pulse" />
-                ) : videoUrl ? (
+                {videoUrl ? (
                   <div className="rounded-xl overflow-hidden mb-6 aspect-video">
                     <iframe
                       src={getEmbedUrl(videoUrl)}

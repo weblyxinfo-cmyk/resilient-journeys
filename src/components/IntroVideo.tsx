@@ -1,21 +1,9 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Play } from "lucide-react";
+import { useCms } from "@/hooks/useCms";
 
 const IntroVideo = () => {
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchVideo = async () => {
-      const { data } = await supabase
-        .from("cms_content")
-        .select("value")
-        .eq("key", "homepage_intro_video")
-        .maybeSingle();
-      if (data?.value) setVideoUrl(data.value);
-    };
-    fetchVideo();
-  }, []);
+  const { t } = useCms();
+  const videoUrl = t("homepage_intro_video", "");
 
   if (!videoUrl) return null;
 
@@ -39,11 +27,11 @@ const IntroVideo = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
               <Play size={14} className="text-primary" />
               <span className="text-sm font-sans font-medium text-primary">
-                Watch Introduction
+                {t("homepage_intro_video_badge", "Watch Introduction")}
               </span>
             </div>
             <h2 className="text-2xl md:text-3xl font-serif font-semibold">
-              See What Resilient Mind Is About
+              {t("homepage_intro_video_title", "See What Resilient Mind Is About")}
             </h2>
           </div>
 
