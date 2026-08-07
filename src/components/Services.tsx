@@ -2,112 +2,160 @@ import { BookOpen, Users, Calendar, Sparkles, Target, Palette, Heart, Check, Glo
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 import whyJoinImage from "@/assets/why-join.jpg";
-
-const services = [
-  {
-    icon: BookOpen,
-    title: "Resilient Hubs",
-    subtitle: "Membership Programs",
-    description:
-      "4 transformational programs combining evidence-based techniques, expressive arts, and energy work for lasting resilience.",
-    price: "from €27",
-    href: "/membership",
-    featured: true,
-  },
-  {
-    icon: Users,
-    title: "Individual Consultations",
-    subtitle: "1:1 Personalized Guidance",
-    description:
-      "Personalized one-on-one guidance tailored to your unique experience. Book your session through our calendar.",
-    price: "€107/hour",
-    href: "/booking",
-    featured: false,
-  },
-  {
-    icon: Calendar,
-    title: "Workshops",
-    subtitle: "For Groups & Organizations",
-    description:
-      "Interactive workshops for organizations and groups. Innovative approaches to building resilience abroad.",
-    price: "Contact for details",
-    href: "/workshopy",
-    featured: false,
-  },
-];
-
-const approaches = [
-  {
-    icon: Target,
-    title: "Expatriate-Specific Techniques",
-    description: "Strategies developed specifically for the unique challenges of living abroad",
-  },
-  {
-    icon: Palette,
-    title: "Creative Expression",
-    description: "Process complex emotions through art and expressive techniques when words aren't enough",
-  },
-  {
-    icon: Heart,
-    title: "Holistic Integration",
-    description: "Combining mind, body, and energy work for complete resilience",
-  },
-];
-
-const whoItsFor = [
-  "Expat women navigating new cultures while staying connected to who they truly are",
-  "Women living abroad who feel emotionally stretched or unsupported, seeking grounded tools they can rely on anywhere",
-  "Globally mobile women facing constant change and wanting deeper inner stability, confidence, and clarity",
-];
-
-const whyJoin = [
-  {
-    icon: Heart,
-    title: "Learn to regulate your nervous system",
-    description: "and create a greater sense of calm and emotional safety.",
-  },
-  {
-    icon: Globe,
-    title: "Develop practical tools",
-    description: "to navigate life's challenges with more confidence, clarity, and resilience.",
-  },
-  {
-    icon: Briefcase,
-    title: "Discover EFT, expressive art, meditation,",
-    description: "and other holistic practices you can use in everyday life.",
-  },
-  {
-    icon: Users,
-    title: "Join a supportive community",
-    description: "of like-minded expat women from around the world.",
-  },
-  {
-    icon: Sprout,
-    title: "Follow a step-by-step journey",
-    description:
-      "that helps you build lasting emotional resilience, deepen your self-awareness, and reconnect with who you truly are.",
-  },
-];
-
-const waysToWork = [
-  {
-    title: "Resilient Hub Membership",
-    description:
-      "Ongoing guidance, practical tools, and self-paced learning to build emotional resilience.",
-  },
-  {
-    title: "Individual Consultations",
-    description:
-      "Personalised one-to-one holistic counselling tailored to your unique needs and goals.",
-  },
-  {
-    title: "Workshops & Group Sessions",
-    description:
-      "Interactive wellbeing experiences featuring Expressive Art, Silk Painting, EFT Tapping, and mindfulness for communities and organisations.",
-  },
-];
+import { useCms } from "@/hooks/useCms";
 
 const Services = () => {
+  const { t } = useCms();
+
+  // Icons and links stay in code; every string is editable in the admin.
+  const services = [
+    {
+      icon: BookOpen,
+      title: t("homepage_services_1_title", "Resilient Hubs"),
+      subtitle: t("homepage_services_1_subtitle", "Membership Programs"),
+      description: t(
+        "homepage_services_1_description",
+        "4 transformational programs combining evidence-based techniques, expressive arts, and energy work for lasting resilience."
+      ),
+      price: t("homepage_services_1_price", "from €37"),
+      href: "/membership",
+      featured: true,
+    },
+    {
+      icon: Users,
+      title: t("homepage_services_2_title", "Individual Consultations"),
+      subtitle: t("homepage_services_2_subtitle", "1:1 Personalized Guidance"),
+      description: t(
+        "homepage_services_2_description",
+        "Personalized one-on-one guidance tailored to your unique experience. Book your session through our calendar."
+      ),
+      price: t("homepage_services_2_price", "€107/hour"),
+      href: "/booking",
+      featured: false,
+    },
+    {
+      icon: Calendar,
+      title: t("homepage_services_3_title", "Workshops"),
+      subtitle: t("homepage_services_3_subtitle", "For Groups & Organizations"),
+      description: t(
+        "homepage_services_3_description",
+        "Interactive workshops for organizations and groups. Innovative approaches to building resilience abroad."
+      ),
+      price: t("homepage_services_3_price", "Contact for details"),
+      href: "/workshopy",
+      featured: false,
+    },
+  ];
+
+  const approaches = [
+    {
+      icon: Target,
+      title: t("homepage_approach_1_title", "Expatriate-Specific Techniques"),
+      description: t(
+        "homepage_approach_1_description",
+        "Strategies developed specifically for the unique challenges of living abroad"
+      ),
+    },
+    {
+      icon: Palette,
+      title: t("homepage_approach_2_title", "Creative Expression"),
+      description: t(
+        "homepage_approach_2_description",
+        "Process complex emotions through art and expressive techniques when words aren't enough"
+      ),
+    },
+    {
+      icon: Heart,
+      title: t("homepage_approach_3_title", "Holistic Integration"),
+      description: t(
+        "homepage_approach_3_description",
+        "Combining mind, body, and energy work for complete resilience"
+      ),
+    },
+  ];
+
+  const whoItsFor = [
+    t(
+      "homepage_who_1",
+      "Expat women navigating new cultures while staying connected to who they truly are"
+    ),
+    t(
+      "homepage_who_2",
+      "Women living abroad who feel emotionally stretched or unsupported, seeking grounded tools they can rely on anywhere"
+    ),
+    t(
+      "homepage_who_3",
+      "Globally mobile women facing constant change and wanting deeper inner stability, confidence, and clarity"
+    ),
+  ];
+
+  const whyJoin = [
+    {
+      icon: Heart,
+      title: t("homepage_whyjoin_1_title", "Learn to regulate your nervous system"),
+      description: t(
+        "homepage_whyjoin_1_description",
+        "and create a greater sense of calm and emotional safety."
+      ),
+    },
+    {
+      icon: Globe,
+      title: t("homepage_whyjoin_2_title", "Develop practical tools"),
+      description: t(
+        "homepage_whyjoin_2_description",
+        "to navigate life's challenges with more confidence, clarity, and resilience."
+      ),
+    },
+    {
+      icon: Briefcase,
+      title: t("homepage_whyjoin_3_title", "Discover EFT, expressive art, meditation,"),
+      description: t(
+        "homepage_whyjoin_3_description",
+        "and other holistic practices you can use in everyday life."
+      ),
+    },
+    {
+      icon: Users,
+      title: t("homepage_whyjoin_4_title", "Join a supportive community"),
+      description: t(
+        "homepage_whyjoin_4_description",
+        "of like-minded expat women from around the world."
+      ),
+    },
+    {
+      icon: Sprout,
+      title: t("homepage_whyjoin_5_title", "Follow a step-by-step journey"),
+      description: t(
+        "homepage_whyjoin_5_description",
+        "that helps you build lasting emotional resilience, deepen your self-awareness, and reconnect with who you truly are."
+      ),
+    },
+  ];
+
+  const waysToWork = [
+    {
+      title: t("homepage_ways_1_title", "Resilient Hub Membership"),
+      description: t(
+        "homepage_ways_1_description",
+        "Ongoing guidance, practical tools, and self-paced learning to build emotional resilience."
+      ),
+    },
+    {
+      title: t("homepage_ways_2_title", "Individual Consultations"),
+      description: t(
+        "homepage_ways_2_description",
+        "Personalised one-to-one holistic counselling tailored to your unique needs and goals."
+      ),
+    },
+    {
+      title: t("homepage_ways_3_title", "Workshops & Group Sessions"),
+      description: t(
+        "homepage_ways_3_description",
+        "Interactive wellbeing experiences featuring Expressive Art, Silk Painting, EFT Tapping, and mindfulness for communities and organisations."
+      ),
+    },
+  ];
+
   return (
     <section className="relative py-24 overflow-hidden">
       {/* Background Image */}

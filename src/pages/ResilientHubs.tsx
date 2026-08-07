@@ -54,7 +54,7 @@ const ResilientHubs = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="12-Month Membership Program to Inner Strength | Resilient Mind"
-        description="Join a 12-month guided membership program with video lessons, workbooks and community support designed for expatriates seeking inner strength. From €27 — pay as you go."
+        description="Join a 12-month guided membership program with video lessons, workbooks and community support designed for expatriates seeking inner strength. From €37 — pay as you go."
         path="/resilient-hubs"
       />
       <Navbar />
