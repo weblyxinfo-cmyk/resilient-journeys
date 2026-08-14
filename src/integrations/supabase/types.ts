@@ -117,6 +117,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           min_membership: Database["public"]["Enums"]["membership_type"]
+          payment_beneficiary_name: string | null
           payment_iban: string | null
           payment_message: string | null
           published_at: string | null
@@ -144,6 +145,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           min_membership?: Database["public"]["Enums"]["membership_type"]
+          payment_beneficiary_name?: string | null
           payment_iban?: string | null
           payment_message?: string | null
           published_at?: string | null
@@ -171,6 +173,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           min_membership?: Database["public"]["Enums"]["membership_type"]
+          payment_beneficiary_name?: string | null
           payment_iban?: string | null
           payment_message?: string | null
           published_at?: string | null

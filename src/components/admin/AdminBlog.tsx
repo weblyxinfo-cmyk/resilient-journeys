@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Upload, ImageIcon, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { shouldUseEpc } from '@/lib/paymentQr';
 
 interface BlogPost {
   id: string;
@@ -37,6 +38,7 @@ interface BlogPost {
   workshop_currency: string;
   payment_iban: string | null;
   payment_message: string | null;
+  payment_beneficiary_name: string | null;
 }
 
 const membershipLabels = {
@@ -73,7 +75,8 @@ const AdminBlog = () => {
     workshop_price: 0,
     workshop_currency: 'EUR',
     payment_iban: '',
-    payment_message: ''
+    payment_message: '',
+    payment_beneficiary_name: ''
   });
 
   useEffect(() => {
@@ -113,7 +116,8 @@ const AdminBlog = () => {
       workshop_price: 0,
       workshop_currency: 'EUR',
       payment_iban: '',
-      payment_message: ''
+      payment_message: '',
+      payment_beneficiary_name: ''
     });
     setEditingPost(null);
   };
@@ -235,7 +239,8 @@ const AdminBlog = () => {
       workshop_price: post.workshop_price || 0,
       workshop_currency: post.workshop_currency || 'CZK',
       payment_iban: post.payment_iban || '',
-      payment_message: post.payment_message || ''
+      payment_message: post.payment_message || '',
+      payment_beneficiary_name: post.payment_beneficiary_name || ''
     });
     setDialogOpen(true);
   };
@@ -279,6 +284,7 @@ const AdminBlog = () => {
       workshop_currency: formData.category === 'workshop' ? formData.workshop_currency : 'CZK',
       payment_iban: formData.category === 'workshop' && formData.payment_iban ? formData.payment_iban : null,
       payment_message: formData.category === 'workshop' && formData.payment_message ? formData.payment_message : null,
+      payment_beneficiary_name: formData.category === 'workshop' && formData.payment_beneficiary_name ? formData.payment_beneficiary_name : null,
     };
 
     if (editingPost) {
@@ -612,6 +618,21 @@ const AdminBlog = () => {
                             />
                             <p className="text-xs text-muted-foreground">Message shown in bank transfer</p>
                           </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="payment_beneficiary_name">Jméno majitele účtu (povinné pro QR platbu ze zahraničí)</Label>
+                            <Input
+                              id="payment_beneficiary_name"
+                              value={formData.payment_beneficiary_name}
+                              onChange={(e) => setFormData({ ...formData, payment_beneficiary_name: e.target.value })}
+                              placeholder="e.g. Jane Doe"
+                            />
+                            {!formData.payment_beneficiary_name && (
+                              <p className="text-xs text-destructive">
+                                Bez jména se QR platba nezobrazí — návštěvníkům se místo ní ukážou platební údaje textem.
+                              </p>
+                            )}
+                          </div>
                         </>
                       )}
                     </CardContent>
@@ -714,9 +735,14 @@ const AdminBlog = () => {
                         {activeCategory === 'workshop' && (
                           <TableCell>
                             {post.is_paid_workshop ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                €{post.workshop_price}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-green-100 text-green-800">
+                                  €{post.workshop_price}
+                                </Badge>
+                                {post.payment_iban && shouldUseEpc(post.payment_iban, post.workshop_currency) && !post.payment_beneficiary_name && (
+                                  <Badge variant="destructive">Missing beneficiary name</Badge>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-muted-foreground text-sm">Free inquiry</span>
                             )}

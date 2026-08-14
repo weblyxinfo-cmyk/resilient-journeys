@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { CheckCircle, CreditCard, Mail, User, Phone, Sparkles } from 'lucide-react';
 import { useCms } from '@/hooks/useCms';
+import { generateSpayd, generateEpcQr, shouldUseEpc } from '@/lib/paymentQr';
 
 interface WorkshopRegistrationProps {
   workshopId: string;
@@ -12,26 +13,7 @@ interface WorkshopRegistrationProps {
   currency: string;
   iban: string | null;
   paymentMessage: string | null;
-}
-
-function generateSpayd({
-  iban,
-  amount,
-  currency,
-  message,
-}: {
-  iban: string;
-  amount: number;
-  currency: string;
-  message?: string;
-}) {
-  // SPAYD (Short Payment Descriptor) format for Czech QR payments
-  const cleanIban = iban.replace(/\s/g, '');
-  let spayd = `SPD*1.0*ACC:${cleanIban}*AM:${amount.toFixed(2)}*CC:${currency}`;
-  if (message) {
-    spayd += `*MSG:${message.substring(0, 60)}`;
-  }
-  return spayd;
+  beneficiaryName: string | null;
 }
 
 function formatPrice(price: number) {
@@ -45,6 +27,7 @@ const WorkshopRegistration = ({
   currency,
   iban,
   paymentMessage,
+  beneficiaryName,
 }: WorkshopRegistrationProps) => {
   const { t } = useCms();
   const [submitting, setSubmitting] = useState(false);
@@ -56,14 +39,26 @@ const WorkshopRegistration = ({
     note: '',
   });
 
-  const spaydString = iban
-    ? generateSpayd({
+  const useEpc = iban ? shouldUseEpc(iban, currency) : false;
+  const missingBeneficiaryName = useEpc && !beneficiaryName?.trim();
+
+  const qrString = !iban
+    ? null
+    : useEpc
+    ? beneficiaryName?.trim()
+      ? generateEpcQr({
+          iban,
+          beneficiaryName,
+          amount: price,
+          message: paymentMessage || workshopTitle,
+        })
+      : null
+    : generateSpayd({
         iban,
         amount: price,
         currency,
         message: paymentMessage || workshopTitle,
-      })
-    : null;
+      });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,17 +109,33 @@ const WorkshopRegistration = ({
             {t("workshopform_reg_success_text_pre", "Thank you for registering for")} <strong>{workshopTitle}</strong>{t("workshopform_reg_success_text_post", ". I'll send you a confirmation email with all the details shortly.")}
           </p>
 
-          {spaydString && (
+          {qrString && (
             <div className="bg-card rounded-2xl p-6 shadow-elevated max-w-sm mx-auto">
               <p className="font-sans text-sm font-medium mb-4">
                 {t("workshopform_reg_qr_pay_label", "Scan to pay")} <strong>{formatPrice(price)}</strong>
               </p>
               <div className="bg-white p-4 rounded-xl inline-block">
-                <QRCodeSVG value={spaydString} size={180} />
+                <QRCodeSVG value={qrString} size={180} level="M" />
               </div>
               <p className="text-xs text-muted-foreground font-sans mt-3">
                 {t("workshopform_reg_qr_caption", "QR payment code for your bank app")}
               </p>
+            </div>
+          )}
+
+          {missingBeneficiaryName && (
+            <div className="bg-card rounded-2xl p-6 shadow-elevated max-w-sm mx-auto text-left">
+              <p className="font-sans text-sm font-medium mb-3">
+                {t("workshopform_reg_qr_missing_name_title", "QR payment code isn't ready yet")}
+              </p>
+              <p className="text-xs text-muted-foreground font-sans mb-4">
+                {t("workshopform_reg_qr_missing_name_text", "Please transfer the payment manually using the details below:")}
+              </p>
+              <div className="font-sans text-sm space-y-1">
+                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_iban_label", "IBAN")}: </span>{iban}</p>
+                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_amount_label", "Amount")}: </span>{formatPrice(price)}</p>
+                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_message_label", "Payment reference")}: </span>{paymentMessage || workshopTitle}</p>
+              </div>
             </div>
           )}
         </div>
@@ -168,17 +179,33 @@ const WorkshopRegistration = ({
           </div>
 
           {/* QR Code */}
-          {spaydString && (
+          {qrString && (
             <div className="bg-card rounded-2xl p-6 border border-border text-center">
               <p className="font-sans text-sm font-medium mb-4">
                 {t("workshopform_reg_qr_title", "Pay via QR code in your bank app")}
               </p>
               <div className="bg-white p-4 rounded-xl inline-block shadow-soft">
-                <QRCodeSVG value={spaydString} size={160} />
+                <QRCodeSVG value={qrString} size={160} level="M" />
               </div>
               <p className="text-xs text-muted-foreground font-sans mt-3">
                 {t("workshopform_reg_qr_scan_caption", "Scan with your banking app to pay")}
               </p>
+            </div>
+          )}
+
+          {missingBeneficiaryName && (
+            <div className="bg-card rounded-2xl p-6 border border-border text-left">
+              <p className="font-sans text-sm font-medium mb-3">
+                {t("workshopform_reg_qr_missing_name_title", "QR payment code isn't ready yet")}
+              </p>
+              <p className="text-xs text-muted-foreground font-sans mb-4">
+                {t("workshopform_reg_qr_missing_name_text", "Please transfer the payment manually using the details below:")}
+              </p>
+              <div className="font-sans text-sm space-y-1">
+                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_iban_label", "IBAN")}: </span>{iban}</p>
+                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_amount_label", "Amount")}: </span>{formatPrice(price)}</p>
+                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_message_label", "Payment reference")}: </span>{paymentMessage || workshopTitle}</p>
+              </div>
             </div>
           )}
         </div>
