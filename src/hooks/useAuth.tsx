@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { isPreviewFrame } from '@/lib/previewMode';
 
 interface Profile {
   id: string;
@@ -35,14 +36,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// The CMS admin renders live section previews as same-origin iframes
-// (?cmsPreview=1). Every iframe boots the whole app, so without this check
-// each preview would spin up its own AuthProvider and fight over the
-// GoTrue session lock, producing bursts of AbortError.
-const isPreviewFrame = () =>
-  new URLSearchParams(window.location.search).has('cmsPreview') ||
-  (typeof window !== 'undefined' && window.self !== window.top);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
