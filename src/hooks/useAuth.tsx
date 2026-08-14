@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useRef, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -22,6 +22,12 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
+  // Role/profile check for the current user is a separate async step from
+  // session resolution — Admin.tsx must wait for it instead of treating
+  // "not yet known" as "not admin".
+  roleLoading: boolean;
+  roleError: boolean;
+  retryRoleCheck: () => void;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -30,12 +36,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// The CMS admin renders live section previews as same-origin iframes
+// (?cmsPreview=1). Every iframe boots the whole app, so without this check
+// each preview would spin up its own AuthProvider and fight over the
+// GoTrue session lock, producing bursts of AbortError.
+const isPreviewFrame = () =>
+  new URLSearchParams(window.location.search).has('cmsPreview') ||
+  (typeof window !== 'undefined' && window.self !== window.top);
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(true);
+  const [roleError, setRoleError] = useState(false);
 
   const fetchProfile = async (userId: string, retries = 3): Promise<Profile | null> => {
     for (let attempt = 0; attempt < retries; attempt++) {
@@ -67,127 +83,122 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    let initialSessionHandled = false;
-    let sessionProcessing = false;
+  // Lives for the whole component lifetime (not just one effect run) so
+  // retryRoleCheck() below can share it.
+  const isMountedRef = useRef(true);
 
-    // Safety timeout — only fires if no session event was received at all
-    const timeout = setTimeout(() => {
-      if (isMounted && !sessionProcessing && loading) {
-        console.warn('Auth: no session event received — proceeding without session');
-        setLoading(false);
-      }
-    }, 5000);
+  // Fetches profile + admin role for a signed-in user. Always deferred with
+  // setTimeout(0) so it never executes synchronously inside the
+  // onAuthStateChange callback — supabase.from()/rpc() called directly from
+  // that callback (in particular for INITIAL_SESSION) can deadlock on
+  // GoTrue's internal session lock, which is what caused "Verifying
+  // access..." to hang and then silently redirect away from /admin.
+  const checkRoleAndProfile = (userId: string) => {
+    setRoleLoading(true);
+    setRoleError(false);
 
-    // Full session handling — fetches profile + admin role
-    const handleSession = async (session: Session | null) => {
-      if (!isMounted) return;
-      sessionProcessing = true;
+    setTimeout(async () => {
+      if (!isMountedRef.current) return;
+      try {
+        const result = await Promise.race([
+          Promise.all([
+            fetchProfile(userId),
+            supabase.rpc('has_role', { _user_id: userId, _role: 'admin' }),
+          ]),
+          new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), 8000)),
+        ]);
 
-      setSession(session);
-      setUser(session?.user ?? null);
+        if (!isMountedRef.current) return;
 
-      if (session?.user) {
-        try {
-          // Race against a timeout — supabase.from() can deadlock when called
-          // from within the INITIAL_SESSION callback (awaits _initializePromise)
-          const result = await Promise.race([
-            Promise.all([
-              fetchProfile(session.user.id),
-              supabase.rpc('has_role', { _user_id: session.user.id, _role: 'admin' }),
-            ]),
-            new Promise<null>(resolve => setTimeout(() => resolve(null), 6000)),
-          ]);
-
-          if (isMounted) {
-            if (result) {
-              const [profileData, adminResult] = result;
-              setProfile(profileData);
-              if (adminResult.error) {
-                console.error('Admin role check failed:', adminResult.error);
-              } else {
-                setIsAdmin(!!adminResult.data);
-              }
-            } else {
-              console.warn('Auth: profile/admin fetch timed out — will retry');
-              // Schedule a retry outside the init callback
-              setTimeout(async () => {
-                if (!isMounted || !session.user) return;
-                try {
-                  const [profileData, adminResult] = await Promise.all([
-                    fetchProfile(session.user.id),
-                    supabase.rpc('has_role', { _user_id: session.user.id, _role: 'admin' }),
-                  ]);
-                  if (isMounted) {
-                    setProfile(profileData);
-                    setIsAdmin(!adminResult.error && !!adminResult.data);
-                  }
-                } catch {}
-              }, 100);
-            }
-          }
-        } catch (err) {
-          console.error('Auth session handling error:', err);
+        if (result === 'timeout') {
+          // A timeout means the role is still unknown, NOT that the user
+          // isn't an admin — callers must show a retry option, not redirect.
+          console.warn('Auth: profile/role fetch timed out');
+          setRoleLoading(false);
+          setRoleError(true);
+          return;
         }
+
+        const [profileData, adminResult] = result;
+        setProfile(profileData);
+        if (adminResult.error) {
+          console.error('Admin role check failed:', adminResult.error);
+          setRoleLoading(false);
+          setRoleError(true);
+        } else {
+          setIsAdmin(!!adminResult.data);
+          setRoleLoading(false);
+        }
+      } catch (err) {
+        if (!isMountedRef.current) return;
+        console.error('Auth role/profile check error:', err);
+        setRoleLoading(false);
+        setRoleError(true);
+      }
+    }, 0);
+  };
+
+  const retryRoleCheck = () => {
+    if (session?.user) {
+      checkRoleAndProfile(session.user.id);
+    }
+  };
+
+  useEffect(() => {
+    if (isPreviewFrame()) {
+      // CMS section previews load in same-origin iframes. Starting a full
+      // auth flow per iframe fights over the GoTrue session lock and floods
+      // the console with AbortErrors — so preview instances skip auth
+      // entirely and report "signed out" immediately.
+      setLoading(false);
+      setRoleLoading(false);
+      return;
+    }
+
+    isMountedRef.current = true;
+    let receivedEvent = false;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (!isMountedRef.current) return;
+      receivedEvent = true;
+
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+
+      if (event === 'TOKEN_REFRESHED') {
+        // Just a token refresh — keep existing profile/role state.
+        setLoading(false);
+        return;
+      }
+
+      if (newSession?.user) {
+        checkRoleAndProfile(newSession.user.id);
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setRoleError(false);
+        setRoleLoading(false);
       }
 
-      if (isMounted) setLoading(false);
-    };
+      setLoading(false);
+    });
 
-    // Light session update — only refreshes session/user, keeps profile + isAdmin
-    const handleTokenRefresh = (session: Session | null) => {
-      if (!isMounted) return;
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (!session) {
-        setProfile(null);
-        setIsAdmin(false);
+    // Defensive fallback only: onAuthStateChange is documented to always
+    // fire once with INITIAL_SESSION right after subscribing. If that ever
+    // doesn't happen, don't spin "Verifying access..." forever — surface it
+    // as a retryable error instead of guessing at the role.
+    const noEventTimeout = setTimeout(() => {
+      if (isMountedRef.current && !receivedEvent) {
+        console.warn('Auth: no session event received');
+        setLoading(false);
+        setRoleLoading(false);
+        setRoleError(true);
       }
-    };
-
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
-
-        // Skip INITIAL_SESSION if getSession already handled it
-        if (event === 'INITIAL_SESSION') {
-          if (initialSessionHandled) return;
-          initialSessionHandled = true;
-          await handleSession(session);
-          return;
-        }
-
-        // Token refresh — just update session, don't re-check admin/profile
-        if (event === 'TOKEN_REFRESHED') {
-          handleTokenRefresh(session);
-          return;
-        }
-
-        // SIGNED_IN, SIGNED_OUT, etc — full handling
-        await handleSession(session);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession()
-      .then(async ({ data: { session } }) => {
-        if (!isMounted) return;
-        initialSessionHandled = true;
-        await handleSession(session);
-      })
-      .catch((err) => {
-        console.error('Auth getSession failed:', err);
-        if (isMounted) setLoading(false);
-      });
+    }, 8000);
 
     return () => {
-      isMounted = false;
-      clearTimeout(timeout);
+      isMountedRef.current = false;
+      clearTimeout(noEventTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -229,6 +240,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setProfile(null);
     setIsAdmin(false);
+    setRoleLoading(false);
+    setRoleError(false);
   };
 
   return (
@@ -238,6 +251,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile,
       loading,
       isAdmin,
+      roleLoading,
+      roleError,
+      retryRoleCheck,
       signUp,
       signIn,
       signOut,

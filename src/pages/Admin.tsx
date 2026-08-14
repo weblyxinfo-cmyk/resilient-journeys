@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil, HelpCircle } from 'lucide-react';
+import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil, HelpCircle, AlertTriangle } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
 import AdminBookingCards from '@/components/admin/AdminBookingCards';
 import AdminUsers from '@/components/admin/AdminUsers';
@@ -22,16 +23,49 @@ import AdminWeekOverview from '@/components/admin/AdminWeekOverview';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, roleLoading, roleError, retryRoleCheck } = useAuth();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) navigate('/auth');
-      else if (!isAdmin) navigate('/dashboard');
+    if (loading) return;
+    if (!user) {
+      navigate('/auth');
+      return;
     }
-  }, [user, loading, isAdmin, navigate]);
+    // Role is still being resolved or failed to resolve — wait, don't redirect.
+    // Only a confirmed "not admin" result should send the user to /dashboard.
+    if (roleLoading || roleError) return;
+    if (!isAdmin) navigate('/dashboard');
+  }, [user, loading, isAdmin, roleLoading, roleError, navigate]);
 
-  if (loading || !user || !isAdmin) {
+  if (loading || !user || roleLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center pt-24" style={{ minHeight: 'calc(100vh - 6rem)' }}>
+          <div className="animate-pulse text-gold">Verifying access...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (roleError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center gap-4 pt-24 text-center px-4" style={{ minHeight: 'calc(100vh - 6rem)' }}>
+          <AlertTriangle className="h-8 w-8 text-gold" />
+          <p className="text-foreground max-w-md">
+            We couldn't verify your access rights. This is usually temporary.
+          </p>
+          <Button onClick={retryRoleCheck} className="bg-gold hover:bg-gold/90 text-white">
+            Try again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
