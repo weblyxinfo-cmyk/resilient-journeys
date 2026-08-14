@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
@@ -25,6 +25,28 @@ const Admin = () => {
   const navigate = useNavigate();
   const { user, loading, isAdmin, roleLoading, roleError, retryRoleCheck } = useAuth();
 
+  // Latches on the first confirmed admin result and only clears on sign-out,
+  // so a re-run of the role check can't collapse the panel. See the guard below.
+  const [accessGranted, setAccessGranted] = useState(false);
+
+  // The open tab lives in the URL: it survives a remount, and a reload or a
+  // bookmark reopens the same place instead of dropping back to Videos.
+  const [section, setSection] = useState(
+    () => new URLSearchParams(window.location.search).get('tab') ?? 'content',
+  );
+
+  const selectSection = (next: string) => {
+    setSection(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', next);
+    window.history.replaceState({}, '', url);
+  };
+
+  useEffect(() => {
+    if (!loading && user && !roleLoading && isAdmin) setAccessGranted(true);
+    if (!loading && !user) setAccessGranted(false);
+  }, [loading, user, roleLoading, isAdmin]);
+
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -37,7 +59,12 @@ const Admin = () => {
     if (!isAdmin) navigate('/dashboard');
   }, [user, loading, isAdmin, roleLoading, roleError, navigate]);
 
-  if (loading || !user || roleLoading) {
+  // Once access has been confirmed, keep the panel mounted. The role check can
+  // re-run while the admin is open — a preview iframe touching the shared
+  // session is enough to trigger it — and flipping back to this screen for a
+  // few hundred milliseconds would unmount the whole panel and throw away
+  // whatever the user was in the middle of editing.
+  if (!accessGranted && (loading || !user || roleLoading)) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -94,7 +121,7 @@ const Admin = () => {
           </div>
 
           {/* Main Tabs — simplified to 5 core sections */}
-          <Tabs defaultValue="content" className="w-full">
+          <Tabs value={section} onValueChange={selectSection} className="w-full">
             <TabsList className="bg-cream/50 mb-6 flex-wrap h-auto gap-1">
               <TabsTrigger value="content" className="data-[state=active]:bg-gold data-[state=active]:text-white">
                 <Video className="h-4 w-4 mr-2" />
