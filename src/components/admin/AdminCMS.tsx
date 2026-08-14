@@ -102,6 +102,61 @@ const PREVIEW_SCALE = 0.3;
 const PREVIEW_IFRAME_HEIGHT = 1000;
 const PREVIEW_CONTAINER_HEIGHT = Math.round(PREVIEW_IFRAME_HEIGHT * PREVIEW_SCALE);
 
+// A page like "legal" has 40 sections. Each preview iframe boots a whole
+// separate copy of the app (own cms_content fetch, own React tree) — mounting
+// them all at once is what froze the admin. Cap how many are ever loaded at
+// the same time; the rest sit as a lightweight placeholder until scrolled
+// near, and give up their slot once scrolled away.
+const MAX_ACTIVE_PREVIEWS = 3;
+// Grant/release slots slightly before/after the card is actually on screen,
+// so scrolling doesn't visibly pop-in the preview or thrash the slot queue.
+const PREVIEW_ROOT_MARGIN = '400px 0px';
+// Debounce releasing a slot on scroll-away — without this, quickly
+// scrolling a card in and out of the root margin repeatedly tears down and
+// reloads its iframe (flicker + wasted loads).
+const PREVIEW_UNLOAD_DELAY_MS = 1200;
+
+// Shared across every SectionPreview instance in the admin. FIFO queue:
+// a section that wants to load but finds all slots taken waits until one
+// frees up, then is granted in the order it asked.
+const previewSlotManager = (() => {
+  const active = new Set<string>();
+  const queue: { id: string; grant: () => void }[] = [];
+
+  const pump = () => {
+    while (active.size < MAX_ACTIVE_PREVIEWS && queue.length > 0) {
+      const next = queue.shift()!;
+      active.add(next.id);
+      next.grant();
+    }
+  };
+
+  return {
+    request(id: string, grant: () => void) {
+      if (active.has(id)) {
+        grant();
+        return;
+      }
+      if (queue.some((w) => w.id === id)) return;
+      if (active.size < MAX_ACTIVE_PREVIEWS) {
+        active.add(id);
+        grant();
+      } else {
+        queue.push({ id, grant });
+      }
+    },
+    // Removes a still-queued (not yet granted) request — used when a card
+    // scrolls away before its turn came up.
+    cancel(id: string) {
+      const idx = queue.findIndex((w) => w.id === id);
+      if (idx !== -1) queue.splice(idx, 1);
+    },
+    release(id: string) {
+      if (active.delete(id)) pump();
+    },
+  };
+})();
+
 // Grows with the value instead of a fixed `rows`, so a one-line field isn't
 // three empty rows tall and a long paragraph isn't a tiny scrollbox.
 const AutoTextarea = ({
@@ -145,16 +200,71 @@ const SaveIndicator = ({ status }: { status: SaveStatus }) => {
 
 // Live preview of one section, pointed at `route#anchor` on the real site.
 // Never blocks editing: a load failure just replaces the iframe with a
-// message + link, the fields below always render regardless.
+// message + link, the fields below always render regardless. The iframe
+// itself is only mounted while the card is near the viewport and a slot is
+// free — see previewSlotManager above.
 const SectionPreview = ({ section, refreshKey }: { section: CMSSection; refreshKey: number }) => {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [active, setActive] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const unloadTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     setLoaded(false);
     setFailed(false);
   }, [section.id, refreshKey]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const activate = () => {
+      if (unloadTimer.current) {
+        clearTimeout(unloadTimer.current);
+        unloadTimer.current = undefined;
+      }
+      previewSlotManager.request(section.id, () => setActive(true));
+    };
+
+    const deactivate = () => {
+      previewSlotManager.cancel(section.id);
+      if (unloadTimer.current) clearTimeout(unloadTimer.current);
+      unloadTimer.current = setTimeout(() => {
+        setActive(false);
+        setLoaded(false);
+        setFailed(false);
+        previewSlotManager.release(section.id);
+      }, PREVIEW_UNLOAD_DELAY_MS);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) activate();
+        else deactivate();
+      },
+      { rootMargin: PREVIEW_ROOT_MARGIN, threshold: 0 },
+    );
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (unloadTimer.current) clearTimeout(unloadTimer.current);
+      previewSlotManager.cancel(section.id);
+      previewSlotManager.release(section.id);
+    };
+  }, [section.id]);
+
+  // Lets the "Zobrazit náhled" button in the placeholder force a load
+  // immediately instead of waiting for the observer / a free slot.
+  const requestPreviewNow = () => {
+    if (unloadTimer.current) {
+      clearTimeout(unloadTimer.current);
+      unloadTimer.current = undefined;
+    }
+    previewSlotManager.request(section.id, () => setActive(true));
+  };
 
   const liveUrl = `${section.route}${section.anchor ? `#${section.anchor}` : ''}`;
   const previewSrc = `${section.route}?cmsPreview=${refreshKey}${section.anchor ? `#${section.anchor}` : ''}`;
@@ -190,12 +300,19 @@ const SectionPreview = ({ section, refreshKey }: { section: CMSSection; refreshK
   };
 
   return (
-    <div className="space-y-2">
+    <div ref={containerRef} className="space-y-2">
       <div
         className="relative rounded-lg border border-border bg-muted/30 overflow-hidden"
         style={{ height: PREVIEW_CONTAINER_HEIGHT }}
       >
-        {failed ? (
+        {!active ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+            <p>{section.title}</p>
+            <Button size="sm" variant="outline" onClick={requestPreviewNow}>
+              Zobrazit náhled
+            </Button>
+          </div>
+        ) : failed ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
             <p>Náhled se nepodařilo načíst.</p>
             <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">

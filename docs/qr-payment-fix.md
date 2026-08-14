@@ -48,6 +48,17 @@ ALTER TABLE public.blog_posts
   ADD COLUMN IF NOT EXISTS payment_beneficiary_name TEXT;
 ```
 
+### Backfill migrace (soubor, nespuštěno)
+Uživatel dodal jméno majitele účtu: **„Silvie Bogdánová"**. Naseedováno do obou workshopů, které mají vyplněný `payment_iban` a zatím žádné jméno — `WHERE` podmínka nepřepíše nic, co by tam případně už bylo ručně zadané.
+
+`supabase/migrations/20260814130100_seed_payment_beneficiary_name.sql`:
+```sql
+UPDATE public.blog_posts
+SET payment_beneficiary_name = 'Silvie Bogdánová'
+WHERE payment_iban IS NOT NULL
+  AND payment_beneficiary_name IS NULL;
+```
+
 ## Jak se pozná, který formát se použije
 ```
 useEpc = currency.toUpperCase() === 'EUR' || !cleanIban(iban).startsWith('CZ')
@@ -55,8 +66,7 @@ useEpc = currency.toUpperCase() === 'EUR' || !cleanIban(iban).startsWith('CZ')
 - `EUR` + španělský IBAN → **EPC** (oba workshopy níže).
 - `CZK` + český IBAN → **SPAYD** (stávající česká varianta, beze změny).
 
-## Vygenerovaný EPC řetězec pro oba workshopy
-Jméno majitele účtu (`payment_beneficiary_name`) v `blog_posts` **ještě není vyplněné** — dokud administrátorka doplní jméno v adminu, `missingBeneficiaryName` bude `true` a místo QR se zobrazí platební údaje textem. Níže je ukázka výstupu `generateEpcQr()` s placeholder jménem, aby šlo ověřit přesný formát; s reálným jménem se změní jen řádek 6.
+## Vygenerovaný EPC řetězec pro oba workshopy (s reálným jménem)
 
 **Workshop „Putting Yourself First…" (16 EUR):**
 ```
@@ -65,14 +75,15 @@ BCD
 1
 SCT
 
-<JMÉNO MAJITELE ÚČTU>
+Silvie Bogdánová
 ES6715830001159005414319
 EUR16.00
 
 
 Workshop EFT
 ```
-(99 bajtů s placeholder jménem — daleko pod limitem 331 B)
+Raw: `BCD\n002\n1\nSCT\n\nSilvie Bogdánová\nES6715830001159005414319\nEUR16.00\n\n\nWorkshop EFT`
+82 bajtů (UTF-8) — daleko pod limitem 331 B.
 
 **Workshop „…(Dénia)" (35 EUR):**
 ```
@@ -81,18 +92,23 @@ BCD
 1
 SCT
 
-<JMÉNO MAJITELE ÚČTU>
+Silvie Bogdánová
 ES6715830001159005414319
 EUR35.00
 
 
 Workshop EFT
 ```
+Raw: `BCD\n002\n1\nSCT\n\nSilvie Bogdánová\nES6715830001159005414319\nEUR35.00\n\n\nWorkshop EFT`
+82 bajtů (UTF-8).
 
-Ověřeno: IBAN bez mezer, `EURxx.00` bez mezery a s tečkou, zpráva 12 znaků (limit 140), jméno pod limitem 70 znaků, trailing prázdné řádky (pole 12 „info pro plátce") správně odstraněny, `QRCodeSVG` dostává přesně tento řetězec jako `value`.
+Ověřeno: IBAN bez mezer, `EURxx.00` bez mezery a s tečkou, zpráva 12 znaků (limit 140), jméno 16 znaků / 18 bajtů UTF-8 (limit 70 znaků), trailing prázdné řádky (pole 12 „info pro plátce") správně odstraněny, `QRCodeSVG` dostává přesně tento řetězec jako `value`.
+
+### Diakritika ve jméně („Bogdánová")
+Řádek 3 payloadu je znaková sada — `1` = UTF-8 (kódy `2`–`8` jsou různé ISO 8859-* varianty dle EPC069-12). `generateEpcQr` posílá string beze změny do `QRCodeSVG`; `qrcode.react` (přes `qrcodegen`) sám kóduje textový segment jako UTF-8 byte-mode (ověřeno v `node_modules/qrcode.react/lib/index.js`, komentář „can be converted to UTF-8 bytes and encoded as a byte mode segment"). Deklarovaná znaková sada (`1`/UTF-8) tedy odpovídá tomu, jak je řetězec skutečně zakódovaný do QR — žádný nesoulad, žádné riziko špatného čtení „á". UTF-8 je navíc aktuální doporučovaná volba EPC standardu a čtou ji běžné evropské bankovní appky (Revolut, N26, Wise, i španělské/německé banky). Diakritiku jsem tedy **nezjednodušoval** — „Silvie Bogdánová" zůstává beze změny.
 
 ## Co musí uživatel doplnit v adminu
-Pro oba EFT workshopy (a jakýkoli budoucí workshop v EUR nebo s ne-českým IBAN) je potřeba v Adminu → Blog → Workshops → Edit doplnit nové pole **„Jméno majitele účtu"** (jméno, na které je vedený účet `ES6715830001159005414319`) — bez něj se QR kód nezobrazí a návštěvníkům se ukážou platební údaje textem.
+Nic navíc pro tyto dva EFT workshopy — jméno je naseedované migrací. Pole **„Jméno majitele účtu"** v Adminu → Blog → Workshops → Edit zůstává pro budoucí workshopy (jiný EUR/zahraniční účet) nebo pro případ, že se stávající účet změní — bez vyplnění se QR kód nezobrazí a návštěvníkům se ukážou platební údaje textem.
 
 ## Ověření
 - `npx tsc --noEmit` — bez chyb.

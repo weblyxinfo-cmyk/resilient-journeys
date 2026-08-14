@@ -228,3 +228,85 @@ shared (těch se `cms:check` netýká, jsou v pořádku).
 - **`site_settings`** — mimo scope, beze změny (stejně jako ve Fázi 0).
 - Nesahal jsem na `src/lib/pricing.ts`, `create-checkout`, `booking_cards`,
   booking edge funkce.
+
+## Oprava zamrzlého adminu po nasazení celého webu do CMS (2026-08-14)
+
+Po commitu `cf07a8f` (1057 klíčů, 186 sekcí) klientka hlásila, že se admin
+panel nenačte. Příčina: `SectionPreview` se renderovalo pro **všechny**
+sekce vybrané stránky najednou — každé jako `<iframe>` se `src` na živý web,
+tedy plnohodnotný boot celé aplikace včetně vlastního dotazu na
+`cms_content` (react-query cache se mezi dokumenty v iframech nesdílí).
+Stránka „Právní stránky" má 40 sekcí → 40 paralelních bootů appky najednou,
+prohlížeč to položil. Dokud v CMS byla jen homepage (pár sekcí), problém se
+neprojevil.
+
+### Změna — jen `src/components/admin/AdminCMS.tsx`
+
+1. **Lazy náhledy přes `IntersectionObserver`.** `SectionPreview` má nově
+   stav `active`; dokud karta sekce není blízko viewportu (`rootMargin:
+   '400px 0px'`), iframe se vůbec nemountuje — místo něj je lehký
+   placeholder s názvem sekce a tlačítkem „Zobrazit náhled" (pro ruční
+   vynucení načtení, i mimo viewport). Když karta opustí viewport, iframe
+   se po `1200ms` debounce (aby netrhalo náhled při běžném poposcrollování
+   tam a zpět) odmountuje a placeholder se vrátí.
+2. **Globální strop souběžných náhledů — `previewSlotManager`.** Modulový
+   singleton (sdílený všemi instancemi `SectionPreview`) drží frontu a
+   povoluje max. `MAX_ACTIVE_PREVIEWS = 3` aktivních iframů naráz, bez
+   ohledu na to, kolik karet je zrovna v/blízko viewportu. Karta, která
+   chce načíst náhled, ale všechny sloty jsou obsazené, čeká ve frontě
+   (FIFO) a slot dostane, jakmile se nějaký uvolní (karta odscrollovaná
+   pryč, nebo unmount celé stránky/tabu).
+3. **Iframe nikdy neblokuje editaci.** Pole pod náhledem jsou nezávislá na
+   `active`/`loaded`/`failed` stavu náhledu — fungovala tak už předtím,
+   nezměněno. `loading="lazy"` na iframe jsem záměrně nepřidal — je
+   zbytečné navíc, protože iframe teď stejně vzniká v DOM až ve chvíli,
+   kdy je fakticky potřeba (podmíněné mountování je spolehlivější než
+   prohlížečova heuristika, která je nespolehlivá u transformovaných/
+   scale() prvků, jak čeká zadání).
+4. **Autosave/race-condition/`beforeunload`/revert/seed-guard/search beze
+   změny** — `commitSave`, `scheduleSave`, `flushSave`, `inFlight`,
+   `pendingValues`, `queryClient.invalidateQueries`, `bumpPreview`,
+   `handleRevert`, mazání jen u neseedovaných řádků — nedotčeno.
+5. **Dotaz na `cms_content` (`select('*')`, 1057 řádků) ponechán beze
+   změny.** Běží jednou za otevření adminu (ne za sekci/iframe — to už
+   řeší bod 1–2) a napájí i cross-page vyhledávání, které prohledává
+   všechna pole napříč stránkami. Zúžení na sloupce nebo jen aktivní
+   stránku by vyžadovalo buď dotahovat data znovu při každém přepnutí
+   stránky (regrese v UX), nebo rozdělit fetch pro seznam vs. pro
+   vyhledávání (větší zásah, riziko rozjetí search) — nedělal jsem to,
+   protože to podle zadání nebyl skutečný zdroj zamrznutí.
+
+### Ověření (lokální dev server, produkční DB)
+
+Dev server (`npm run dev`, port 8080) proti produkční Supabase DB,
+headless Chromium (Playwright z globální npx cache, projekt sám
+Playwright nemá) s přihlášením `admin@resilientmind.com` (viz
+`docs/cms-faze0-browser.md`). Přímý `goto('/admin')` jsem nepoužil —
+známý pre-existing race v `useAuth.tsx` (cold load umí spadnout do
+`/dashboard` dřív, než se `isAdmin` stihne doplnit) — místo toho login →
+`/dashboard` → dropdown „Admin" → „Admin Panel" (spolehlivá cesta, popsaná
+tamtéž).
+
+- **Website → Page Text → „Právní stránky" (40 sekcí):** stránka reagovala
+  okamžitě, žádné zaseknutí. Během prvních ~3s po otevření tabu proběhly
+  jen **4 požadavky** na `?cmsPreview=` (1 doběhlý z předchozí stránky +
+  3 nově aktivované sloty), místo 40. Viditelných placeholderů „Zobrazit
+  náhled" (ještě nenačtených) bylo 38.
+- **Scroll test:** 8× kolečko myši dolů; za celý scroll přibylo jen 7
+  dalších `cmsPreview` požadavků (postupné dobírání, ne najednou). Počet
+  živých `<iframe src*="cmsPreview">` prvků v DOM v libovolném okamžiku
+  nepřekročil strop (naměřeno 2, cap je 3).
+- **Screenshot** `legal-tab.png` (scratchpad) potvrzuje placeholdery s
+  názvem sekce a tlačítkem u nenačtených karet, náhled u aktivních.
+- **Editace + autosave:** vytvořen testovací klíč
+  `zz_freezefix_tmp_<timestamp>`, do pole zapsána nová hodnota → indikátor
+  prošel „Ukládám…" → „Uloženo" (do ~200 ms). Po tvrdém přechodu pryč z
+  adminu a zpět (fresh mount) byla uložená hodnota v DB potvrzená.
+  Testovací klíč byl na konci smazán přes UI (mazací ikonu); finální
+  sweep vyhledáváním „zz_freezefix" napříč všemi stránkami potvrdil
+  **0 výsledků** — v produkční DB nezůstal žádný testovací řádek ani
+  vedlejší produkt ladění (jeden dřívější neuklizený pokus
+  `zz_freezefix_tmp` byl při té příležitosti také smazán).
+- Do žádného existujícího klientčina textu se nesahalo.
+- `npx tsc --noEmit` — bez chyb. `npm run build` — prošel.
+- Dev server na konci zastaven.
