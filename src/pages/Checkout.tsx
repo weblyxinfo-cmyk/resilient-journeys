@@ -9,13 +9,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useCms } from "@/hooks/useCms";
-import {
-  MEMBERSHIP_TIERS,
-  getTierPrice,
-} from "@/lib/pricing";
+import { useMembershipTiers } from "@/hooks/useMembershipTiers";
+import { useHubProducts, HubProduct } from "@/hooks/useHubProducts";
 
-// Build plans from centralized pricing (only monthly visible)
-const buildPlans = () => {
+// Build plans from the membership tiers (DB-backed, falls back to
+// src/lib/pricing.ts) — same source as PricingCards, so this page can never
+// show a different price than /pricing. See docs/cms-review.md §B2.
+const buildPlans = (tiers: ReturnType<typeof useMembershipTiers>['tiers']) => {
   const plans: Record<string, {
     id: string;
     name: string;
@@ -27,12 +27,12 @@ const buildPlans = () => {
     hidden: boolean;
   }> = {};
 
-  for (const tier of MEMBERSHIP_TIERS) {
+  for (const tier of tiers) {
     plans[tier.id] = {
       id: tier.id,
       name: tier.membershipType === 'basic' ? 'Basic' : 'Premium',
       subtitle: tier.interval === 'month' ? 'Monthly' : 'Yearly',
-      price: getTierPrice(tier),
+      price: tier.price,
       interval: tier.interval,
       membershipType: tier.membershipType,
       features: tier.features,
@@ -43,6 +43,14 @@ const buildPlans = () => {
   return plans;
 };
 
+// Fallback for useHubProducts — the prices/names this page shipped with
+// before hub_products existed. English names/descriptions are re-translated
+// below via t(); this array only carries the price the DB might not have yet.
+const hubFallback: HubProduct[] = [
+  { hubSlug: 'endometriosis', name: 'Endometriosis Management Hub', description: 'Managing chronic pain while living abroad', price: 147 },
+  { hubSlug: 'transformed_self', name: 'The Transformed Self Hub', description: 'Carrying Your Strength Across Borders', price: 127 },
+];
+
 type PlanId = string;
 
 const Checkout = () => {
@@ -50,8 +58,10 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, profile, loading: authLoading } = useAuth();
   const { t } = useCms();
+  const { tiers } = useMembershipTiers();
+  const { getHub } = useHubProducts(hubFallback);
 
-  const plans = buildPlans();
+  const plans = buildPlans(tiers);
   const productParam = searchParams.get('product');
   const hubSlug = searchParams.get('hub');
   const isHubPurchase = productParam === 'hub' && !!hubSlug;
@@ -69,20 +79,24 @@ const Checkout = () => {
     year: t("checkout_plan_interval_yearly", "Yearly"),
   };
 
-  // Hub display info
-  const hubInfo: Record<string, { name: string; price: number; description: string }> = {
-    'endometriosis': {
-      name: t("checkout_hub_endometriosis_name", "Endometriosis Management Hub"),
-      price: 147,
-      description: t("checkout_hub_endometriosis_description", "Managing chronic pain while living abroad"),
-    },
-    'transformed_self': {
-      name: t("checkout_hub_transformed_self_name", "The Transformed Self Hub"),
-      price: 127,
-      description: t("checkout_hub_transformed_self_description", "Carrying Your Strength Across Borders"),
-    },
+  // Hub display info — price/description come from hub_products (DB), name
+  // is still translated via t() so the CMS text keys keep working.
+  const hubNameLabel: Record<string, string> = {
+    endometriosis: t("checkout_hub_endometriosis_name", "Endometriosis Management Hub"),
+    transformed_self: t("checkout_hub_transformed_self_name", "The Transformed Self Hub"),
   };
-  const hub = hubSlug ? hubInfo[hubSlug] : null;
+  const hubDescriptionLabel: Record<string, string> = {
+    endometriosis: t("checkout_hub_endometriosis_description", "Managing chronic pain while living abroad"),
+    transformed_self: t("checkout_hub_transformed_self_description", "Carrying Your Strength Across Borders"),
+  };
+  const hubRecord = hubSlug ? getHub(hubSlug) : undefined;
+  const hub = hubRecord
+    ? {
+        name: hubNameLabel[hubSlug!] ?? hubRecord.name,
+        description: hubDescriptionLabel[hubSlug!] ?? hubRecord.description,
+        price: hubRecord.price,
+      }
+    : null;
 
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,11 +124,13 @@ const Checkout = () => {
         ? {
             product_type: 'hub',
             hub_slug: hubSlug,
+            expectedPriceEur: hub?.price,
             successUrl: `${window.location.origin}/thank-you-membership`,
             cancelUrl: `${window.location.origin}/checkout?product=hub&hub=${hubSlug}`,
           }
         : {
             planId,
+            expectedPriceEur: plan.price,
             successUrl: `${window.location.origin}/thank-you-membership`,
             cancelUrl: `${window.location.origin}/checkout?plan=${planId}`,
           };

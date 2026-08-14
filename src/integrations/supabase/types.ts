@@ -441,6 +441,39 @@ export type Database = {
         }
         Relationships: []
       }
+      hub_products: {
+        Row: {
+          created_at: string
+          description: string | null
+          hub_slug: string
+          id: string
+          is_active: boolean
+          name: string
+          price_eur: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          hub_slug: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price_eur: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          hub_slug?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_eur?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_magnets: {
         Row: {
           created_at: string
@@ -464,6 +497,78 @@ export type Database = {
           id?: string
           name?: string | null
           source?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      membership_tiers: {
+        Row: {
+          badge: string | null
+          billing_interval: string
+          button_text: string | null
+          created_at: string
+          description: string | null
+          features: Json
+          hidden: boolean
+          highlighted: boolean
+          id: string
+          ideal_for: Json
+          is_active: boolean
+          membership_type: string
+          name: string
+          period_label: string | null
+          price_eur: number
+          quote: string | null
+          savings_note: string | null
+          sort_order: number
+          subtitle: string | null
+          tier_key: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          billing_interval: string
+          button_text?: string | null
+          created_at?: string
+          description?: string | null
+          features?: Json
+          hidden?: boolean
+          highlighted?: boolean
+          id?: string
+          ideal_for?: Json
+          is_active?: boolean
+          membership_type: string
+          name: string
+          period_label?: string | null
+          price_eur: number
+          quote?: string | null
+          savings_note?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          tier_key: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          billing_interval?: string
+          button_text?: string | null
+          created_at?: string
+          description?: string | null
+          features?: Json
+          hidden?: boolean
+          highlighted?: boolean
+          id?: string
+          ideal_for?: Json
+          is_active?: boolean
+          membership_type?: string
+          name?: string
+          period_label?: string | null
+          price_eur?: number
+          quote?: string | null
+          savings_note?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          tier_key?: string
           updated_at?: string
         }
         Relationships: []

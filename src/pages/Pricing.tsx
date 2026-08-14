@@ -8,17 +8,23 @@ import SEO from "@/components/SEO";
 import PricingCards, { PricingTrustSignals } from "@/components/PricingCards";
 import { Crown } from "lucide-react";
 import { useCms } from "@/hooks/useCms";
+import { useMembershipTiers } from "@/hooks/useMembershipTiers";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useCms();
+  // Same source as PricingCards, so the JSON-LD price can never disagree
+  // with the card the visitor sees — see docs/cms-review.md §B2.
+  const { getTier } = useMembershipTiers();
+  const basicMonthlyPrice = getTier('basic_monthly')?.price ?? 37;
+  const premiumMonthlyPrice = getTier('premium_monthly')?.price ?? 47;
 
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Pricing — Membership Plans from €37 | Resilient Mind"
-        description="Choose from Basic or Premium membership plans. Pay as you go from €37 or yearly from €370. One-time payments, no auto-renewal. Includes video lessons, workbooks and more."
+        title={`Pricing — Membership Plans from €${basicMonthlyPrice} | Resilient Mind`}
+        description={`Choose from Basic or Premium membership plans. Pay as you go from €${basicMonthlyPrice} or yearly from €${getTier('basic_yearly')?.price ?? 370}. One-time payments, no auto-renewal. Includes video lessons, workbooks and more.`}
         path="/pricing"
         jsonLd={{
           "@context": "https://schema.org",
@@ -34,7 +40,7 @@ const Pricing = () => {
             {
               "@type": "Offer",
               name: "Basic Monthly",
-              price: "37",
+              price: String(basicMonthlyPrice),
               priceCurrency: "EUR",
               availability: "https://schema.org/InStock",
               url: "https://resilientmind.io/pricing",
@@ -42,7 +48,7 @@ const Pricing = () => {
             {
               "@type": "Offer",
               name: "Premium Monthly",
-              price: "47",
+              price: String(premiumMonthlyPrice),
               priceCurrency: "EUR",
               availability: "https://schema.org/InStock",
               url: "https://resilientmind.io/pricing",

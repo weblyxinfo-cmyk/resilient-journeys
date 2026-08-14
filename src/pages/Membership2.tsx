@@ -6,6 +6,7 @@ import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 import { useCms } from "@/hooks/useCms";
 import { useFaqItems, FaqItem } from "@/hooks/useFaqItems";
+import { useMembershipTiers } from "@/hooks/useMembershipTiers";
 import { breadcrumb, faqPage, product } from "@/lib/schema";
 import {
   ArrowRight,
@@ -58,6 +59,10 @@ const Membership2 = () => {
   const { t } = useCms();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const faqs = useFaqItems('membership', fallbackFaqs);
+  // Same source as Membership.tsx/pricing — see docs/cms-review.md §B2.
+  const { getTier } = useMembershipTiers();
+  const basicMonthlyPrice = getTier('basic_monthly')?.price ?? 37;
+  const premiumMonthlyPrice = getTier('premium_monthly')?.price ?? 47;
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,12 +84,12 @@ const Membership2 = () => {
             offers: [
               {
                 name: "Basic Monthly",
-                price: "37",
+                price: String(basicMonthlyPrice),
                 url: "https://resilientmind.io/pricing",
               },
               {
                 name: "Premium Monthly",
-                price: "47",
+                price: String(premiumMonthlyPrice),
                 url: "https://resilientmind.io/pricing",
               },
             ],
@@ -426,7 +431,7 @@ const Membership2 = () => {
                     {t("membership_teaser_basic_subtitle", "Self-paced guidance you can follow in your own time.")}
                   </p>
                   <div className="mb-6">
-                    <span className="text-4xl font-serif font-bold text-foreground">€37</span>
+                    <span className="text-4xl font-serif font-bold text-foreground">€{basicMonthlyPrice}</span>
                     <span className="text-sm text-muted-foreground font-sans"> {t("membership_teaser_basic_period", "/month")}</span>
                   </div>
                   <ul className="space-y-2 mb-8 flex-1">
@@ -465,7 +470,7 @@ const Membership2 = () => {
                     {t("membership_teaser_premium_subtitle", "Everything in Basic, plus a private community of like-minded women on the same path.")}
                   </p>
                   <div className="mb-6">
-                    <span className="text-4xl font-serif font-bold text-foreground">€47</span>
+                    <span className="text-4xl font-serif font-bold text-foreground">€{premiumMonthlyPrice}</span>
                     <span className="text-sm text-muted-foreground font-sans"> {t("membership_teaser_premium_period", "/month")}</span>
                   </div>
                   <ul className="space-y-2 mb-8 flex-1">

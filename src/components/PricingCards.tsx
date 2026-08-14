@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  getVisibleTiers,
-  getTierPrice,
-} from "@/lib/pricing";
+import { useMembershipTiers } from "@/hooks/useMembershipTiers";
 
 interface PricingCardsProps {
   cancelUrl?: string;
@@ -18,9 +15,11 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
   const navigate = useNavigate();
   const { session: authSession } = useAuth();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
-  const visibleTiers = getVisibleTiers();
+  const { visibleTiers } = useMembershipTiers();
 
-  const createCheckoutSession = async (productType: string) => {
+  // expectedPriceEur lets create-checkout catch a stale price shown to a
+  // visitor with an old CMS cache or JS bundle — see docs/cms-review.md §B2.
+  const createCheckoutSession = async (productType: string, expectedPriceEur: number) => {
     setLoadingTier(productType);
 
     // Use auth hook session - this is reliable (has timeout, cleared on expiry)
@@ -71,6 +70,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
         },
         body: JSON.stringify({
           planId: productType,
+          expectedPriceEur,
           successUrl: `${window.location.origin}/thank-you-membership`,
           cancelUrl: `${window.location.origin}${cancelUrl}`,
         }),
@@ -105,7 +105,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
       {visibleTiers.map((tier) => {
-        const currentPrice = getTierPrice(tier);
+        const currentPrice = tier.price;
         const isPremium = tier.membershipType === 'premium';
 
         return (
@@ -166,7 +166,7 @@ const PricingCards = ({ cancelUrl = "/" }: PricingCardsProps) => {
 
               {/* Button */}
               <Button
-                onClick={() => createCheckoutSession(tier.id)}
+                onClick={() => createCheckoutSession(tier.id, currentPrice)}
                 disabled={loadingTier === tier.id}
                 className={`w-full rounded-full h-12 font-sans font-semibold text-sm transition-all ${
                   isPremium

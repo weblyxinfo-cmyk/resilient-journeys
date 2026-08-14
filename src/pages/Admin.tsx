@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil, HelpCircle, AlertTriangle } from 'lucide-react';
+import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil, HelpCircle, AlertTriangle, Crown, Package } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
 import AdminBookingCards from '@/components/admin/AdminBookingCards';
 import AdminUsers from '@/components/admin/AdminUsers';
@@ -16,6 +16,8 @@ import AdminResources from '@/components/admin/AdminResources';
 import AdminBlog from '@/components/admin/AdminBlog';
 import AdminCMS from '@/components/admin/AdminCMS';
 import AdminFaq from '@/components/admin/AdminFaq';
+import AdminMembershipTiers from '@/components/admin/AdminMembershipTiers';
+import AdminHubProducts from '@/components/admin/AdminHubProducts';
 import AdminBookings from '@/components/admin/AdminBookings';
 import AdminAvailability from '@/components/admin/AdminAvailability';
 import AdminInquiries from '@/components/admin/AdminInquiries';
@@ -225,9 +227,17 @@ const Admin = () => {
                   <TabsTrigger value="faq" className="text-xs data-[state=active]:bg-white">
                     <HelpCircle className="h-3.5 w-3.5 mr-1.5" /> FAQ
                   </TabsTrigger>
+                  <TabsTrigger value="membership-tiers" className="text-xs data-[state=active]:bg-white">
+                    <Crown className="h-3.5 w-3.5 mr-1.5" /> Membership Tiers
+                  </TabsTrigger>
+                  <TabsTrigger value="hub-products" className="text-xs data-[state=active]:bg-white">
+                    <Package className="h-3.5 w-3.5 mr-1.5" /> Hub Products
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="text"><AdminCMS /></TabsContent>
                 <TabsContent value="faq"><AdminFaq /></TabsContent>
+                <TabsContent value="membership-tiers"><AdminMembershipTiers /></TabsContent>
+                <TabsContent value="hub-products"><AdminHubProducts /></TabsContent>
               </Tabs>
             </TabsContent>
 
