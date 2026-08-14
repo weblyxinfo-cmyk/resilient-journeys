@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
+import { useCms } from "@/hooks/useCms";
+import { useFaqItems, FaqItem } from "@/hooks/useFaqItems";
 import { breadcrumb, faqPage, product } from "@/lib/schema";
 import {
   ArrowRight,
@@ -23,35 +25,40 @@ import {
   Shield,
 } from "lucide-react";
 
-const Membership = () => {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+// Fallback for useFaqItems('membership', ...) — the array this page shipped
+// with before the FAQ moved into the faq_items table. Kept in sync with the
+// seed in supabase/migrations/20260814100100_seed_faq_items.sql.
+const fallbackFaqs: FaqItem[] = [
+  {
+    q: "Who is this program for?",
+    a: "Expat women navigating new cultures while staying connected to who they truly are. Women living abroad who feel emotionally stretched or unsupported, seeking grounded tools they can rely on anywhere. Globally mobile women facing constant change and wanting deeper inner stability, confidence, and clarity.",
+  },
+  {
+    q: "How much time do I need?",
+    a: "Around 15–30 minutes a day. Video lessons are 10–15 minutes and the workbook exercises are designed to fit into a busy expat life. Everything is on-demand — no live schedules to worry about.",
+  },
+  {
+    q: "What's the difference between Basic and Premium?",
+    a: "The Basic Monthly Membership includes one video each week and four weekly workbooks/exercises. The Premium Membership includes everything from the Basic Membership, plus access to the Additional Hub: The Transformed Self and Endometriosis & Chronic Pain, as well as access to the private Skool community.",
+  },
+  {
+    q: "Is this a subscription?",
+    a: "No — every purchase is a one-time payment. Monthly plans give you access for 1 month with no auto-renewal. Yearly plans give you full access for 12 months with a 14-day money-back guarantee. You decide when and if you want to continue.",
+  },
+  {
+    q: "Do I need any prior experience with counselling or expressive art?",
+    a: "Not at all. These techniques are gentle and beginner-friendly. EFT tapping, expressive creative art practices, and guided meditations are explained step-by-step. You don't need to be \"artistic\" — this is about expression, not perfection.",
+  },
+  {
+    q: "What if I'm not sure it's right for me?",
+    a: "You can start with the Basic Monthly plan — it's a one-time payment with no auto-renewal, so you can simply try it for a month and decide if you want to continue. There's no pressure and no commitment.",
+  },
+];
 
-  const faqs = [
-    {
-      q: "Who is this program for?",
-      a: "Expat women navigating new cultures while staying connected to who they truly are. Women living abroad who feel emotionally stretched or unsupported, seeking grounded tools they can rely on anywhere. Globally mobile women facing constant change and wanting deeper inner stability, confidence, and clarity.",
-    },
-    {
-      q: "How much time do I need?",
-      a: "Around 15–30 minutes a day. Video lessons are 10–15 minutes and the workbook exercises are designed to fit into a busy expat life. Everything is on-demand — no live schedules to worry about.",
-    },
-    {
-      q: "What's the difference between Basic and Premium?",
-      a: "The Basic Monthly Membership includes one video each week and four weekly workbooks/exercises. The Premium Membership includes everything from the Basic Membership, plus access to the Additional Hub: The Transformed Self and Endometriosis & Chronic Pain, as well as access to the private Skool community.",
-    },
-    {
-      q: "Is this a subscription?",
-      a: "No — every purchase is a one-time payment. Monthly plans give you access for 1 month with no auto-renewal. Yearly plans give you full access for 12 months with a 14-day money-back guarantee. You decide when and if you want to continue.",
-    },
-    {
-      q: "Do I need any prior experience with counselling or expressive art?",
-      a: "Not at all. These techniques are gentle and beginner-friendly. EFT tapping, expressive creative art practices, and guided meditations are explained step-by-step. You don't need to be \"artistic\" — this is about expression, not perfection.",
-    },
-    {
-      q: "What if I'm not sure it's right for me?",
-      a: "You can start with the Basic Monthly plan — it's a one-time payment with no auto-renewal, so you can simply try it for a month and decide if you want to continue. There's no pressure and no commitment.",
-    },
-  ];
+const Membership = () => {
+  const { t } = useCms();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const faqs = useFaqItems('membership', fallbackFaqs);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +104,7 @@ const Membership = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Sparkles size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  Resilient Mind Membership
+                  {t("membership_hero_badge", "Resilient Mind Membership")}
                 </span>
               </div>
 
@@ -105,25 +112,25 @@ const Membership = () => {
                 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-5 leading-tight"
                 style={{ textShadow: "0 2px 12px rgba(0,0,0,0.25)" }}
               >
-                You moved abroad…<br />
-                so why do you still <span className="text-gradient-gold">feel off?</span>
+                {t("membership_hero_title_prefix", "You moved abroad…")}<br />
+                {t("membership_hero_title_suffix", "so why do you still")} <span className="text-gradient-gold">{t("membership_hero_title_highlight", "feel off?")}</span>
               </h1>
 
               <p className="text-lg md:text-xl text-foreground/85 font-sans leading-relaxed mb-3 italic">
-                Stop feeling overwhelmed and start feeling like <em>yourself</em> again.
+                {t("membership_hero_subtitle_prefix", "Stop feeling overwhelmed and start feeling like ")}<em>{t("membership_hero_subtitle_em", "yourself")}</em>{t("membership_hero_subtitle_suffix", " again.")}
               </p>
 
               <p className="text-base text-muted-foreground font-sans mb-8">
-                Feel like yourself again.
+                {t("membership_hero_description", "Feel like yourself again.")}
               </p>
 
               {/* 4 mini-benefit pillars */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                 {[
-                  { icon: Brain, label: "Understand your patterns" },
-                  { icon: Heart, label: "Regulate emotions" },
-                  { icon: Sun, label: "Create inner stability" },
-                  { icon: Home, label: "Feel at home within yourself" },
+                  { icon: Brain, label: t("membership_hero_pillar_1", "Understand your patterns") },
+                  { icon: Heart, label: t("membership_hero_pillar_2", "Regulate emotions") },
+                  { icon: Sun, label: t("membership_hero_pillar_3", "Create inner stability") },
+                  { icon: Home, label: t("membership_hero_pillar_4", "Feel at home within yourself") },
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col items-center gap-2">
                     <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -141,11 +148,11 @@ const Membership = () => {
                   href="#offer"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
                 >
-                  Start your journey now
+                  {t("membership_hero_cta", "Start your journey now")}
                   <ArrowRight size={18} />
                 </a>
                 <p className="text-xs text-muted-foreground font-sans">
-                  Pay as you go · Cancel anytime
+                  {t("membership_hero_cta_note", "Pay as you go · Cancel anytime")}
                 </p>
               </div>
             </div>
@@ -154,7 +161,7 @@ const Membership = () => {
             <div className="relative order-first md:order-last">
               <img
                 src="/membership-hero-photo.jpg"
-                alt="A woman writing in her journal, reconnecting with herself while living abroad"
+                alt={t("membership_hero_image_alt", "A woman writing in her journal, reconnecting with herself while living abroad")}
                 className="w-full h-auto rounded-2xl shadow-elevated"
                 loading="eager"
               />
@@ -167,13 +174,13 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6">
-                You thought moving abroad would feel exciting…
+                {t("membership_problem_title", "You thought moving abroad would feel exciting…")}
               </h2>
               <p className="text-lg md:text-xl text-foreground/85 font-sans leading-relaxed mb-6">
-                …but instead, something feels off.
+                {t("membership_problem_lead", "…but instead, something feels off.")}
               </p>
               <p className="text-base md:text-lg text-foreground/80 font-sans leading-relaxed">
-                You feel disconnected, overwhelmed, or not quite like yourself. Your emotions are all over the place. And no matter where you are… it doesn't fully feel like home.
+                {t("membership_problem_body", "You feel disconnected, overwhelmed, or not quite like yourself. Your emotions are all over the place. And no matter where you are… it doesn't fully feel like home.")}
               </p>
             </div>
           </div>
@@ -184,10 +191,10 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6">
-                Moving abroad is a big emotional shift.
+                {t("membership_empathy_title", "Moving abroad is a big emotional shift.")}
               </h2>
               <p className="text-base md:text-lg text-foreground/80 font-sans leading-relaxed">
-                Even when everything looks "right" on the outside, it's completely normal to feel lost, anxious, or disconnected inside.
+                {t("membership_empathy_body", "Even when everything looks \"right\" on the outside, it's completely normal to feel lost, anxious, or disconnected inside.")}
               </p>
             </div>
           </div>
@@ -198,10 +205,10 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-6">
-                A <span className="text-gradient-gold">gentle, step-by-step space</span> to help you reconnect with yourself again
+                {t("membership_solution_title_prefix", "A ")}<span className="text-gradient-gold">{t("membership_solution_title_highlight", "gentle, step-by-step space")}</span>{t("membership_solution_title_suffix", " to help you reconnect with yourself again")}
               </h2>
               <p className="text-lg text-foreground/80 font-sans leading-relaxed">
-                A place where you can slow down, understand what's happening inside you, and start feeling grounded and stable again.
+                {t("membership_solution_body", "A place where you can slow down, understand what's happening inside you, and start feeling grounded and stable again.")}
               </p>
             </div>
           </div>
@@ -213,10 +220,10 @@ const Membership = () => {
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
-                  Inside, you'll receive simple, <span className="text-gradient-gold">supportive tools</span>
+                  {t("membership_getitems_title_prefix", "Inside, you'll receive simple, ")}<span className="text-gradient-gold">{t("membership_getitems_title_highlight", "supportive tools")}</span>
                 </h2>
                 <p className="text-lg text-muted-foreground font-sans max-w-2xl mx-auto">
-                  Everything is designed to fit into your real life abroad — no pressure, just support.
+                  {t("membership_getitems_subtitle", "Everything is designed to fit into your real life abroad — no pressure, just support.")}
                 </p>
               </div>
 
@@ -224,23 +231,23 @@ const Membership = () => {
                 {[
                   {
                     icon: Hand,
-                    title: "EFT tapping & expressive creative art",
-                    desc: "Practical techniques to calm your nervous system and gently process what you're feeling.",
+                    title: t("membership_getitems_1_title", "EFT tapping & expressive creative art"),
+                    desc: t("membership_getitems_1_desc", "Practical techniques to calm your nervous system and gently process what you're feeling."),
                   },
                   {
                     icon: Heart,
-                    title: "Guided practices",
-                    desc: "Audio and video sessions to help you regulate your emotions, day by day.",
+                    title: t("membership_getitems_2_title", "Guided practices"),
+                    desc: t("membership_getitems_2_desc", "Audio and video sessions to help you regulate your emotions, day by day."),
                   },
                   {
                     icon: BookOpen,
-                    title: "A workbook to reconnect with yourself",
-                    desc: "Reflective exercises that help you understand your patterns and come home to who you are.",
+                    title: t("membership_getitems_3_title", "A workbook to reconnect with yourself"),
+                    desc: t("membership_getitems_3_desc", "Reflective exercises that help you understand your patterns and come home to who you are."),
                   },
                   {
                     icon: Clock,
-                    title: "A gentle structure at your own pace",
-                    desc: "On-demand lessons you can follow whenever life allows — no schedules, no pressure.",
+                    title: t("membership_getitems_4_title", "A gentle structure at your own pace"),
+                    desc: t("membership_getitems_4_desc", "On-demand lessons you can follow whenever life allows — no schedules, no pressure."),
                   },
                 ].map((item, i) => (
                   <div
@@ -270,15 +277,15 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-10 text-center">
-                What this looks like in <span className="text-gradient-gold">your everyday life</span>
+                {t("membership_benefits_title_prefix", "What this looks like in ")}<span className="text-gradient-gold">{t("membership_benefits_title_highlight", "your everyday life")}</span>
               </h2>
 
               <ul className="space-y-4">
                 {[
-                  "Recognise your patterns and respond instead of react.",
-                  "Calm your nervous system and feel more in control of your emotions.",
-                  "Create lasting inner stability, even during uncertain times.",
-                  "Feel grounded, safe, and at home within yourself — wherever you are.",
+                  t("membership_benefits_1", "Recognise your patterns and respond instead of react."),
+                  t("membership_benefits_2", "Calm your nervous system and feel more in control of your emotions."),
+                  t("membership_benefits_3", "Create lasting inner stability, even during uncertain times."),
+                  t("membership_benefits_4", "Feel grounded, safe, and at home within yourself — wherever you are."),
                 ].map((benefit, i) => (
                   <li
                     key={i}
@@ -304,14 +311,14 @@ const Membership = () => {
               <div className="max-w-5xl mx-auto mb-8 rounded-2xl overflow-hidden shadow-elevated">
                 <img
                   src="/membership-transformation.jpg"
-                  alt="From feeling lost to feeling like yourself again — a visualization of the inner transformation"
+                  alt={t("membership_transformation_image_alt", "From feeling lost to feeling like yourself again — a visualization of the inner transformation")}
                   className="w-full h-auto block"
                   loading="lazy"
                 />
               </div>
 
               <p className="text-center text-base md:text-lg text-foreground/80 font-sans italic max-w-2xl mx-auto leading-relaxed">
-                Instead of feeling overwhelmed and disconnected, you begin to feel calm, grounded, and like yourself again.
+                {t("membership_transformation_caption", "Instead of feeling overwhelmed and disconnected, you begin to feel calm, grounded, and like yourself again.")}
               </p>
             </div>
           </div>
@@ -322,16 +329,16 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <p className="text-base md:text-lg text-foreground/85 font-sans leading-relaxed mb-6">
-                Created for expat women who feel overwhelmed or disconnected, and are ready to reconnect with themselves, understand their inner patterns, and build a sense of calm, resilience, and home within — wherever they are in the world.
+                {t("membership_about_body", "Created for expat women who feel overwhelmed or disconnected, and are ready to reconnect with themselves, understand their inner patterns, and build a sense of calm, resilience, and home within — wherever they are in the world.")}
               </p>
               <p className="text-base text-muted-foreground font-sans leading-relaxed mb-8">
-                Developed by <span className="text-foreground font-medium">Silvie</span>, an expatriate of 13+ years, this approach blends lived experience with personal development, expressive arts, and holistic therapies — creating a supportive, practical path to navigate life abroad with greater ease and inner stability.
+                {t("shared_silvie_bio_short", "Developed by Silvie, an expatriate of 13+ years, this approach blends lived experience with personal development, expressive arts, and holistic therapies — creating a supportive, practical path to navigate life abroad with greater ease and inner stability.")}
               </p>
               <a
                 href="#offer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
               >
-                See Plans &amp; Pricing
+                {t("membership_about_cta", "See Plans & Pricing")}
                 <ArrowRight size={18} />
               </a>
             </div>
@@ -344,10 +351,14 @@ const Membership = () => {
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
-                  Choose your <span className="text-gradient-gold">path</span>
+                  {t("membership_offer_title_prefix", "Choose your ")}<span className="text-gradient-gold">{t("membership_offer_title_highlight", "path")}</span>
                 </h2>
                 <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-6 text-sm font-sans">
-                  {["Pay as you go", "Cancel anytime", "No pressure — just support"].map(
+                  {[
+                    t("membership_offer_badge_1", "Pay as you go"),
+                    t("membership_offer_badge_2", "Cancel anytime"),
+                    t("membership_offer_badge_3", "No pressure — just support"),
+                  ].map(
                     (text, i) => (
                       <span
                         key={i}
@@ -364,76 +375,76 @@ const Membership = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Basic */}
                 <div className="p-8 bg-card rounded-2xl border border-border flex flex-col">
-                  <h3 className="text-xl font-serif font-semibold mb-2">Basic</h3>
+                  <h3 className="text-xl font-serif font-semibold mb-2">{t("membership_teaser_basic_title", "Basic")}</h3>
                   <p className="text-sm text-muted-foreground font-sans mb-6">
-                    Self-paced guidance you can follow in your own time.
+                    {t("membership_teaser_basic_subtitle", "Self-paced guidance you can follow in your own time.")}
                   </p>
                   <div className="mb-6">
                     <span className="text-4xl font-serif font-bold text-foreground">€37</span>
-                    <span className="text-sm text-muted-foreground font-sans"> /month</span>
+                    <span className="text-sm text-muted-foreground font-sans"> {t("membership_teaser_basic_period", "/month")}</span>
                   </div>
                   <ul className="space-y-2 mb-8 flex-1">
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>4 weekly videos</span>
+                      <span>{t("membership_teaser_basic_feature_1", "4 weekly videos")}</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>4 weekly workbooks &amp; reflective exercises</span>
+                      <span>{t("membership_teaser_basic_feature_2", "4 weekly workbooks & reflective exercises")}</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>Guided meditations</span>
+                      <span>{t("membership_teaser_basic_feature_3", "Guided meditations")}</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>Unlocks one month at a time</span>
+                      <span>{t("membership_teaser_basic_feature_4", "Unlocks one month at a time")}</span>
                     </li>
                   </ul>
                   <Link
                     to="/pricing"
                     className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-card border border-primary/30 text-primary font-sans font-medium rounded-full hover:bg-primary/5 transition-all"
                   >
-                    Start Basic Monthly
+                    {t("membership_teaser_basic_cta", "Start Basic Monthly")}
                   </Link>
                 </div>
 
                 {/* Premium */}
                 <div className="p-8 bg-card rounded-2xl border-2 border-primary/40 flex flex-col relative shadow-md">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-gold text-primary-foreground rounded-full text-xs font-sans font-semibold">
-                    Most Popular
+                    {t("membership_teaser_premium_badge", "Most Popular")}
                   </div>
-                  <h3 className="text-xl font-serif font-semibold mb-2">Premium</h3>
+                  <h3 className="text-xl font-serif font-semibold mb-2">{t("membership_teaser_premium_title", "Premium")}</h3>
                   <p className="text-sm text-muted-foreground font-sans mb-6">
-                    Everything in Basic, plus a private community of like-minded women on the same path.
+                    {t("membership_teaser_premium_subtitle", "Everything in Basic, plus a private community of like-minded women on the same path.")}
                   </p>
                   <div className="mb-6">
                     <span className="text-4xl font-serif font-bold text-foreground">€47</span>
-                    <span className="text-sm text-muted-foreground font-sans"> /month</span>
+                    <span className="text-sm text-muted-foreground font-sans"> {t("membership_teaser_premium_period", "/month")}</span>
                   </div>
                   <ul className="space-y-2 mb-8 flex-1">
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>Everything in Basic</span>
+                      <span>{t("membership_teaser_premium_feature_1", "Everything in Basic")}</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>Access to the private Skool community</span>
+                      <span>{t("membership_teaser_premium_feature_2", "Access to the private Skool community")}</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>Additional Hub: The Transformed Self</span>
+                      <span>{t("membership_teaser_premium_feature_3", "Additional Hub: The Transformed Self")}</span>
                     </li>
                     <li className="flex items-start gap-2 text-sm font-sans text-foreground/80">
                       <Check size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span>Additional Hub: Navigating Expat Life with Chronic Pain</span>
+                      <span>{t("membership_teaser_premium_feature_4", "Additional Hub: Navigating Expat Life with Chronic Pain")}</span>
                     </li>
                   </ul>
                   <Link
                     to="/pricing"
                     className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all"
                   >
-                    Go Premium Monthly
+                    {t("membership_teaser_premium_cta", "Go Premium Monthly")}
                     <ArrowRight size={16} />
                   </Link>
                 </div>
@@ -444,7 +455,7 @@ const Membership = () => {
                   to="/resilient-hubs"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
                 >
-                  Explore the full 12-month Membership
+                  {t("membership_offer_explore_cta", "Explore the full 12-month Membership")}
                 </Link>
               </div>
             </div>
@@ -457,15 +468,15 @@ const Membership = () => {
             <div className="max-w-3xl mx-auto">
               <div className="bg-gradient-warm rounded-2xl border border-border p-8 md:p-12">
                 <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-10 text-center">
-                  How to Get Started
+                  {t("membership_howto_title", "How to Get Started")}
                 </h2>
 
                 <ol className="space-y-6">
                   {[
-                    "Choose the membership that suits you.",
-                    "Click Sign Up to create your personal account.",
-                    "Complete your secure payment via Stripe.",
-                    "You'll receive a welcome email and instant access to your private Dashboard with the full 12-month programme.",
+                    t("membership_howto_step_1", "Choose the membership that suits you."),
+                    t("membership_howto_step_2", "Click Sign Up to create your personal account."),
+                    t("membership_howto_step_3", "Complete your secure payment via Stripe."),
+                    t("membership_howto_step_4", "You'll receive a welcome email and instant access to your private Dashboard with the full 12-month programme."),
                   ].map((step, i) => (
                     <li key={i} className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-10 h-10 bg-gradient-gold text-primary-foreground rounded-full flex items-center justify-center font-serif font-semibold">
@@ -480,21 +491,21 @@ const Membership = () => {
               </div>
 
               <p className="text-center text-base md:text-lg text-foreground/80 font-sans italic mt-8 max-w-2xl mx-auto leading-relaxed">
-                The Membership program teaches you how to look after your mind, regulate stress, and grow self-awareness — one gentle practice at a time.
+                {t("membership_howto_note", "The Membership program teaches you how to look after your mind, regulate stress, and grow self-awareness — one gentle practice at a time.")}
               </p>
 
               <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-8 text-sm font-sans text-muted-foreground">
                 <span className="inline-flex items-center gap-2">
                   <Shield size={16} className="text-primary" />
-                  Secure payment via Stripe
+                  {t("membership_howto_badge_1", "Secure payment via Stripe")}
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Clock size={16} className="text-primary" />
-                  One-time payment — no auto-renewal
+                  {t("membership_howto_badge_2", "One-time payment — no auto-renewal")}
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Heart size={16} className="text-primary" />
-                  Instant access after payment
+                  {t("membership_howto_badge_3", "Instant access after payment")}
                 </span>
               </div>
             </div>
@@ -506,32 +517,32 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4 text-center">
-                Why Resilient Mind Is <span className="text-gradient-gold">Different</span>
+                {t("membership_whydifferent_title_prefix", "Why Resilient Mind Is ")}<span className="text-gradient-gold">{t("membership_whydifferent_title_highlight", "Different")}</span>
               </h2>
               <p className="text-center text-muted-foreground font-sans mb-12 max-w-2xl mx-auto">
-                This isn't generic self-help. It's a program built from real expatriate experience.
+                {t("membership_whydifferent_subtitle", "This isn't generic self-help. It's a program built from real expatriate experience.")}
               </p>
 
               <div className="grid md:grid-cols-2 gap-6">
                 {[
                   {
-                    title: "Built by someone who's lived it",
-                    desc: "Silvie has 13+ years of expatriate experience across multiple countries. Every technique in this program was forged in real life — not a textbook.",
+                    title: t("membership_whydifferent_1_title", "Built by someone who's lived it"),
+                    desc: t("shared_silvie_bio_long", "Silvie has 13+ years of expatriate experience across multiple countries. Every technique in this program was forged in real life — not a textbook."),
                     icon: Globe,
                   },
                   {
-                    title: "Three proven methods, one program",
-                    desc: "We combine EFT tapping (evidence-based stress relief), expressive art therapy (emotional processing), and guided meditation (inner calm) into a single, cohesive journey.",
+                    title: t("membership_whydifferent_2_title", "Three proven methods, one program"),
+                    desc: t("membership_whydifferent_2_desc", "We combine EFT tapping (evidence-based stress relief), expressive art therapy (emotional processing), and guided meditation (inner calm) into a single, cohesive journey."),
                     icon: Zap,
                   },
                   {
-                    title: "Made for busy expat lives",
-                    desc: "15–30 minutes daily. No live schedules. Group calls included with Premium membership. Watch when you want, practice at your own pace.",
+                    title: t("membership_whydifferent_3_title", "Made for busy expat lives"),
+                    desc: t("membership_whydifferent_3_desc", "15–30 minutes daily. No live schedules. Group calls included with Premium membership. Watch when you want, practice at your own pace."),
                     icon: Clock,
                   },
                   {
-                    title: "Not just coping — transforming",
-                    desc: "Other programs teach you to 'manage' challenges. We help you turn uncertainty, cultural stress, and identity shifts into actual sources of strength and growth.",
+                    title: t("membership_whydifferent_4_title", "Not just coping — transforming"),
+                    desc: t("membership_whydifferent_4_desc", "Other programs teach you to 'manage' challenges. We help you turn uncertainty, cultural stress, and identity shifts into actual sources of strength and growth."),
                     icon: Star,
                   },
                 ].map((item, i) => (
@@ -560,10 +571,10 @@ const Membership = () => {
           <div className="container px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4 text-center">
-                Frequently Asked Questions
+                {t("membership_faq_title", "Frequently Asked Questions")}
               </h2>
               <p className="text-center text-muted-foreground font-sans mb-12">
-                Everything you need to know before starting your journey.
+                {t("membership_faq_subtitle", "Everything you need to know before starting your journey.")}
               </p>
 
               <div className="space-y-3">
@@ -608,22 +619,22 @@ const Membership = () => {
                 <Heart size={36} className="text-white" />
               </div>
               <h2 className="text-2xl md:text-4xl font-serif font-bold mb-4">
-                Ready to feel like
+                {t("membership_final_title_prefix", "Ready to feel like")}
                 <br />
-                <span className="text-gradient-gold">yourself</span> again?
+                <span className="text-gradient-gold">{t("membership_final_title_highlight", "yourself")}</span>{t("membership_final_title_suffix", " again?")}
               </h2>
               <p className="text-base md:text-lg text-muted-foreground font-sans mb-8 max-w-2xl mx-auto">
-                Take the first gentle step today. No pressure — just support.
+                {t("membership_final_body", "Take the first gentle step today. No pressure — just support.")}
               </p>
               <a
                 href="#offer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-full shadow-gold hover:shadow-elevated transition-all hover:scale-105"
               >
-                Start your journey
+                {t("membership_final_cta", "Start your journey")}
                 <ArrowRight size={18} />
               </a>
               <p className="text-xs text-muted-foreground font-sans mt-4">
-                Pay as you go · Cancel anytime
+                {t("membership_final_cta_note", "Pay as you go · Cancel anytime")}
               </p>
             </div>
           </div>

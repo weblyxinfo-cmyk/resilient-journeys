@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil } from 'lucide-react';
+import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil, HelpCircle } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
 import AdminBookingCards from '@/components/admin/AdminBookingCards';
 import AdminUsers from '@/components/admin/AdminUsers';
@@ -14,6 +14,7 @@ import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import AdminResources from '@/components/admin/AdminResources';
 import AdminBlog from '@/components/admin/AdminBlog';
 import AdminCMS from '@/components/admin/AdminCMS';
+import AdminFaq from '@/components/admin/AdminFaq';
 import AdminBookings from '@/components/admin/AdminBookings';
 import AdminAvailability from '@/components/admin/AdminAvailability';
 import AdminInquiries from '@/components/admin/AdminInquiries';
@@ -152,7 +153,7 @@ const Admin = () => {
             </TabsContent>
 
             {/* WEBSITE — CMS text content. Nested Tabs so future editors
-                (membership tiers, FAQ, program quarters) can sit alongside
+                (membership tiers, program quarters) can sit alongside
                 the free-text editor without another top-level tab. */}
             <TabsContent value="website">
               <Tabs defaultValue="text" className="w-full">
@@ -160,8 +161,12 @@ const Admin = () => {
                   <TabsTrigger value="text" className="text-xs data-[state=active]:bg-white">
                     <Type className="h-3.5 w-3.5 mr-1.5" /> Page Text
                   </TabsTrigger>
+                  <TabsTrigger value="faq" className="text-xs data-[state=active]:bg-white">
+                    <HelpCircle className="h-3.5 w-3.5 mr-1.5" /> FAQ
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="text"><AdminCMS /></TabsContent>
+                <TabsContent value="faq"><AdminFaq /></TabsContent>
               </Tabs>
             </TabsContent>
 

@@ -7,7 +7,7 @@ const Hero = () => {
   const { t } = useCms();
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+    <section id="cms-homepage-hero" className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"

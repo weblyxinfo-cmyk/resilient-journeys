@@ -20,7 +20,7 @@ const IntroVideo = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section id="cms-homepage-intro_video" className="py-16 md:py-24 bg-background">
       <div className="container px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">

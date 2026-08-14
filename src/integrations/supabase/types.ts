@@ -275,6 +275,7 @@ export type Database = {
           field_type: string
           id: string
           key: string
+          label: string | null
           page: string
           section: string | null
           sort_order: number
@@ -288,6 +289,7 @@ export type Database = {
           field_type?: string
           id?: string
           key: string
+          label?: string | null
           page: string
           section?: string | null
           sort_order?: number
@@ -301,11 +303,54 @@ export type Database = {
           field_type?: string
           id?: string
           key?: string
+          label?: string | null
           page?: string
           section?: string | null
           sort_order?: number
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      cms_sections: {
+        Row: {
+          anchor: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          page: string
+          route: string
+          section_key: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          anchor?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          page: string
+          route: string
+          section_key: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          anchor?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          page?: string
+          route?: string
+          section_key?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -357,6 +402,39 @@ export type Database = {
           created_at?: string
           id?: string
           reason?: string | null
+        }
+        Relationships: []
+      }
+      faq_items: {
+        Row: {
+          answer: string
+          created_at: string
+          group_key: string
+          id: string
+          is_active: boolean
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          group_key: string
+          id?: string
+          is_active?: boolean
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          group_key?: string
+          id?: string
+          is_active?: boolean
+          question?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }

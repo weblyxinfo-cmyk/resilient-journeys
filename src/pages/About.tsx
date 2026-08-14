@@ -44,7 +44,7 @@ const About = () => {
       <main className="pt-20">
         {/* Hero Section */}
         <PageHero>
-            <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <div id="cms-about-intro" className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
               {/* Image */}
               <div className="relative order-2 lg:order-1">
                 <div className="relative rounded-3xl overflow-hidden shadow-elevated">

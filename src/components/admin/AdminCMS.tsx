@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, RotateCcw, ExternalLink, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +23,21 @@ interface CMSContent {
   field_type: 'text' | 'textarea' | 'html' | 'image_url' | 'video_url';
   sort_order: number;
   default_value: string | null;
+  // Client-facing name shown above the field ("Nadpis", "Text tlačítka").
+  // `key`/`description` stay visible but small — they're for the developer.
+  label: string | null;
+}
+
+interface CMSSection {
+  id: string;
+  page: string;
+  section_key: string;
+  title: string;
+  description: string | null;
+  anchor: string | null;
+  route: string;
+  sort_order: number;
+  is_active: boolean;
 }
 
 // Static list, not derived from existing rows — a page with zero seeded
@@ -34,6 +48,25 @@ const PAGES = [
   'resilient-hubs', 'free-guide', 'endometriosis', 'blog', 'footer', 'navbar',
   'legal', 'shared',
 ];
+
+// Client sees Czech page names, never the slug — the slug is what's stored
+// on cms_content.page / cms_sections.page so the two tables can join on it.
+const PAGE_LABELS: Record<string, string> = {
+  homepage: 'Domovská stránka',
+  about: 'O mně',
+  pricing: 'Ceník',
+  booking: 'Rezervace',
+  membership: 'Členství',
+  'resilient-hub': 'Resilient Hub',
+  'resilient-hubs': 'Resilient Huby',
+  'free-guide': 'Zdarma průvodce',
+  endometriosis: 'Endometrióza Hub',
+  blog: 'Blog',
+  footer: 'Patička',
+  navbar: 'Navigace',
+  legal: 'Právní stránky',
+  shared: 'Sdílené (více stránek)',
+};
 
 // Only pages that map to a single real route get a "view on site" link.
 // footer/navbar/legal/shared span multiple pages, so there is no one URL.
@@ -54,13 +87,20 @@ type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
   idle: '',
-  pending: 'Unsaved changes',
-  saving: 'Saving…',
-  saved: 'Saved',
-  error: 'Error saving',
+  pending: 'Neuloženo',
+  saving: 'Ukládám…',
+  saved: 'Uloženo',
+  error: 'Chyba při ukládání',
 };
 
 const AUTOSAVE_DELAY_MS = 800;
+
+// Shrunk live preview of the section, rendered in an iframe pointed at the
+// real page. Fixed scale/height keep every section card the same height
+// regardless of how tall the actual page section is.
+const PREVIEW_SCALE = 0.3;
+const PREVIEW_IFRAME_HEIGHT = 1000;
+const PREVIEW_CONTAINER_HEIGHT = Math.round(PREVIEW_IFRAME_HEIGHT * PREVIEW_SCALE);
 
 // Grows with the value instead of a fixed `rows`, so a one-line field isn't
 // three empty rows tall and a long paragraph isn't a tiny scrollbox.
@@ -103,16 +143,120 @@ const SaveIndicator = ({ status }: { status: SaveStatus }) => {
   return <span className={`text-xs ${color}`}>{STATUS_LABEL[status]}</span>;
 };
 
+// Live preview of one section, pointed at `route#anchor` on the real site.
+// Never blocks editing: a load failure just replaces the iframe with a
+// message + link, the fields below always render regardless.
+const SectionPreview = ({ section, refreshKey }: { section: CMSSection; refreshKey: number }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    setFailed(false);
+  }, [section.id, refreshKey]);
+
+  const liveUrl = `${section.route}${section.anchor ? `#${section.anchor}` : ''}`;
+  const previewSrc = `${section.route}?cmsPreview=${refreshKey}${section.anchor ? `#${section.anchor}` : ''}`;
+
+  const handleLoad = () => {
+    setLoaded(true);
+    if (!section.anchor) return;
+    const iframe = iframeRef.current;
+    const anchor = section.anchor;
+    if (!iframe) return;
+
+    // This is a client-rendered SPA: the iframe's `load` event fires once
+    // index.html's initial (near-empty) HTML has loaded, well before React
+    // mounts and the CMS content query resolves — so the browser's built-in
+    // one-shot scroll-to-#fragment usually runs before the target element
+    // exists and does nothing. Poll briefly for the element instead.
+    let attempts = 0;
+    const tryScroll = () => {
+      attempts += 1;
+      let el: HTMLElement | null = null;
+      try {
+        el = iframe.contentDocument?.getElementById(anchor) ?? null;
+      } catch {
+        return; // not same-origin for some reason — leave the preview as-is
+      }
+      if (el) {
+        el.scrollIntoView({ block: 'start' });
+        return;
+      }
+      if (attempts < 20) setTimeout(tryScroll, 150);
+    };
+    tryScroll();
+  };
+
+  return (
+    <div className="space-y-2">
+      <div
+        className="relative rounded-lg border border-border bg-muted/30 overflow-hidden"
+        style={{ height: PREVIEW_CONTAINER_HEIGHT }}
+      >
+        {failed ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+            <p>Náhled se nepodařilo načíst.</p>
+            <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+              Otevřít stránku v nové záložce
+            </a>
+          </div>
+        ) : (
+          <>
+            {!loaded && (
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+                Načítám náhled…
+              </div>
+            )}
+            <iframe
+              key={`${section.id}-${refreshKey}`}
+              ref={iframeRef}
+              src={previewSrc}
+              title={`Náhled — ${section.title}`}
+              onLoad={handleLoad}
+              onError={() => setFailed(true)}
+              // pointer-events: none — this is a picture of the page, not the
+              // page itself; clicking through here would navigate the client
+              // away from the admin.
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: `${100 / PREVIEW_SCALE}%`,
+                height: PREVIEW_IFRAME_HEIGHT,
+                transform: `scale(${PREVIEW_SCALE})`,
+                transformOrigin: 'top left',
+                border: 'none',
+                pointerEvents: 'none',
+              }}
+            />
+          </>
+        )}
+      </div>
+      <Button size="sm" variant="outline" asChild>
+        <a href={liveUrl} target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Otevřít na webu
+        </a>
+      </Button>
+    </div>
+  );
+};
+
 const AdminCMS = () => {
   const queryClient = useQueryClient();
 
   const [content, setContent] = useState<CMSContent[]>([]);
+  const [sections, setSections] = useState<CMSSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<CMSContent | null>(null);
   const [activePage, setActivePage] = useState<string>('homepage');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<Record<string, SaveStatus>>({});
+  // Bumped per cms_sections.id after a field in that section saves — changes
+  // the iframe's `key`/src so it reloads and re-scrolls to show the result.
+  const [previewRefresh, setPreviewRefresh] = useState<Record<string, number>>({});
 
   // Latest typed value per row, read by the debounce timer / blur flush —
   // kept out of state so scheduling a save doesn't need a stale closure.
@@ -126,6 +270,7 @@ const AdminCMS = () => {
   const [formData, setFormData] = useState({
     key: '',
     value: '',
+    label: '',
     description: '',
     page: 'homepage',
     section: '',
@@ -134,6 +279,7 @@ const AdminCMS = () => {
 
   useEffect(() => {
     fetchContent();
+    fetchSections();
     const timersAtMount = timers.current;
     return () => {
       Object.values(timersAtMount).forEach(clearTimeout);
@@ -166,33 +312,55 @@ const AdminCMS = () => {
       .order('key', { ascending: true });
 
     if (error) {
-      toast.error('Error loading content: ' + error.message);
+      toast.error('Chyba při načítání obsahu: ' + error.message);
     } else {
       // `value` has no NOT NULL constraint in the DB (a row inserted outside
       // this admin, e.g. directly in Supabase Studio, could leave it NULL),
       // but every render path here treats it as a plain string — normalize
       // once on load instead of null-guarding every call site.
       //
-      // `default_value` doesn't exist on production until migration 090000
-      // runs — `select('*')` then omits the column entirely, so `row` has
-      // `default_value: undefined`, not `null`. Every check in this file
-      // (Revert button, Delete button, handleRevert) tests strictly against
-      // `null`; left as `undefined` it slips past `=== null` guards and
-      // `!== null` reads as true, which would show "Revert to original
-      // text" on every row and, if clicked, save `undefined` over a real
-      // value. Normalize to `null` here so the rest of the component only
-      // ever sees the two states it already handles.
+      // `default_value`/`label` don't exist on production until their
+      // migrations run — until then `select('*')` omits the columns
+      // entirely, so `row` has them as `undefined`, not `null`. Every check
+      // in this file that tests strictly against `null` (Revert button,
+      // Delete button, handleRevert) would otherwise slip past those guards.
+      // Normalize both to `null` here so the rest of the component only
+      // ever sees the states it already handles.
       setContent(
-        (data as CMSContent[]).map((row) => ({ ...row, value: row.value ?? '', default_value: row.default_value ?? null })),
+        (data as CMSContent[]).map((row) => ({
+          ...row,
+          value: row.value ?? '',
+          default_value: row.default_value ?? null,
+          label: row.label ?? null,
+        })),
       );
     }
     setLoading(false);
+  };
+
+  const fetchSections = async () => {
+    const { data, error } = await supabase
+      .from('cms_sections')
+      .select('*')
+      .order('page', { ascending: true })
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      // Sections are a display layer on top of cms_content, not a
+      // requirement for editing it — if the table isn't there yet (or the
+      // query fails for any reason) every field still shows up, grouped
+      // into "Ostatní", just without the human section titles or preview.
+      toast.error('Náhledy sekcí se nepodařilo načíst: ' + error.message);
+      return;
+    }
+    setSections((data as CMSSection[]) ?? []);
   };
 
   const resetForm = () => {
     setFormData({
       key: '',
       value: '',
+      label: '',
       description: '',
       page: activePage || 'homepage',
       section: '',
@@ -206,6 +374,7 @@ const AdminCMS = () => {
     setFormData({
       key: item.key,
       value: item.value,
+      label: item.label || '',
       description: item.description || '',
       page: item.page,
       section: item.section || '',
@@ -220,6 +389,7 @@ const AdminCMS = () => {
     const contentData = {
       key: formData.key,
       value: formData.value,
+      label: formData.label || null,
       description: formData.description || null,
       page: formData.page,
       section: formData.section || null,
@@ -230,18 +400,18 @@ const AdminCMS = () => {
       const { error } = await supabase.from('cms_content').update(contentData).eq('id', editingContent.id);
 
       if (error) {
-        toast.error('Error saving: ' + error.message);
+        toast.error('Chyba při ukládání: ' + error.message);
         return;
       }
-      toast.success('Content updated');
+      toast.success('Obsah upraven');
     } else {
       const { error } = await supabase.from('cms_content').insert(contentData);
 
       if (error) {
-        toast.error('Error creating: ' + error.message);
+        toast.error('Chyba při vytváření: ' + error.message);
         return;
       }
-      toast.success('Content created');
+      toast.success('Pole vytvořeno');
     }
 
     setDialogOpen(false);
@@ -251,17 +421,24 @@ const AdminCMS = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this content?')) return;
+    if (!confirm('Opravdu smazat toto pole?')) return;
 
     const { error } = await supabase.from('cms_content').delete().eq('id', id);
 
     if (error) {
-      toast.error('Error deleting: ' + error.message);
+      toast.error('Chyba při mazání: ' + error.message);
     } else {
-      toast.success('Content deleted');
+      toast.success('Pole smazáno');
       queryClient.invalidateQueries({ queryKey: ['cms_content'] });
       setContent((prev) => prev.filter((c) => c.id !== id));
     }
+  };
+
+  const bumpPreview = (page: string, section: string | null) => {
+    if (!section) return;
+    const match = sections.find((s) => s.page === page && s.section_key === section);
+    if (!match) return;
+    setPreviewRefresh((prev) => ({ ...prev, [match.id]: (prev[match.id] ?? 0) + 1 }));
   };
 
   // Saves in place — updates the one row in local state instead of
@@ -295,7 +472,7 @@ const AdminCMS = () => {
           // Keep pendingValues.current[id] intact — the unsaved edit must
           // not disappear just because this attempt failed. A later edit
           // (which reschedules a timer) or blur will retry.
-          toast.error('Error saving: ' + error.message);
+          toast.error('Chyba při ukládání: ' + error.message);
           setStatus((s) => ({ ...s, [id]: 'error' }));
           return;
         }
@@ -320,6 +497,11 @@ const AdminCMS = () => {
       setTimeout(() => {
         setStatus((s) => (s[id] === 'saved' ? { ...s, [id]: 'idle' } : s));
       }, 2000);
+
+      // Refresh the section's live preview so the client sees the result
+      // without having to click anything — the main point of the preview.
+      const saved = content.find((c) => c.id === id);
+      if (saved) bumpPreview(saved.page, saved.section);
     } finally {
       inFlight.current[id] = false;
     }
@@ -359,6 +541,7 @@ const AdminCMS = () => {
   const matchesSearch = (item: CMSContent) =>
     !searchLower ||
     item.key.toLowerCase().includes(searchLower) ||
+    (item.label ?? '').toLowerCase().includes(searchLower) ||
     (item.description ?? '').toLowerCase().includes(searchLower) ||
     item.value.toLowerCase().includes(searchLower);
 
@@ -368,17 +551,46 @@ const AdminCMS = () => {
     [content, searchLower],
   );
 
-  const pageContent = useMemo(() => content.filter((c) => c.page === activePage), [content, activePage]);
+  const sectionLabel = (page: string, sectionKey: string | null) => {
+    if (!sectionKey) return 'Ostatní';
+    const match = sections.find((s) => s.page === page && s.section_key === sectionKey);
+    return match?.title ?? sectionKey.replace(/_/g, ' ');
+  };
 
-  const sections = useMemo(() => {
-    const map = new Map<string, CMSContent[]>();
+  const pageContent = useMemo(() => content.filter((c) => c.page === activePage), [content, activePage]);
+  const sectionsForPage = useMemo(
+    () => sections.filter((s) => s.page === activePage),
+    [sections, activePage],
+  );
+
+  // Groups this page's fields under the section cards that actually exist
+  // (in their defined order), then collects everything else — a key with
+  // no matching cms_sections row, or no section at all — into a trailing
+  // "Ostatní" bucket so nothing edited before this rebuild is ever hidden.
+  const sectionGroups = useMemo(() => {
+    const bySection = new Map<string, CMSContent[]>();
     for (const item of pageContent) {
-      const key = item.section || '(no section)';
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(item);
+      const groupKey = item.section ?? '';
+      if (!bySection.has(groupKey)) bySection.set(groupKey, []);
+      bySection.get(groupKey)!.push(item);
     }
-    return Array.from(map.entries());
-  }, [pageContent]);
+
+    const groups: { section: CMSSection | null; items: CMSContent[] }[] = [];
+    const claimed = new Set<string>();
+
+    for (const section of sectionsForPage) {
+      const items = bySection.get(section.section_key) ?? [];
+      claimed.add(section.section_key);
+      groups.push({ section, items });
+    }
+
+    const orphanItems = pageContent.filter((item) => !claimed.has(item.section ?? ''));
+    if (orphanItems.length > 0) {
+      groups.push({ section: null, items: orphanItems });
+    }
+
+    return groups;
+  }, [pageContent, sectionsForPage]);
 
   const renderField = (item: CMSContent) => {
     const isSingleLine = item.field_type === 'text' || item.field_type === 'image_url' || item.field_type === 'video_url';
@@ -388,27 +600,32 @@ const AdminCMS = () => {
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <code className="text-sm font-mono bg-muted px-2 py-0.5 rounded">{item.key}</code>
+                <span className="text-sm font-medium">{item.label || item.key.replace(/_/g, ' ')}</span>
                 <Badge variant="outline" className="text-xs">{item.field_type}</Badge>
-                {searchLower && <Badge variant="secondary" className="text-xs capitalize">{item.page.replace('-', ' ')}</Badge>}
+                {searchLower && (
+                  <Badge variant="secondary" className="text-xs">
+                    {PAGE_LABELS[item.page] ?? item.page} · {sectionLabel(item.page, item.section)}
+                  </Badge>
+                )}
                 <SaveIndicator status={status[item.id] ?? 'idle'} />
               </div>
-              {item.description && <p className="text-sm text-muted-foreground mb-3">{item.description}</p>}
+              {item.description && <p className="text-sm text-muted-foreground mb-1">{item.description}</p>}
+              <code className="text-[10px] text-muted-foreground/60">{item.key}</code>
             </div>
             <div className="flex gap-1 items-start">
               {PAGE_TO_PATH[item.page] && (
-                <Button size="sm" variant="ghost" asChild title="View on site">
+                <Button size="sm" variant="ghost" asChild title="Zobrazit na webu">
                   <a href={PAGE_TO_PATH[item.page]} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 </Button>
               )}
               {item.default_value !== null && item.value !== item.default_value && (
-                <Button size="sm" variant="ghost" onClick={() => handleRevert(item)} title="Revert to original text">
+                <Button size="sm" variant="ghost" onClick={() => handleRevert(item)} title="Vrátit původní text">
                   <RotateCcw className="h-4 w-4" />
                 </Button>
               )}
-              <Button size="sm" variant="ghost" onClick={() => handleEdit(item)} title="Edit key/page/section">
+              <Button size="sm" variant="ghost" onClick={() => handleEdit(item)} title="Upravit klíč/stránku/sekci/popisek">
                 <Pencil className="h-4 w-4" />
               </Button>
               {/* Seeded rows can't be deleted — that would silently drop a key
@@ -420,7 +637,7 @@ const AdminCMS = () => {
                   variant="ghost"
                   onClick={() => handleDelete(item.id)}
                   className="text-destructive hover:text-destructive"
-                  title="Delete (only available for manually-added fields)"
+                  title="Smazat (jen u ručně přidaných polí)"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -445,7 +662,7 @@ const AdminCMS = () => {
 
           {item.field_type === 'image_url' && item.value && (
             <div className="mt-2">
-              <img src={item.value} alt="Preview" className="max-w-xs rounded border" />
+              <img src={item.value} alt="Náhled" className="max-w-xs rounded border" />
             </div>
           )}
           {item.field_type === 'video_url' && item.value && (
@@ -455,9 +672,44 @@ const AdminCMS = () => {
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                title="Video preview"
+                title="Náhled videa"
               />
             </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderSectionGroup = ({ section, items }: { section: CMSSection | null; items: CMSContent[] }) => {
+    if (!section) {
+      return (
+        <Card key="other" className="border-dashed">
+          <CardHeader>
+            <CardTitle className="text-lg">Ostatní</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Pole, která ještě nemají přiřazenou sekci s náhledem. Pořád jdou upravovat, jen bez obrázku nahoře.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">{items.map(renderField)}</CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <Card key={section.id}>
+        <CardHeader>
+          <CardTitle className="text-lg">{section.title}</CardTitle>
+          {section.description && <p className="text-sm text-muted-foreground">{section.description}</p>}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {section.anchor && (
+            <SectionPreview section={section} refreshKey={previewRefresh[section.id] ?? 0} />
+          )}
+          {items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Tato sekce zatím nemá žádná textová pole.</p>
+          ) : (
+            <div className="space-y-4 pt-2">{items.map(renderField)}</div>
           )}
         </CardContent>
       </Card>
@@ -468,25 +720,27 @@ const AdminCMS = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-serif font-semibold">Website Content Manager</h2>
-          <p className="text-sm text-muted-foreground">Edit text content directly on your website. Changes save automatically.</p>
+          <h2 className="text-2xl font-serif font-semibold">Správa textů na webu</h2>
+          <p className="text-sm text-muted-foreground">
+            Vyberte stránku, pak sekci — nahoře uvidíte, jak vypadá na webu, dole texty k úpravě. Ukládá se automaticky.
+          </p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm} className="bg-gold hover:bg-gold-dark">
               <Plus className="h-4 w-4 mr-2" />
-              Add Content Field
+              Přidat pole
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingContent ? 'Edit' : 'Add'} Content Field</DialogTitle>
+              <DialogTitle>{editingContent ? 'Upravit' : 'Přidat'} pole</DialogTitle>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="key">Key (unique identifier) *</Label>
+                <Label htmlFor="key">Klíč (jedinečný identifikátor) *</Label>
                 <Input
                   id="key"
                   value={formData.key}
@@ -495,30 +749,41 @@ const AdminCMS = () => {
                   required
                   disabled={!!editingContent}
                 />
-                <p className="text-xs text-muted-foreground">Use snake_case, e.g. page_section_field</p>
+                <p className="text-xs text-muted-foreground">snake_case, např. stranka_sekce_pole</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="label">Popisek pro klienta</Label>
+                <Input
+                  id="label"
+                  value={formData.label}
+                  onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                  placeholder="např. Nadpis, Text tlačítka"
+                />
+                <p className="text-xs text-muted-foreground">Toto se zobrazí místo klíče nad polem.</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Popis pro vývojáře</Label>
                 <Input
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="What is this field for?"
+                  placeholder="K čemu toto pole slouží?"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="page">Page *</Label>
+                  <Label htmlFor="page">Stránka *</Label>
                   <Select value={formData.page} onValueChange={(v) => setFormData({ ...formData, page: v })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {PAGES.map((page) => (
-                        <SelectItem key={page} value={page} className="capitalize">
-                          {page.replace('-', ' ')}
+                        <SelectItem key={page} value={page}>
+                          {PAGE_LABELS[page] ?? page}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -526,34 +791,37 @@ const AdminCMS = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="section">Section</Label>
+                  <Label htmlFor="section">Sekce</Label>
                   <Input
                     id="section"
                     value={formData.section}
                     onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                    placeholder="e.g. hero, features"
+                    placeholder="např. hero, services"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Bez shody se zobrazí v „Ostatní" — pořád editovatelné.
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="field_type">Field Type *</Label>
+                <Label htmlFor="field_type">Typ pole *</Label>
                 <Select value={formData.field_type} onValueChange={(v: string) => setFormData({ ...formData, field_type: v as CMSContent['field_type'] })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="text">Text (single line)</SelectItem>
-                    <SelectItem value="textarea">Textarea (multi-line)</SelectItem>
-                    <SelectItem value="html">HTML (rich content)</SelectItem>
-                    <SelectItem value="image_url">Image URL</SelectItem>
-                    <SelectItem value="video_url">Video URL (YouTube/Vimeo)</SelectItem>
+                    <SelectItem value="text">Text (jeden řádek)</SelectItem>
+                    <SelectItem value="textarea">Textarea (víc řádků)</SelectItem>
+                    <SelectItem value="html">HTML</SelectItem>
+                    <SelectItem value="image_url">URL obrázku</SelectItem>
+                    <SelectItem value="video_url">URL videa (YouTube/Vimeo)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="value">Value *</Label>
+                <Label htmlFor="value">Hodnota *</Label>
                 {formData.field_type === 'text' || formData.field_type === 'image_url' || formData.field_type === 'video_url' ? (
                   <Input
                     id="value"
@@ -574,10 +842,10 @@ const AdminCMS = () => {
 
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="bg-gold hover:bg-gold-dark flex-1">
-                  {editingContent ? 'Update' : 'Create'} Field
+                  {editingContent ? 'Uložit' : 'Vytvořit'} pole
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  Zrušit
                 </Button>
               </div>
             </form>
@@ -590,7 +858,7 @@ const AdminCMS = () => {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by key, description, or text…"
+          placeholder="Hledat podle textu, klíče nebo popisku…"
           className="pl-9"
         />
       </div>
@@ -598,7 +866,7 @@ const AdminCMS = () => {
       {searchLower ? (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            {searchResults.length} result{searchResults.length === 1 ? '' : 's'} across all pages
+            {searchResults.length} výsledek/ů napříč všemi stránkami
           </p>
           {searchResults.map(renderField)}
         </div>
@@ -606,39 +874,25 @@ const AdminCMS = () => {
         <Tabs value={activePage} onValueChange={setActivePage}>
           <TabsList className="bg-cream/50 flex-wrap h-auto gap-1">
             {PAGES.map((page) => (
-              <TabsTrigger key={page} value={page} className="capitalize">
-                {page.replace('-', ' ')}
+              <TabsTrigger key={page} value={page}>
+                {PAGE_LABELS[page] ?? page}
               </TabsTrigger>
             ))}
           </TabsList>
 
           {PAGES.map((page) => (
-            <TabsContent key={page} value={page}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="capitalize">{page.replace('-', ' ')} Content</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <p className="text-muted-foreground">Loading...</p>
-                  ) : pageContent.length === 0 ? (
-                    <p className="text-muted-foreground">No content fields for this page yet.</p>
-                  ) : (
-                    <Accordion type="multiple" defaultValue={sections.map(([sectionKey]) => sectionKey)} key={activePage}>
-                      {sections.map(([sectionKey, items]) => (
-                        <AccordionItem key={sectionKey} value={sectionKey}>
-                          <AccordionTrigger className="capitalize">
-                            {sectionKey.replace(/_/g, ' ')} <span className="text-muted-foreground font-normal ml-2">({items.length})</span>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="space-y-4">{items.map(renderField)}</div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  )}
-                </CardContent>
-              </Card>
+            <TabsContent key={page} value={page} className="space-y-4">
+              {loading ? (
+                <p className="text-muted-foreground">Načítám…</p>
+              ) : page === activePage && sectionGroups.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground">Tato stránka zatím nemá žádná textová pole.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                page === activePage && sectionGroups.map(renderSectionGroup)
+              )}
             </TabsContent>
           ))}
         </Tabs>

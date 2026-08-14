@@ -38,13 +38,20 @@ export const CmsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 /**
- * `t(key, fallback)` — the fallback is the text that used to be hardcoded, so
- * the page renders correctly before the query resolves and stays correct if the
- * row is missing, blank, or the request fails.
+ * `t(key, fallback, label?)` — the fallback is the text that used to be
+ * hardcoded, so the page renders correctly before the query resolves and
+ * stays correct if the row is missing, blank, or the request fails.
+ *
+ * `label` is not read here — it does nothing at runtime. It exists so
+ * `scripts/cms-seed.mjs` can pick up a client-facing field name (e.g.
+ * `t("homepage_hero_title", "...", "Nadpis")`) straight from the call site
+ * when generating a seed migration, instead of a developer having to write
+ * Czech labels by hand in a separate file that drifts from the code. See
+ * the script's header comment for the full convention.
  */
 export const useCms = () => {
   const map = useContext(CmsContext);
   return {
-    t: (key: string, fallback: string) => map[key] ?? fallback,
+    t: (key: string, fallback: string, _label?: string) => map[key] ?? fallback,
   };
 };

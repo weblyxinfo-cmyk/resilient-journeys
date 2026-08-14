@@ -78,7 +78,7 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div>
+          <div id="cms-shared-contact">
             <h4 className="font-serif font-semibold text-lg mb-4">Contact</h4>
             <ul className="space-y-3 text-muted-foreground font-sans">
               <li><a href={`mailto:${contactEmail}`} className="hover:text-primary transition-colors">{contactEmail}</a></li>

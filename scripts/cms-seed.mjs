@@ -17,6 +17,36 @@
 // "Has a seed migration" is checked against files in supabase/migrations/,
 // not against the live database — this script must never connect to
 // production (see the hard constraints in docs/cms-faze0-report.md).
+//
+// --- label + sort_order (docs/cms-visual-admin.md) --------------------------
+//
+// The visual admin shows a client-facing `label` above each field ("Nadpis",
+// not "homepage_hero_title") and orders fields within a section by
+// `sort_order`. A heuristic can guess `section`/`description`/`field_type`
+// well enough from the key and fallback (see below), but it cannot invent a
+// good Czech label — that has to come from a person. Rather than maintaining
+// a second file mapping key → label that inevitably drifts from the t() call
+// it describes, `t()` takes an optional third argument:
+//
+//   t("homepage_hero_title", "You Transform Uncertainty...", "Nadpis — druhý řádek")
+//
+// It does nothing at runtime (see the comment in src/hooks/useCms.tsx) — this
+// script is the only reader. `cms:gen` picks it up as `label` for the
+// generated row; a t() call left at two arguments generates a row with
+// `label = NULL` (admin falls back to showing the key) and `cms:check` warns
+// (not fails — this is a style nudge, not a build break) so it isn't
+// forgotten wholesale on a big migration.
+//
+// `sort_order` is assigned automatically: rows are numbered in steps of 10,
+// per (page, section), in the order their t() calls are found — which is
+// each file's top-to-bottom source order, files walked in directory order.
+// This matches the rendered page order for the common case (a section's
+// fields are usually written in the order they render), but not always —
+// e.g. Services.tsx declares its `services`/`approaches`/`whoItsFor` arrays
+// in a different order than the JSX below renders them. Generated
+// sort_order, like the guessed section/description, is a starting point —
+// check it against the actual page before merging, same as the rest of the
+// generated migration.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -87,17 +117,27 @@ function collectTCalls() {
         ts.isCallExpression(node) &&
         ts.isIdentifier(node.expression) &&
         node.expression.text === 't' &&
-        node.arguments.length === 2
+        (node.arguments.length === 2 || node.arguments.length === 3)
       ) {
-        const [keyArg, fallbackArg] = node.arguments;
+        const [keyArg, fallbackArg, labelArg] = node.arguments;
         const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
 
         if (!ts.isStringLiteralLike(keyArg) || !ts.isStringLiteralLike(fallbackArg)) {
           warnings.push(
             `${relFile}:${line + 1} — t() call with a non-literal key or fallback, skipped (can't generate a static seed for it)`,
           );
+        } else if (labelArg && !ts.isStringLiteralLike(labelArg)) {
+          warnings.push(
+            `${relFile}:${line + 1} — t() call with a non-literal label (3rd argument), skipped (can't generate a static seed for it)`,
+          );
         } else {
-          calls.push({ file: relFile, line: line + 1, key: keyArg.text, fallback: fallbackArg.text });
+          calls.push({
+            file: relFile,
+            line: line + 1,
+            key: keyArg.text,
+            fallback: fallbackArg.text,
+            label: labelArg ? labelArg.text : undefined,
+          });
         }
       }
       ts.forEachChild(node, visit);
@@ -196,10 +236,16 @@ function skipTrivia(text, i) {
   return i;
 }
 
-// Returns Map<key, { value, file }> — the value each key would end up with
-// after every migration in supabase/migrations/ (in filename/chronological
-// order) is applied, tracking INSERT (only sets if unset, same as
-// ON CONFLICT DO NOTHING) and UPDATE ... SET value = '...' WHERE key = '...'.
+// Returns Map<key, { value, label, file }> — the value/label each key would
+// end up with after every migration in supabase/migrations/ (in filename/
+// chronological order) is applied, tracking INSERT (only sets if unset, same
+// as ON CONFLICT DO NOTHING) and UPDATE ... SET value = '...' WHERE key =
+// '...'. `label` is only ever populated from an INSERT whose column list
+// happens to include it (i.e. one this script generated) — no migration in
+// this repo backfills label via a single-key guarded UPDATE, so that shape
+// isn't taught to read it; see 20260814110300_backfill_cms_content_labels_and_sort_order.sql
+// for how the one-time legacy backfill did it instead (a bulk statement this
+// parser deliberately doesn't try to understand generically).
 function collectSeededState() {
   const state = new Map();
   const files = fs
@@ -220,6 +266,7 @@ function collectSeededState() {
       const columns = m[1].split(',').map((c) => c.trim().toLowerCase());
       const keyIdx = columns.indexOf('key');
       const valueIdx = columns.indexOf('value');
+      const labelIdx = columns.indexOf('label');
       if (keyIdx === -1 || valueIdx === -1) continue;
 
       let i = m.index + m[0].length;
@@ -237,8 +284,9 @@ function collectSeededState() {
         const { fields, next } = parseTuple(text, i);
         const key = fieldToValue(fields[keyIdx]);
         const value = fieldToValue(fields[valueIdx]);
+        const label = labelIdx !== -1 ? fieldToValue(fields[labelIdx]) : undefined;
         if (key && !state.has(key)) {
-          state.set(key, { value: value ?? '', file: filename });
+          state.set(key, { value: value ?? '', label, file: filename });
         }
         i = skipTrivia(text, next);
         if (text[i] === ',') {
@@ -298,6 +346,10 @@ function sqlLiteral(value) {
   return value === null ? 'NULL' : `'${value.replace(/'/g, "''")}'`;
 }
 
+function sqlInteger(value) {
+  return String(value);
+}
+
 function buildTimestamp() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -312,8 +364,10 @@ function renderMigration(rows) {
     '-- Auto-generated by `npm run cms:gen` (scripts/cms-seed.mjs).\n' +
     '-- value/default_value are copied verbatim from the t("key", "fallback")\n' +
     '-- call in the listed source file, so this is a no-op for what the page\n' +
-    '-- renders. section/description/field_type are best-effort guesses —\n' +
-    '-- review before committing.\n\n';
+    '-- renders. section/description/field_type are best-effort guesses, and\n' +
+    '-- so is sort_order if this section already has rows in the database —\n' +
+    '-- review all of it, and label (from the t() call\'s 3rd argument, if any)\n' +
+    '-- before committing.\n\n';
   // The trailing `-- from file:line` comment must come AFTER the comma that
   // separates this tuple from the next one, not before it — a comma placed
   // after a `--` comment is itself commented out, which turns
@@ -324,11 +378,12 @@ function renderMigration(rows) {
     const comma = idx < rows.length - 1 ? ',' : '';
     return (
       `  (${sqlLiteral(r.key)}, ${sqlLiteral(r.value)}, ${sqlLiteral(r.value)}, ${sqlLiteral(r.description)}, ` +
-      `${sqlLiteral(r.page)}, ${sqlLiteral(r.section)}, ${sqlLiteral(r.field_type)})${comma} -- from ${r.file}:${r.line}`
+      `${sqlLiteral(r.page)}, ${sqlLiteral(r.section)}, ${sqlLiteral(r.field_type)}, ${sqlLiteral(r.label)}, ` +
+      `${sqlInteger(r.sort_order)})${comma} -- from ${r.file}:${r.line}`
     );
   });
   return (
-    `${header}INSERT INTO public.cms_content (key, value, default_value, description, page, section, field_type) VALUES\n` +
+    `${header}INSERT INTO public.cms_content (key, value, default_value, description, page, section, field_type, label, sort_order) VALUES\n` +
     `${lines.join('\n')}\nON CONFLICT (key) DO NOTHING;\n`
   );
 }
@@ -350,6 +405,16 @@ function runGenerate() {
   const byKey = groupByKey(calls);
   const missingFileMappings = new Set();
   const newRows = [];
+  // sort_order counter per (page, section) — see the header comment for why
+  // this is a starting point, not a guarantee, when a section already has
+  // rows in the database.
+  const sortCounters = new Map();
+  const nextSortOrder = (page, section) => {
+    const groupKey = `${page}::${section ?? ''}`;
+    const value = (sortCounters.get(groupKey) ?? 0) + 10;
+    sortCounters.set(groupKey, value);
+    return value;
+  };
 
   for (const [key, occurrences] of byKey) {
     if (seeded.has(key)) continue; // already has a migration, nothing to do
@@ -368,9 +433,20 @@ function runGenerate() {
       page,
       section,
       field_type,
+      label: first.label ?? null,
+      sort_order: nextSortOrder(page, section),
       file: first.file,
       line: first.line,
     });
+  }
+
+  const missingLabels = newRows.filter((r) => r.label === null);
+  if (missingLabels.length) {
+    console.warn(
+      `\n${missingLabels.length} new row(s) have no label (t() called with only 2 arguments) — ` +
+        'they will show the raw key in the admin until someone adds one:',
+    );
+    for (const r of missingLabels) console.warn(`  - ${r.key} (${r.file}:${r.line})`);
   }
 
   if (missingFileMappings.size) {
@@ -397,6 +473,7 @@ function runCheck() {
   const byKey = groupByKey(calls);
 
   let failed = false;
+  let labelWarnings = 0;
 
   for (const w of warnings) {
     console.warn(`[skip] ${w}`);
@@ -425,10 +502,26 @@ function runCheck() {
           `!== code fallback ${JSON.stringify(fallback)} (${occurrences[0].file}:${occurrences[0].line})`,
       );
     }
+
+    // Style nudge, not a failure: a key can be seeded fine (an existing
+    // legacy row, or one seeded by hand) without ever going through a 3-arg
+    // t() call, so a missing label here doesn't mean anything is broken —
+    // just that the admin will show this field's raw key until someone adds
+    // one, either as the 3rd t() argument or directly in the admin.
+    const codeLabel = occurrences[0].label;
+    if (codeLabel && seededRow.label !== codeLabel) {
+      labelWarnings += 1;
+      console.warn(
+        `[label-mismatch] "${key}": code passes label ${JSON.stringify(codeLabel)} ` +
+          `(${occurrences[0].file}:${occurrences[0].line}) but the seed migration has ` +
+          `${JSON.stringify(seededRow.label ?? null)} (${seededRow.file}) — admin shows the seeded value.`,
+      );
+    }
   }
 
   if (!failed) {
     console.log(`OK — ${byKey.size} t() key(s) checked against supabase/migrations/, all seeded and matching.`);
+    if (labelWarnings) console.log(`(${labelWarnings} label mismatch warning(s) above — not a failure.)`);
     return 0;
   }
   return 1;

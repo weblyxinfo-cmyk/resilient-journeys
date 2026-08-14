@@ -168,7 +168,7 @@ const Services = () => {
 
       <div className="container relative z-10 px-4">
         {/* Header — Why Join Resilient Mind? */}
-        <div className="max-w-6xl mx-auto mb-16">
+        <div id="cms-homepage-why_join" className="max-w-6xl mx-auto mb-16">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
             {/* Text */}
             <div className="order-2 lg:order-1">
@@ -210,7 +210,7 @@ const Services = () => {
         </div>
 
         {/* Why Our Approach Works */}
-        <div className="max-w-5xl mx-auto mb-20">
+        <div id="cms-homepage-approach" className="max-w-5xl mx-auto mb-20">
           <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-12 text-center">
             Why Our Approach Works
           </h2>
@@ -232,7 +232,7 @@ const Services = () => {
         </div>
 
         {/* Who It's For */}
-        <div className="max-w-3xl mx-auto mb-20 bg-card rounded-2xl p-8 border border-border">
+        <div id="cms-homepage-who_its_for" className="max-w-3xl mx-auto mb-20 bg-card rounded-2xl p-8 border border-border">
           <h3 className="text-2xl font-serif font-semibold mb-6 text-center text-gradient-gold">
             For Expats Ready to Thrive
           </h3>
@@ -249,7 +249,7 @@ const Services = () => {
         </div>
 
         {/* Ways to Work Together */}
-        <div className="max-w-3xl mx-auto mb-14 text-center">
+        <div id="cms-homepage-ways_to_work" className="max-w-3xl mx-auto mb-14 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
             <Sparkles size={16} className="text-primary" />
             <span className="text-sm font-sans font-medium text-primary">
@@ -280,7 +280,7 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div id="cms-homepage-services" className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {services.map((service, index) => (
             <Link
               key={index}
