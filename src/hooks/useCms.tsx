@@ -1,10 +1,16 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 type CmsMap = Record<string, string>;
 
 const CmsContext = createContext<CmsMap>({});
+
+// True only inside AdminCMS.tsx's own live-preview iframe (?cmsPreview=1) —
+// nothing else ever loads a page this way. Gates the postMessage listener
+// below so the real site never reacts to a stray "message" event.
+const isLivePreviewFrame = () =>
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('cmsPreview') === '1';
 
 /**
  * Loads every cms_content row once and shares it with the whole app.
@@ -34,7 +40,32 @@ export const CmsProvider = ({ children }: { children: ReactNode }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  return <CmsContext.Provider value={data ?? {}}>{children}</CmsContext.Provider>;
+  // Values typed into AdminCMS's fields but not (yet) saved, mirrored here
+  // via postMessage so the preview iframe reflects a keystroke immediately
+  // instead of only after the DB round-trip. Purely local, display-only —
+  // saving still goes through the admin's own autosave, unrelated to this.
+  const [liveOverrides, setLiveOverrides] = useState<CmsMap>({});
+
+  useEffect(() => {
+    if (!isLivePreviewFrame()) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // Same-origin only, and only our own message shape — never trust
+      // postMessage content otherwise.
+      if (event.origin !== window.location.origin) return;
+      const msg = event.data;
+      if (!msg || typeof msg !== 'object' || msg.type !== 'cms-preview-update') return;
+      if (typeof msg.key !== 'string' || typeof msg.value !== 'string') return;
+      setLiveOverrides((prev) => ({ ...prev, [msg.key]: msg.value }));
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const map = { ...(data ?? {}), ...liveOverrides };
+
+  return <CmsContext.Provider value={map}>{children}</CmsContext.Provider>;
 };
 
 /**

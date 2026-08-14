@@ -98,7 +98,7 @@ const Membership = () => {
       <main className="pt-20">
         {/* 1. HERO — split layout: text left + photo right */}
         <PageHero>
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
+          <div id="cms-membership-hero" className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
             {/* LEFT — text content */}
             <div className="text-center md:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
@@ -160,7 +160,7 @@ const Membership = () => {
             {/* RIGHT — hero photo */}
             <div className="relative order-first md:order-last">
               <img
-                src="/membership-hero-photo.jpg"
+                src={t("membership_hero_photo", "/membership-hero-photo.jpg", "Fotka v úvodní sekci")}
                 alt={t("membership_hero_image_alt", "A woman writing in her journal, reconnecting with herself while living abroad")}
                 className="w-full h-auto rounded-2xl shadow-elevated"
                 loading="eager"
@@ -170,7 +170,7 @@ const Membership = () => {
         </PageHero>
 
         {/* 2. PROBLEM */}
-        <section className="py-16 md:py-20 bg-card">
+        <section id="cms-membership-problem" className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6">
@@ -187,7 +187,7 @@ const Membership = () => {
         </section>
 
         {/* 3. EMPATHY */}
-        <section className="py-16 md:py-20 bg-background">
+        <section id="cms-membership-empathy" className="py-16 md:py-20 bg-background">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6">
@@ -201,7 +201,7 @@ const Membership = () => {
         </section>
 
         {/* 4. SOLUTION */}
-        <section className="py-16 md:py-20 bg-card">
+        <section id="cms-membership-solution" className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-6">
@@ -215,7 +215,7 @@ const Membership = () => {
         </section>
 
         {/* 5. WHAT YOU GET */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-membership-getitems" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
@@ -273,7 +273,7 @@ const Membership = () => {
         </section>
 
         {/* 6. BENEFITS */}
-        <section className="py-16 md:py-24 bg-card">
+        <section id="cms-membership-benefits" className="py-16 md:py-24 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-10 text-center">
@@ -305,12 +305,12 @@ const Membership = () => {
         </section>
 
         {/* 7. TRANSFORMATION — Before / After */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-membership-transformation" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="max-w-5xl mx-auto mb-8 rounded-2xl overflow-hidden shadow-elevated">
                 <img
-                  src="/membership-transformation.jpg"
+                  src={t("membership_transformation_photo", "/membership-transformation.jpg", "Fotka proměny „před/po“")}
                   alt={t("membership_transformation_image_alt", "From feeling lost to feeling like yourself again — a visualization of the inner transformation")}
                   className="w-full h-auto block"
                   loading="lazy"
@@ -325,7 +325,7 @@ const Membership = () => {
         </section>
 
         {/* 8. ABOUT / BRIDGE */}
-        <section className="py-16 md:py-20 bg-card">
+        <section id="cms-membership-about" className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <p className="text-base md:text-lg text-foreground/85 font-sans leading-relaxed mb-6">
@@ -348,7 +348,7 @@ const Membership = () => {
         {/* 9. OFFER */}
         <section id="offer" className="py-16 md:py-24 bg-gradient-warm">
           <div className="container px-4">
-            <div className="max-w-4xl mx-auto">
+            <div id="cms-membership-offer" className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
                   {t("membership_offer_title_prefix", "Choose your ")}<span className="text-gradient-gold">{t("membership_offer_title_highlight", "path")}</span>
@@ -374,7 +374,7 @@ const Membership = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Basic */}
-                <div className="p-8 bg-card rounded-2xl border border-border flex flex-col">
+                <div id="cms-membership-teaser_basic" className="p-8 bg-card rounded-2xl border border-border flex flex-col">
                   <h3 className="text-xl font-serif font-semibold mb-2">{t("membership_teaser_basic_title", "Basic")}</h3>
                   <p className="text-sm text-muted-foreground font-sans mb-6">
                     {t("membership_teaser_basic_subtitle", "Self-paced guidance you can follow in your own time.")}
@@ -410,7 +410,7 @@ const Membership = () => {
                 </div>
 
                 {/* Premium */}
-                <div className="p-8 bg-card rounded-2xl border-2 border-primary/40 flex flex-col relative shadow-md">
+                <div id="cms-membership-teaser_premium" className="p-8 bg-card rounded-2xl border-2 border-primary/40 flex flex-col relative shadow-md">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-gold text-primary-foreground rounded-full text-xs font-sans font-semibold">
                     {t("membership_teaser_premium_badge", "Most Popular")}
                   </div>
@@ -494,7 +494,7 @@ const Membership = () => {
                 {t("membership_howto_note", "The Membership program teaches you how to look after your mind, regulate stress, and grow self-awareness — one gentle practice at a time.")}
               </p>
 
-              <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-8 text-sm font-sans text-muted-foreground">
+              <div id="cms-membership-howto" className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-8 text-sm font-sans text-muted-foreground">
                 <span className="inline-flex items-center gap-2">
                   <Shield size={16} className="text-primary" />
                   {t("membership_howto_badge_1", "Secure payment via Stripe")}
@@ -612,7 +612,7 @@ const Membership = () => {
         </section>
 
         {/* 12. FINAL CTA */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-membership-final_cta" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <div className="w-20 h-20 bg-gradient-gold rounded-full flex items-center justify-center mx-auto mb-6">

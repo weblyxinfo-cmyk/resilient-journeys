@@ -9,9 +9,9 @@ const Hero = () => {
   return (
     <section id="cms-homepage-hero" className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBg})` }}
+        style={{ backgroundImage: `url(${t("shared_hero_background_image", heroBg, "Podkladová fotka za úvodní obrazovkou")})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background" />
         <div className="absolute inset-0 bg-foreground/8" />

@@ -107,21 +107,21 @@ const Workshopy = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-1.jpg"
+                    src={t("workshops_silk_photo_1", "/workshops/workshop-1.jpg", "Fotka 1 — malby na hedvábí")}
                     alt={t("workshops_silk_alt", "Silk painting artwork")}
                     className="w-full h-72 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-2.jpg"
+                    src={t("workshops_silk_photo_2", "/workshops/workshop-2.jpg", "Fotka 2 — malby na hedvábí")}
                     alt={t("workshops_silk_alt", "Silk painting artwork")}
                     className="w-full h-72 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-3.jpg"
+                    src={t("workshops_silk_photo_3", "/workshops/workshop-3.jpg", "Fotka 3 — malby na hedvábí")}
                     alt={t("workshops_silk_alt", "Silk painting artwork")}
                     className="w-full h-72 object-cover hover:scale-105 transition-transform duration-300"
                   />
@@ -154,14 +154,14 @@ const Workshopy = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-4.jpg"
+                    src={t("workshops_kids_photo_1", "/workshops/workshop-4.jpg", "Fotka 1 — workshopy pro děti a rodiče")}
                     alt={t("workshops_kids_alt", "Kids and parents workshop")}
                     className="w-full h-80 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-5.jpg"
+                    src={t("workshops_kids_photo_2", "/workshops/workshop-5.jpg", "Fotka 2 — workshopy pro děti a rodiče")}
                     alt={t("workshops_kids_alt", "Kids and parents workshop")}
                     className="w-full h-80 object-cover hover:scale-105 transition-transform duration-300"
                   />
@@ -194,28 +194,28 @@ const Workshopy = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-6.jpg"
+                    src={t("workshops_adults_photo_1", "/workshops/workshop-6.jpg", "Fotka 1 — workshopy pro dospělé")}
                     alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-7.jpg"
+                    src={t("workshops_adults_photo_2", "/workshops/workshop-7.jpg", "Fotka 2 — workshopy pro dospělé")}
                     alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-8.jpg"
+                    src={t("workshops_adults_photo_3", "/workshops/workshop-8.jpg", "Fotka 3 — workshopy pro dospělé")}
                     alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
-                    src="/workshops/workshop-9.jpg"
+                    src={t("workshops_adults_photo_4", "/workshops/workshop-9.jpg", "Fotka 4 — workshopy pro dospělé")}
                     alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />

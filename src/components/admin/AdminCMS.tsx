@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -7,11 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, RotateCcw, ExternalLink, Search } from 'lucide-react';
+import { Pencil, Trash2, RotateCcw, ExternalLink, Search, Info, Eye, Maximize2, Minimize2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import CmsImageField from '@/components/admin/CmsImageField';
 
 interface CMSContent {
   id: string;
@@ -24,7 +26,7 @@ interface CMSContent {
   sort_order: number;
   default_value: string | null;
   // Client-facing name shown above the field ("Nadpis", "Text tlačítka").
-  // `key`/`description` stay visible but small — they're for the developer.
+  // `key`/`description` stay hidden by default — they're for the developer.
   label: string | null;
 }
 
@@ -95,78 +97,18 @@ const STATUS_LABEL: Record<SaveStatus, string> = {
 
 const AUTOSAVE_DELAY_MS = 800;
 
-// Shrunk live preview of the section, rendered in an iframe pointed at the
-// real page. Fixed scale/height keep every section card the same height
-// regardless of how tall the actual page section is.
-const PREVIEW_SCALE = 0.3;
-const PREVIEW_IFRAME_HEIGHT = 1000;
-const PREVIEW_CONTAINER_HEIGHT = Math.round(PREVIEW_IFRAME_HEIGHT * PREVIEW_SCALE);
-
-// A page like "legal" has 40 sections. Each preview iframe boots a whole
-// separate copy of the app (own cms_content fetch, own React tree) — mounting
-// them all at once is what froze the admin. Cap how many are ever loaded at
-// the same time; the rest sit as a lightweight placeholder until scrolled
-// near, and give up their slot once scrolled away.
-const MAX_ACTIVE_PREVIEWS = 3;
-// Grant/release slots slightly before/after the card is actually on screen,
-// so scrolling doesn't visibly pop-in the preview or thrash the slot queue.
-const PREVIEW_ROOT_MARGIN = '400px 0px';
-// Debounce releasing a slot on scroll-away — without this, quickly
-// scrolling a card in and out of the root margin repeatedly tears down and
-// reloads its iframe (flicker + wasted loads).
-const PREVIEW_UNLOAD_DELAY_MS = 1200;
-
-// Shared across every SectionPreview instance in the admin. FIFO queue:
-// a section that wants to load but finds all slots taken waits until one
-// frees up, then is granted in the order it asked.
-const previewSlotManager = (() => {
-  const active = new Set<string>();
-  const queue: { id: string; grant: () => void }[] = [];
-
-  const pump = () => {
-    while (active.size < MAX_ACTIVE_PREVIEWS && queue.length > 0) {
-      const next = queue.shift()!;
-      active.add(next.id);
-      next.grant();
-    }
-  };
-
-  return {
-    request(id: string, grant: () => void) {
-      if (active.has(id)) {
-        grant();
-        return;
-      }
-      if (queue.some((w) => w.id === id)) return;
-      if (active.size < MAX_ACTIVE_PREVIEWS) {
-        active.add(id);
-        grant();
-      } else {
-        queue.push({ id, grant });
-      }
-    },
-    // Removes a still-queued (not yet granted) request — used when a card
-    // scrolls away before its turn came up.
-    cancel(id: string) {
-      const idx = queue.findIndex((w) => w.id === id);
-      if (idx !== -1) queue.splice(idx, 1);
-    },
-    release(id: string) {
-      if (active.delete(id)) pump();
-    },
-  };
-})();
-
 // Grows with the value instead of a fixed `rows`, so a one-line field isn't
 // three empty rows tall and a long paragraph isn't a tiny scrollbox.
 const AutoTextarea = ({
   value,
   onChange,
+  onFocus,
   onBlur,
   fieldType,
 }: {
   value: string;
   onChange: (value: string) => void;
+  onFocus?: () => void;
   onBlur: () => void;
   fieldType: CMSContent['field_type'];
 }) => {
@@ -184,6 +126,7 @@ const AutoTextarea = ({
       ref={ref}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onFocus={onFocus}
       onBlur={onBlur}
       rows={fieldType === 'html' ? 6 : 3}
       className="resize-none overflow-hidden"
@@ -198,94 +141,46 @@ const SaveIndicator = ({ status }: { status: SaveStatus }) => {
   return <span className={`text-xs ${color}`}>{STATUS_LABEL[status]}</span>;
 };
 
-// Live preview of one section, pointed at `route#anchor` on the real site.
-// Never blocks editing: a load failure just replaces the iframe with a
-// message + link, the fields below always render regardless. The iframe
-// itself is only mounted while the card is near the viewport and a slot is
-// free — see previewSlotManager above.
-const SectionPreview = ({ section, refreshKey }: { section: CMSSection; refreshKey: number }) => {
+// A single shared iframe for the whole admin screen — not one per section.
+// Up to 40 sections on one page used to mean up to 40 separate booted copies
+// of the site, each with its own cms_content fetch (react-query cache isn't
+// shared across iframe documents) — that's what froze the admin. Now there
+// is exactly one live document; switching which section is "in focus" just
+// scrolls that same document, and only triggers a real reload when the
+// target section lives on a different route.
+const SharedPreview = ({
+  section,
+  refreshKey,
+  iframeRef,
+}: {
+  section: CMSSection | null;
+  refreshKey: number;
+  // Owned by AdminCMS, not this component — it also needs contentWindow to
+  // postMessage live-typed values into the preview (see scheduleLivePreview).
+  iframeRef: RefObject<HTMLIFrameElement>;
+}) => {
+  const [src, setSrc] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [active, setActive] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const unloadTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [anchorMissing, setAnchorMissing] = useState(false);
+  // What's actually loaded in the iframe right now (route + refresh
+  // generation) — compared against the requested section to decide between
+  // "just scroll the existing document" and "navigate to a new one".
+  const loadedKeyRef = useRef<string | null>(null);
+  const pendingAnchorRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    setLoaded(false);
-    setFailed(false);
-  }, [section.id, refreshKey]);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const activate = () => {
-      if (unloadTimer.current) {
-        clearTimeout(unloadTimer.current);
-        unloadTimer.current = undefined;
-      }
-      previewSlotManager.request(section.id, () => setActive(true));
-    };
-
-    const deactivate = () => {
-      previewSlotManager.cancel(section.id);
-      if (unloadTimer.current) clearTimeout(unloadTimer.current);
-      unloadTimer.current = setTimeout(() => {
-        setActive(false);
-        setLoaded(false);
-        setFailed(false);
-        previewSlotManager.release(section.id);
-      }, PREVIEW_UNLOAD_DELAY_MS);
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) activate();
-        else deactivate();
-      },
-      { rootMargin: PREVIEW_ROOT_MARGIN, threshold: 0 },
-    );
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-      if (unloadTimer.current) clearTimeout(unloadTimer.current);
-      previewSlotManager.cancel(section.id);
-      previewSlotManager.release(section.id);
-    };
-  }, [section.id]);
-
-  // Lets the "Zobrazit náhled" button in the placeholder force a load
-  // immediately instead of waiting for the observer / a free slot.
-  const requestPreviewNow = () => {
-    if (unloadTimer.current) {
-      clearTimeout(unloadTimer.current);
-      unloadTimer.current = undefined;
-    }
-    previewSlotManager.request(section.id, () => setActive(true));
-  };
-
-  const liveUrl = `${section.route}${section.anchor ? `#${section.anchor}` : ''}`;
-  // cmsPreview must stay 1: the app reads it to skip its auth bootstrap inside
-  // the frame. It used to carry refreshKey, so the very first render asked for
-  // cmsPreview=0 — the frame booted a second AuthProvider, that touched the
-  // shared session, and the resulting auth event remounted the whole admin
-  // back to its default tab. Cache-busting moved to its own parameter.
-  const previewSrc = `${section.route}?cmsPreview=1&r=${refreshKey}${section.anchor ? `#${section.anchor}` : ''}`;
-
-  const handleLoad = () => {
-    setLoaded(true);
-    if (!section.anchor) return;
+  const scrollToAnchor = (anchor: string | null) => {
+    setAnchorMissing(false);
+    if (!anchor) return;
     const iframe = iframeRef.current;
-    const anchor = section.anchor;
     if (!iframe) return;
 
-    // This is a client-rendered SPA: the iframe's `load` event fires once
-    // index.html's initial (near-empty) HTML has loaded, well before React
-    // mounts and the CMS content query resolves — so the browser's built-in
-    // one-shot scroll-to-#fragment usually runs before the target element
-    // exists and does nothing. Poll briefly for the element instead.
+    // Client-rendered SPA: the target element may not exist yet on first
+    // paint (CMS data still loading), so poll briefly. If it never turns up,
+    // that's a real, reportable state — the section is empty/hidden on the
+    // live site (e.g. a video section with no video URL set) — not a
+    // loading hiccup, so never silently leave the preview scrolled to
+    // wherever it happened to be.
     let attempts = 0;
     const tryScroll = () => {
       attempts += 1;
@@ -300,85 +195,156 @@ const SectionPreview = ({ section, refreshKey }: { section: CMSSection; refreshK
         return;
       }
       if (attempts < 20) setTimeout(tryScroll, 150);
+      else setAnchorMissing(true);
     };
     tryScroll();
   };
 
+  useEffect(() => {
+    if (!section) return;
+    const desiredKey = `${section.route}::${refreshKey}`;
+    if (loadedKeyRef.current !== desiredKey) {
+      // Different route, or a save just invalidated the currently-shown
+      // page — needs an actual navigation.
+      loadedKeyRef.current = desiredKey;
+      pendingAnchorRef.current = section.anchor;
+      setLoaded(false);
+      setFailed(false);
+      setAnchorMissing(false);
+      // `cmsPreview` must always be the literal "1" — the app (useAuth.tsx)
+      // treats it as a boolean flag to skip the login flow entirely inside
+      // this iframe. `refreshKey` starting at 0 previously landed here and
+      // was read as falsy, silently turning preview mode off and booting a
+      // full auth flow — which fought the parent tab over the shared
+      // localStorage session and reset the whole admin. Cache-busting for a
+      // re-navigation to the same route now happens on a separate `r` param.
+      setSrc(`${section.route}?cmsPreview=1&r=${refreshKey}`);
+    } else {
+      // Same document already loaded — just scroll to the newly focused
+      // section, no reload.
+      scrollToAnchor(section.anchor);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section?.id, section?.route, refreshKey]);
+
+  const handleLoad = () => {
+    setLoaded(true);
+    scrollToAnchor(pendingAnchorRef.current);
+  };
+
+  if (!section) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        Klikněte do pole nebo na název sekce vlevo — tady se ukáže, jak to vypadá na webu.
+      </div>
+    );
+  }
+
+  const liveUrl = `${section.route}${section.anchor ? `#${section.anchor}` : ''}`;
+
   return (
-    <div ref={containerRef} className="space-y-2">
-      <div
-        className="relative rounded-lg border border-border bg-muted/30 overflow-hidden"
-        style={{ height: PREVIEW_CONTAINER_HEIGHT }}
-      >
-        {!active ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
-            <p>{section.title}</p>
-            <Button size="sm" variant="outline" onClick={requestPreviewNow}>
-              Zobrazit náhled
-            </Button>
-          </div>
-        ) : failed ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
-            <p>Náhled se nepodařilo načíst.</p>
-            <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-              Otevřít stránku v nové záložce
-            </a>
-          </div>
-        ) : (
-          <>
-            {!loaded && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
-                Načítám náhled…
-              </div>
-            )}
+    <div className="relative h-full rounded-lg border border-border bg-muted/30 overflow-hidden">
+      {failed ? (
+        <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+          <p>Náhled se nepodařilo načíst.</p>
+          <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+            Otevřít stránku v nové záložce
+          </a>
+        </div>
+      ) : anchorMissing ? (
+        <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+          <p>Tato sekce se na webu teď nezobrazuje — je prázdná nebo skrytá.</p>
+          <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+            Otevřít stránku v nové záložce
+          </a>
+        </div>
+      ) : (
+        <>
+          {!loaded && (
+            <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+              Načítám náhled…
+            </div>
+          )}
+          {src && (
             <iframe
-              key={`${section.id}-${refreshKey}`}
               ref={iframeRef}
-              src={previewSrc}
-              title={`Náhled — ${section.title}`}
+              src={src}
+              title="Náhled webu"
               onLoad={handleLoad}
               onError={() => setFailed(true)}
-              // pointer-events: none — this is a picture of the page, not the
-              // page itself; clicking through here would navigate the client
-              // away from the admin.
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: `${100 / PREVIEW_SCALE}%`,
-                height: PREVIEW_IFRAME_HEIGHT,
-                transform: `scale(${PREVIEW_SCALE})`,
-                transformOrigin: 'top left',
-                border: 'none',
-                pointerEvents: 'none',
-              }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
             />
-          </>
-        )}
-      </div>
-      <Button size="sm" variant="outline" asChild>
-        <a href={liveUrl} target="_blank" rel="noopener noreferrer">
-          <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Otevřít na webu
-        </a>
-      </Button>
+          )}
+        </>
+      )}
     </div>
   );
 };
 
 const AdminCMS = () => {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [content, setContent] = useState<CMSContent[]>([]);
   const [sections, setSections] = useState<CMSSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<CMSContent | null>(null);
-  const [activePage, setActivePage] = useState<string>('homepage');
+  // Read from the URL so a full remount of this component (e.g. Admin.tsx's
+  // loading guard flashing on and off) reopens the same page tab instead of
+  // resetting to homepage — a defensive layer on top of the cmsPreview=1 fix
+  // above, in case some other, not-yet-found path still causes a remount.
+  const [activePage, setActivePageState] = useState<string>(() => searchParams.get('cmsPage') || 'homepage');
+  const setActivePage = (page: string) => {
+    setActivePageState(page);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('cmsPage', page);
+        return next;
+      },
+      { replace: true },
+    );
+  };
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<Record<string, SaveStatus>>({});
-  // Bumped per cms_sections.id after a field in that section saves — changes
-  // the iframe's `key`/src so it reloads and re-scrolls to show the result.
-  const [previewRefresh, setPreviewRefresh] = useState<Record<string, number>>({});
+  // The section currently shown in the single shared preview iframe, and a
+  // generation counter bumped after a save that should force it to reload.
+  const [previewSection, setPreviewSection] = useState<CMSSection | null>(null);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+  const [previewExpanded, setPreviewExpanded] = useState(false);
+  // Owned here (not inside SharedPreview) so scheduleLivePreview below can
+  // reach contentWindow directly.
+  const previewIframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Mirrors previewSection for commitSave (below) to read without needing
+  // to be in its dependency list.
+  const previewSectionRef = useRef<CMSSection | null>(null);
+  useEffect(() => {
+    previewSectionRef.current = previewSection;
+  }, [previewSection]);
+
+  // Live-typed values, mirrored into the preview iframe as the user types —
+  // separate from the 800ms autosave debounce, much shorter since nothing
+  // is written to the DB here, just a same-origin postMessage. useCms.tsx
+  // only listens for this inside the ?cmsPreview=1 iframe; the real site
+  // ignores it entirely.
+  const LIVE_PREVIEW_DELAY_MS = 100;
+  const livePreviewTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const postLivePreviewUpdate = (key: string, value: string) => {
+    const win = previewIframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage({ type: 'cms-preview-update', key, value }, window.location.origin);
+  };
+
+  const scheduleLivePreview = (key: string, value: string) => {
+    if (livePreviewTimers.current[key]) clearTimeout(livePreviewTimers.current[key]);
+    livePreviewTimers.current[key] = setTimeout(() => {
+      delete livePreviewTimers.current[key];
+      postLivePreviewUpdate(key, value);
+    }, LIVE_PREVIEW_DELAY_MS);
+  };
 
   // Latest typed value per row, read by the debounce timer / blur flush —
   // kept out of state so scheduling a save doesn't need a stale closure.
@@ -403,10 +369,21 @@ const AdminCMS = () => {
     fetchContent();
     fetchSections();
     const timersAtMount = timers.current;
+    const livePreviewTimersAtMount = livePreviewTimers.current;
     return () => {
       Object.values(timersAtMount).forEach(clearTimeout);
+      Object.values(livePreviewTimersAtMount).forEach(clearTimeout);
     };
   }, []);
+
+  // Clear a stale preview when switching pages — otherwise it would keep
+  // showing the previous page's section until the user clicks something on
+  // the new one. Deliberately doesn't auto-select a new section to preview
+  // in its place: that would spin up the preview iframe immediately on every
+  // tab switch instead of only when the user actually asks for it.
+  useEffect(() => {
+    setPreviewSection(null);
+  }, [activePage]);
 
   // Warn before leaving the tab while an edit hasn't been saved yet. Blur
   // (switching fields, tabs, dialogs) already flushes immediately, so this
@@ -505,11 +482,14 @@ const AdminCMS = () => {
     setDialogOpen(true);
   };
 
+  // Edit-only — creating new keys from the admin was removed (see below):
+  // a new row here has no `t("key", ...)` call anywhere in the site's code
+  // to read it, so it would never actually appear anywhere.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingContent) return;
 
     const contentData = {
-      key: formData.key,
       value: formData.value,
       label: formData.label || null,
       description: formData.description || null,
@@ -518,23 +498,13 @@ const AdminCMS = () => {
       field_type: formData.field_type,
     };
 
-    if (editingContent) {
-      const { error } = await supabase.from('cms_content').update(contentData).eq('id', editingContent.id);
+    const { error } = await supabase.from('cms_content').update(contentData).eq('id', editingContent.id);
 
-      if (error) {
-        toast.error('Chyba při ukládání: ' + error.message);
-        return;
-      }
-      toast.success('Obsah upraven');
-    } else {
-      const { error } = await supabase.from('cms_content').insert(contentData);
-
-      if (error) {
-        toast.error('Chyba při vytváření: ' + error.message);
-        return;
-      }
-      toast.success('Pole vytvořeno');
+    if (error) {
+      toast.error('Chyba při ukládání: ' + error.message);
+      return;
     }
+    toast.success('Obsah upraven');
 
     setDialogOpen(false);
     resetForm();
@@ -556,11 +526,21 @@ const AdminCMS = () => {
     }
   };
 
-  const bumpPreview = (page: string, section: string | null) => {
-    if (!section) return;
-    const match = sections.find((s) => s.page === page && s.section_key === section);
-    if (!match) return;
-    setPreviewRefresh((prev) => ({ ...prev, [match.id]: (prev[match.id] ?? 0) + 1 }));
+  // Forces the shared preview iframe to reload if it's currently showing the
+  // page that just changed — matching by page only (not exact section),
+  // since any field save on that route can affect what's rendered on it.
+  const bumpPreview = (page: string) => {
+    if (previewSectionRef.current?.page === page) {
+      setPreviewRefreshKey((k) => k + 1);
+    }
+  };
+
+  // Looks up the field's cms_sections row and, if it has an anchor, focuses
+  // the shared preview on it — called on focusing any field.
+  const focusPreview = (item: CMSContent) => {
+    if (!item.section) return;
+    const match = sections.find((s) => s.page === item.page && s.section_key === item.section);
+    if (match?.anchor) setPreviewSection(match);
   };
 
   // Saves in place — updates the one row in local state instead of
@@ -620,10 +600,10 @@ const AdminCMS = () => {
         setStatus((s) => (s[id] === 'saved' ? { ...s, [id]: 'idle' } : s));
       }, 2000);
 
-      // Refresh the section's live preview so the client sees the result
-      // without having to click anything — the main point of the preview.
+      // Refresh the preview so the client sees the result without having to
+      // click anything — the main point of the preview.
       const saved = content.find((c) => c.id === id);
-      if (saved) bumpPreview(saved.page, saved.section);
+      if (saved) bumpPreview(saved.page);
     } finally {
       inFlight.current[id] = false;
     }
@@ -648,6 +628,7 @@ const AdminCMS = () => {
   const handleValueChange = (item: CMSContent, newValue: string) => {
     setContent((prev) => prev.map((c) => (c.id === item.id ? { ...c, value: newValue } : c)));
     scheduleSave(item.id, newValue);
+    scheduleLivePreview(item.key, newValue);
   };
 
   const handleRevert = (item: CMSContent) => {
@@ -657,6 +638,9 @@ const AdminCMS = () => {
     pendingValues.current[item.id] = defaultValue;
     if (timers.current[item.id]) clearTimeout(timers.current[item.id]);
     void commitSave(item.id);
+    // Revert is a discrete action, not a keystroke stream — reflect it
+    // immediately instead of going through the 100ms debounce.
+    postLivePreviewUpdate(item.key, defaultValue);
   };
 
   const searchLower = search.trim().toLowerCase();
@@ -714,92 +698,113 @@ const AdminCMS = () => {
     return groups;
   }, [pageContent, sectionsForPage]);
 
+  // One field, kept as compact as possible: label + value are the whole
+  // point, everything else (type badge, dev key, description) is secondary
+  // and either hidden by default or shown in small muted text.
   const renderField = (item: CMSContent) => {
     const isSingleLine = item.field_type === 'text' || item.field_type === 'image_url' || item.field_type === 'video_url';
+    // Plain text/textarea are the vast majority of fields — the type badge
+    // only earns its place where the type changes how the field behaves.
+    const showTypeBadge = item.field_type !== 'text' && item.field_type !== 'textarea';
+
     return (
-      <Card key={item.id} className="bg-background">
-        <CardContent className="pt-6">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="text-sm font-medium">{item.label || item.key.replace(/_/g, ' ')}</span>
-                <Badge variant="outline" className="text-xs">{item.field_type}</Badge>
-                {searchLower && (
-                  <Badge variant="secondary" className="text-xs">
-                    {PAGE_LABELS[item.page] ?? item.page} · {sectionLabel(item.page, item.section)}
-                  </Badge>
-                )}
-                <SaveIndicator status={status[item.id] ?? 'idle'} />
-              </div>
-              {item.description && <p className="text-sm text-muted-foreground mb-1">{item.description}</p>}
-              <code className="text-[10px] text-muted-foreground/60">{item.key}</code>
-            </div>
-            <div className="flex gap-1 items-start">
-              {PAGE_TO_PATH[item.page] && (
-                <Button size="sm" variant="ghost" asChild title="Zobrazit na webu">
-                  <a href={PAGE_TO_PATH[item.page]} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              )}
-              {item.default_value !== null && item.value !== item.default_value && (
-                <Button size="sm" variant="ghost" onClick={() => handleRevert(item)} title="Vrátit původní text">
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-              )}
-              <Button size="sm" variant="ghost" onClick={() => handleEdit(item)} title="Upravit klíč/stránku/sekci/popisek">
-                <Pencil className="h-4 w-4" />
-              </Button>
-              {/* Seeded rows can't be deleted — that would silently drop a key
-                  from the admin forever and fall back to old hardcoded text
-                  with no warning. Use Revert instead. */}
-              {item.default_value === null && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDelete(item.id)}
-                  className="text-destructive hover:text-destructive"
-                  title="Smazat (jen u ručně přidaných polí)"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+      <div key={item.id} className="py-2.5 border-b border-border/60 last:border-b-0">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+            <span className="text-sm font-medium">{item.label || item.key.replace(/_/g, ' ')}</span>
+            {showTypeBadge && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                {item.field_type}
+              </Badge>
+            )}
+            {searchLower && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                {PAGE_LABELS[item.page] ?? item.page} · {sectionLabel(item.page, item.section)}
+              </Badge>
+            )}
+            <SaveIndicator status={status[item.id] ?? 'idle'} />
+            {/* Technical key — developer info, hidden from the default view,
+                available on hover so it doesn't distract a non-technical editor. */}
+            <span title={`Klíč: ${item.key}`} className="inline-flex cursor-help text-muted-foreground/40 hover:text-muted-foreground">
+              <Info className="h-3 w-3" />
+            </span>
           </div>
+          <div className="flex gap-0.5 items-start shrink-0">
+            {PAGE_TO_PATH[item.page] && (
+              <Button size="icon" variant="ghost" className="h-7 w-7" asChild title="Zobrazit na webu">
+                <a href={PAGE_TO_PATH[item.page]} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+            )}
+            {item.default_value !== null && item.value !== item.default_value && (
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleRevert(item)} title="Vrátit původní text">
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEdit(item)} title="Upravit klíč/stránku/sekci/popisek">
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            {/* Seeded rows can't be deleted — that would silently drop a key
+                from the admin forever and fall back to old hardcoded text
+                with no warning. Use Revert instead. */}
+            {item.default_value === null && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => handleDelete(item.id)}
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                title="Smazat (jen u ručně přidaných polí)"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
 
-          {isSingleLine ? (
-            <Input
-              value={item.value}
-              onChange={(e) => handleValueChange(item, e.target.value)}
-              onBlur={() => flushSave(item.id)}
-            />
-          ) : (
-            <AutoTextarea
-              value={item.value}
-              fieldType={item.field_type}
-              onChange={(v) => handleValueChange(item, v)}
-              onBlur={() => flushSave(item.id)}
-            />
-          )}
+        {item.field_type === 'image_url' ? (
+          <CmsImageField
+            value={item.value}
+            onChange={(v) => handleValueChange(item, v)}
+            onFocus={() => focusPreview(item)}
+            onBlur={() => flushSave(item.id)}
+          />
+        ) : isSingleLine ? (
+          <Input
+            value={item.value}
+            onChange={(e) => handleValueChange(item, e.target.value)}
+            onFocus={() => focusPreview(item)}
+            onBlur={() => flushSave(item.id)}
+          />
+        ) : (
+          <AutoTextarea
+            value={item.value}
+            fieldType={item.field_type}
+            onChange={(v) => handleValueChange(item, v)}
+            onFocus={() => focusPreview(item)}
+            onBlur={() => flushSave(item.id)}
+          />
+        )}
 
-          {item.field_type === 'image_url' && item.value && (
-            <div className="mt-2">
-              <img src={item.value} alt="Náhled" className="max-w-xs rounded border" />
-            </div>
-          )}
-          {item.field_type === 'video_url' && item.value && (
-            <div className="mt-2 aspect-video max-w-sm rounded overflow-hidden border">
-              <iframe
-                src={item.value.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="Náhled videa"
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {item.description && <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>}
+
+        {item.field_type === 'image_url' && item.value && (
+          <div className="mt-2">
+            <img src={item.value} alt="Náhled" className="max-w-xs rounded border" />
+          </div>
+        )}
+        {item.field_type === 'video_url' && item.value && (
+          <div className="mt-2 aspect-video max-w-sm rounded overflow-hidden border">
+            <iframe
+              src={item.value.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="Náhled videa"
+            />
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -807,36 +812,45 @@ const AdminCMS = () => {
     if (!section) {
       return (
         <Card key="other" className="border-dashed">
-          <CardHeader>
-            <CardTitle className="text-lg">Ostatní</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Pole, která ještě nemají přiřazenou sekci s náhledem. Pořád jdou upravovat, jen bez obrázku nahoře.
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base">Ostatní</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Pole, která ještě nemají přiřazenou sekci s náhledem. Pořád jdou upravovat, jen bez náhledu.
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">{items.map(renderField)}</CardContent>
+          <CardContent className="p-4 pt-0">{items.map(renderField)}</CardContent>
         </Card>
       );
     }
 
+    const isPreviewing = previewSection?.id === section.id;
+
     return (
-      <Card key={section.id}>
-        <CardHeader>
-          <CardTitle className="text-lg">{section.title}</CardTitle>
-          {section.description && <p className="text-sm text-muted-foreground">{section.description}</p>}
+      <Card key={section.id} className={isPreviewing ? 'ring-1 ring-gold/50' : undefined}>
+        <CardHeader
+          className={`p-4 pb-2 ${section.anchor ? 'cursor-pointer select-none' : ''}`}
+          onClick={() => section.anchor && setPreviewSection(section)}
+        >
+          <CardTitle className="text-base flex items-center gap-1.5">
+            {section.title}
+            {section.anchor && <Eye className="h-3.5 w-3.5 text-muted-foreground/50" />}
+          </CardTitle>
+          {section.description && <p className="text-xs text-muted-foreground">{section.description}</p>}
         </CardHeader>
-        <CardContent className="space-y-4">
-          {section.anchor && (
-            <SectionPreview section={section} refreshKey={previewRefresh[section.id] ?? 0} />
-          )}
+        <CardContent className="p-4 pt-0">
           {items.length === 0 ? (
             <p className="text-sm text-muted-foreground">Tato sekce zatím nemá žádná textová pole.</p>
           ) : (
-            <div className="space-y-4 pt-2">{items.map(renderField)}</div>
+            items.map(renderField)
           )}
         </CardContent>
       </Card>
     );
   };
+
+  const previewLiveUrl = previewSection
+    ? `${previewSection.route}${previewSection.anchor ? `#${previewSection.anchor}` : ''}`
+    : null;
 
   return (
     <div className="space-y-6">
@@ -844,20 +858,18 @@ const AdminCMS = () => {
         <div>
           <h2 className="text-2xl font-serif font-semibold">Správa textů na webu</h2>
           <p className="text-sm text-muted-foreground">
-            Vyberte stránku, pak sekci — nahoře uvidíte, jak vypadá na webu, dole texty k úpravě. Ukládá se automaticky.
+            Klikněte do pole nebo na název sekce — vpravo se ukáže, jak to vypadá na webu. Ukládá se automaticky.
           </p>
         </div>
 
+        {/* No "Přidat pole" trigger — a key created here has no `t(key, ...)`
+            call anywhere in the site to read it, so it would never show up
+            anywhere and only confuse the client. This dialog now only opens
+            via the pencil/edit icon on an existing field. */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm} className="bg-gold hover:bg-gold-dark">
-              <Plus className="h-4 w-4 mr-2" />
-              Přidat pole
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingContent ? 'Upravit' : 'Přidat'} pole</DialogTitle>
+              <DialogTitle>Upravit pole</DialogTitle>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -964,7 +976,7 @@ const AdminCMS = () => {
 
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="bg-gold hover:bg-gold-dark flex-1">
-                  {editingContent ? 'Uložit' : 'Vytvořit'} pole
+                  Uložit
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Zrušit
@@ -985,40 +997,73 @@ const AdminCMS = () => {
         />
       </div>
 
-      {searchLower ? (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {searchResults.length} výsledek/ů napříč všemi stránkami
-          </p>
-          {searchResults.map(renderField)}
-        </div>
-      ) : (
-        <Tabs value={activePage} onValueChange={setActivePage}>
-          <TabsList className="bg-cream/50 flex-wrap h-auto gap-1">
-            {PAGES.map((page) => (
-              <TabsTrigger key={page} value={page}>
-                {PAGE_LABELS[page] ?? page}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <div className={`grid grid-cols-1 gap-6 items-start ${previewExpanded ? '' : 'lg:grid-cols-[minmax(0,1fr)_380px]'}`}>
+        <div className={`min-w-0 order-2 lg:order-1 space-y-3 ${previewExpanded ? 'lg:hidden' : ''}`}>
+          {searchLower ? (
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">
+                {searchResults.length} výsledek/ů napříč všemi stránkami
+              </p>
+              <Card>
+                <CardContent className="p-4">{searchResults.map(renderField)}</CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Tabs value={activePage} onValueChange={setActivePage}>
+              <TabsList className="bg-cream/50 flex-wrap h-auto gap-1">
+                {PAGES.map((page) => (
+                  <TabsTrigger key={page} value={page}>
+                    {PAGE_LABELS[page] ?? page}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-          {PAGES.map((page) => (
-            <TabsContent key={page} value={page} className="space-y-4">
-              {loading ? (
-                <p className="text-muted-foreground">Načítám…</p>
-              ) : page === activePage && sectionGroups.length === 0 ? (
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-muted-foreground">Tato stránka zatím nemá žádná textová pole.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                page === activePage && sectionGroups.map(renderSectionGroup)
+              {PAGES.map((page) => (
+                <TabsContent key={page} value={page} className="space-y-3">
+                  {loading ? (
+                    <p className="text-muted-foreground">Načítám…</p>
+                  ) : page === activePage && sectionGroups.length === 0 ? (
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-muted-foreground">Tato stránka zatím nemá žádná textová pole.</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    page === activePage && sectionGroups.map(renderSectionGroup)
+                  )}
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
+        </div>
+
+        <div className="order-1 lg:order-2 lg:sticky lg:top-24 flex flex-col gap-2 h-[360px] lg:h-[calc(100vh-7rem)]">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium truncate min-w-0">{previewSection?.title ?? 'Náhled webu'}</p>
+            <div className="flex items-center gap-0.5 shrink-0">
+              {previewLiveUrl && (
+                <Button size="icon" variant="ghost" className="h-7 w-7" asChild title="Otevřít na webu v nové záložce">
+                  <a href={previewLiveUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </Button>
               )}
-            </TabsContent>
-          ))}
-        </Tabs>
-      )}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 hidden lg:inline-flex"
+                onClick={() => setPreviewExpanded((v) => !v)}
+                title={previewExpanded ? 'Zmenšit náhled' : 'Rozbalit náhled přes celou šířku'}
+              >
+                {previewExpanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 min-h-0">
+            <SharedPreview section={previewSection} refreshKey={previewRefreshKey} iframeRef={previewIframeRef} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -49,7 +49,7 @@ const About = () => {
               <div className="relative order-2 lg:order-1">
                 <div className="relative rounded-3xl overflow-hidden shadow-elevated">
                   <img
-                    src="/silvie.jpg"
+                    src={t("about_intro_photo", "/silvie.jpg", "Fotka v úvodní sekci")}
                     alt="Silvie Bogdanova - Art Expressive Therapist"
                     className="w-full h-auto aspect-[4/5] object-cover object-top"
                   />

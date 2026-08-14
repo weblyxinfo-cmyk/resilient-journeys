@@ -4,6 +4,52 @@ Implementace podle zadání team-lead + `docs/cms-mapa.md` + `docs/cms-review.md
 Scope: `Membership.tsx` + `Membership2.tsx` + FAQ (`faq_items` tabulka). Ceny
 (`€37`, `€47`), `src/lib/pricing.ts` a `create-checkout` nedotčeny.
 
+## Dodatek — kotvy `id="cms-membership-<sekce>"` (přidáno dodatečně)
+
+Na žádost team-leada doplněny `id` atributy podle hodnot `anchor` z
+`supabase/migrations/20260814122200_seed_cms_sections_phase2.sql` (řádky
+`page='membership'`), aby CMS náhled uměl scrollovat na editovanou sekci.
+**Přidány jen `id` atributy — žádný text, třída ani struktura se neměnily.**
+
+- `Membership.tsx` — **13 kotev**: `cms-membership-hero`, `-problem`,
+  `-empathy`, `-solution`, `-getitems`, `-benefits`, `-transformation`,
+  `-about`, `-offer`, `-teaser_basic`, `-teaser_premium`, `-howto`,
+  `-final_cta`.
+- `Membership2.tsx` — **12 kotev**: stejná sada mínus `-howto` (sekci „How to
+  Get Started" M2 vůbec nemá) a `-transformation` nahrazená za
+  `-transformation2` (M2 má na jejím místě jinou, interaktivní Before/After
+  sekci — přesně podle popisu v seedu: „Jen na /membership2 — na /membership
+  je místo toho fotka + popisek (viz sekce transformation)"). `membership2_seo`
+  nemá `anchor` (`NULL` v seedu) — SEO meta tagy nejsou DOM sekce, žádná
+  kotva se pro ně nepřidávala.
+- **`offer`** — `<section id="offer">` už měl `id` kvůli internímu
+  `href="#offer"` odkazu (CTA tlačítka „Start your journey now" atd.);
+  ten jsem nechal beze změny a `cms-membership-offer` dal na vnitřní `<div
+  className="max-w-4xl mx-auto">`, který obaluje nadpis, tři odznaky, obě
+  cenové karty i odkaz na 12měsíční členství — `teaser_basic`/`teaser_premium`
+  jsou vnořené vlastní kotvy na jednotlivých kartách uvnitř (stejný vzor
+  vnořování jako `resilient-hub`/`program`+`program_q1-4` v seedu).
+- **`howto`** — podle popisu v seedu („Jen tři odznaky pod krokovým návodem
+  — samotný nadpis, kroky a závěrečná poznámka téhož bloku se editují na
+  stránce Resilient Hubs, sdílené klíče `membership_howto_title/step_*/note`")
+  jsem `id="cms-membership-howto"` dal **jen na `<div>` se třemi odznaky**
+  na konci sekce 9b, ne na celou sekci — nadpis/kroky/poznámka nad ní nemají
+  vlastní kotvu na této stránce.
+- Sekce „Why Different" (10) a „FAQ" (11) v `Membership.tsx`/`Membership2.tsx`
+  **kotvu nedostaly** — v seedu pro `page='membership'` pro ně řádek není
+  (`why_different` je zaseedovaný pod `page='resilient-hubs'`, `section='whydifferent'`;
+  FAQ text se edituje přes samostatnou správu FAQ, ne přes `cms_sections`
+  scroll-preview).
+- Ověřeno: `grep -c 'id="cms-membership' Membership.tsx` → 13,
+  `Membership2.tsx` → 12, žádné duplicitní `id` v rámci jednoho souboru.
+  `npx tsc --noEmit` a `npm run build` prošly bez chyb po přidání.
+- Při čtení souborů před editací jsem zjistil, že jiný agent mezitím doplnil
+  do `Membership.tsx` (ne do Membership2.tsx) `t()` volání se třetím
+  argumentem (`label`) na dvou `<img src>` atributech (`membership_hero_photo`,
+  `membership_transformation_photo`) — to je práce paralelního agenta na
+  obrázcích, nedotčeno, jen zaznamenávám, že se soubor mezi mými zásahy
+  změnil.
+
 **Koordinace se 7 paralelními agenty (aktualizace v půlce práce):** team-lead
 následně požádal, abych (1) nesahal na `ResilientHubs.tsx` — vlastní ho jiný
 agent, (2) nespouštěl `npm run cms:gen` ani needitoval `scripts/cms-seed.mjs`

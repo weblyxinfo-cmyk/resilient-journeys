@@ -77,6 +77,11 @@ const FILE_PAGE_MAP = {
   // metadata source those seed migrations were generated from.
   'src/components/Navbar.tsx': 'navbar',
   'src/components/CookieBanner.tsx': 'shared',
+  // Rendered inside every page that wraps its hero in <PageHero> and in the
+  // navbar/footer logo respectively — one shared background image / one
+  // shared logo file, not per-page content (docs/cms-images.md).
+  'src/components/PageHero.tsx': 'shared',
+  'src/components/Logo.tsx': 'shared',
   'src/pages/NotFound.tsx': 'shared',
   'src/components/AboutPreview.tsx': 'shared',
   'src/components/Testimonials.tsx': 'shared',

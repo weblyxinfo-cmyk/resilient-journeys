@@ -161,7 +161,7 @@ const Services = () => {
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBg})` }}
+        style={{ backgroundImage: `url(${t("shared_hero_background_image", heroBg, "Podkladová fotka za úvodní obrazovkou")})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/90 to-background" />
       </div>
@@ -199,7 +199,7 @@ const Services = () => {
             <div className="order-1 lg:order-2">
               <div className="relative rounded-3xl overflow-hidden shadow-elevated max-w-md mx-auto lg:max-w-none">
                 <img
-                  src={whyJoinImage}
+                  src={t("homepage_why_join_image", whyJoinImage, "Fotka vedle seznamu výhod")}
                   alt="A woman enjoying a calm moment with a warm drink"
                   className="w-full h-auto block"
                   loading="lazy"

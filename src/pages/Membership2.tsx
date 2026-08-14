@@ -97,7 +97,7 @@ const Membership2 = () => {
       <main className="pt-20">
         {/* 1. HERO — Headline + Subheadline + mini benefits + CTA */}
         <PageHero>
-          <div className="max-w-4xl mx-auto text-center">
+          <div id="cms-membership-hero" className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
               <Sparkles size={16} className="text-primary" />
               <span className="text-sm font-sans font-medium text-primary">
@@ -156,7 +156,7 @@ const Membership2 = () => {
         </PageHero>
 
         {/* 2. PROBLEM */}
-        <section className="py-16 md:py-20 bg-card">
+        <section id="cms-membership-problem" className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6">
@@ -173,7 +173,7 @@ const Membership2 = () => {
         </section>
 
         {/* 3. EMPATHY */}
-        <section className="py-16 md:py-20 bg-background">
+        <section id="cms-membership-empathy" className="py-16 md:py-20 bg-background">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6">
@@ -187,7 +187,7 @@ const Membership2 = () => {
         </section>
 
         {/* 4. SOLUTION */}
-        <section className="py-16 md:py-20 bg-card">
+        <section id="cms-membership-solution" className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
@@ -207,7 +207,7 @@ const Membership2 = () => {
         </section>
 
         {/* 5. WHAT YOU GET */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-membership-getitems" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
@@ -265,7 +265,7 @@ const Membership2 = () => {
         </section>
 
         {/* 6. BENEFITS */}
-        <section className="py-16 md:py-24 bg-card">
+        <section id="cms-membership-benefits" className="py-16 md:py-24 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-10 text-center">
@@ -297,7 +297,7 @@ const Membership2 = () => {
         </section>
 
         {/* 7. TRANSFORMATION — Before / After */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-membership-transformation2" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
@@ -371,7 +371,7 @@ const Membership2 = () => {
         </section>
 
         {/* 8. ABOUT / BRIDGE */}
-        <section className="py-16 md:py-20 bg-card">
+        <section id="cms-membership-about" className="py-16 md:py-20 bg-card">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <p className="text-base md:text-lg text-foreground/85 font-sans leading-relaxed mb-6">
@@ -394,7 +394,7 @@ const Membership2 = () => {
         {/* 9. OFFER */}
         <section id="offer" className="py-16 md:py-24 bg-gradient-warm">
           <div className="container px-4">
-            <div className="max-w-4xl mx-auto">
+            <div id="cms-membership-offer" className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-4">
                   {t("membership_offer_title_prefix", "Choose your ")}<span className="text-gradient-gold">{t("membership_offer_title_highlight", "path")}</span>
@@ -420,7 +420,7 @@ const Membership2 = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Basic */}
-                <div className="p-8 bg-card rounded-2xl border border-border flex flex-col">
+                <div id="cms-membership-teaser_basic" className="p-8 bg-card rounded-2xl border border-border flex flex-col">
                   <h3 className="text-xl font-serif font-semibold mb-2">{t("membership_teaser_basic_title", "Basic")}</h3>
                   <p className="text-sm text-muted-foreground font-sans mb-6">
                     {t("membership_teaser_basic_subtitle", "Self-paced guidance you can follow in your own time.")}
@@ -456,7 +456,7 @@ const Membership2 = () => {
                 </div>
 
                 {/* Premium */}
-                <div className="p-8 bg-card rounded-2xl border-2 border-primary/40 flex flex-col relative shadow-md">
+                <div id="cms-membership-teaser_premium" className="p-8 bg-card rounded-2xl border-2 border-primary/40 flex flex-col relative shadow-md">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-gold text-primary-foreground rounded-full text-xs font-sans font-semibold">
                     {t("membership_teaser_premium_badge", "Most Popular")}
                   </div>
@@ -608,7 +608,7 @@ const Membership2 = () => {
         </section>
 
         {/* 12. FINAL CTA */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-membership-final_cta" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <div className="w-20 h-20 bg-gradient-gold rounded-full flex items-center justify-center mx-auto mb-6">

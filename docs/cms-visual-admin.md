@@ -310,3 +310,257 @@ tamtéž).
 - Do žádného existujícího klientčina textu se nesahalo.
 - `npx tsc --noEmit` — bez chyb. `npm run build` — prošel.
 - Dev server na konci zastaven.
+
+## Přestavba na jeden sdílený sticky náhled + zjednodušení polí (2026-08-14, odpoledne)
+
+Uživatel po zhlédnutí lazy-loading verze (viz sekce výše) řekl „musíš to líp
+udělat" — náhled na ~300px byl nečitelný a jeden iframe na sekci byl
+koncepčně špatně. Zadání: **jeden jediný `<iframe>` pro celý admin**
+(ne jeden na sekci), ve stálém pravém sloupci (sticky), který se při
+přepnutí sekce jen odscrolluje na nové místo — nový `<iframe src>`
+(skutečný reload) jen když se mění `route`. Zároveň požadavek na
+vizuální zjednodušení karty pole (schovat technický klíč, zrušit
+vnořené karty, badge typu pole jen tam, kde má význam).
+
+### Změna — jen `src/components/admin/AdminCMS.tsx`
+
+- **`SharedPreview`** nahradilo `SectionPreview` + celý `previewSlotManager`
+  (ten padl beze zbytku — s jedním iframem není co frontovat). Jedna
+  instance pro celý admin, ne jedna na sekci/kartu.
+- Stav `previewSection` (`CMSSection | null`) žije v `AdminCMS`. Nastavuje
+  se kliknutím na hlavičku karty sekce (má-li `anchor`) nebo `onFocus`
+  libovolného pole v té sekci (`focusPreview`).
+- `SharedPreview` interně porovnává `` `${route}::${refreshKey}` `` s tím,
+  co má aktuálně načtené (`loadedKeyRef`) — shoda → jen
+  `scrollToAnchor()` na existujícím `contentDocument` (žádný nový
+  `src`), neshoda → nastaví nový `src` (reálný reload) a po `onLoad`
+  doscrolluje.
+- **Detekce skryté sekce**: stejné pollování `getElementById(anchor)` jako
+  předtím, ale teď s explicitním `anchorMissing` stavem — když se po 20
+  pokusech (3s) element nenajde, ukáže se „Tato sekce se na webu teď
+  nezobrazuje — je prázdná nebo skrytá." místo tichého zůstání na vršku
+  stránky. Ověřeno na `homepage_intro_video` (`IntroVideo.tsx`
+  `return null` když je URL prázdné, na produkci prázdné) — přesně
+  scénář ze zadání.
+- **Layout**: `grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]`, pravý
+  sloupec `lg:sticky lg:top-24 h-[360px] lg:h-[calc(100vh-7rem)]`. Na
+  mobilu (`order-first`) je náhled nad seznamem, kompaktní pevná výška,
+  ne skrytý za tlačítkem. Tlačítko Rozbalit/Zmenšit (`Maximize2`/
+  `Minimize2`) na desktopu přepíná mezi 2-sloupcovým layoutem a
+  náhledem přes celou šířku (list se jen schová `lg:hidden`, iframe se
+  díky tomu nikdy needstruje — žádný reload).
+- **Bez auto-výběru sekce při otevření stránky** — viz „Objevený vedlejší
+  bug" níže, proč byl tenhle záměr (auto-select first section) zase
+  odstraněn. Panel při přepnutí stránkové záložky jen vyčistí
+  (`setPreviewSection(null)` → placeholder „Klikněte do pole nebo na
+  název sekce vlevo…"), nikdy sám neotevře iframe bez uživatelovy akce.
+- **`bumpPreview`** teď jen porovnává `page` (ne přesnou sekci) proti
+  `previewSectionRef.current` a bumpne `previewRefreshKey` — force
+  reload jednoho iframu místo dřívějšího `Record<sectionId, number>`.
+- **Pole (`renderField`)**: z karty v kartě je teď plochý řádek
+  oddělený `border-b`. Technický klíč zmizel z běžného pohledu — je za
+  malou `Info` ikonkou s `title="Klíč: …"` (hover tooltip). Anglický
+  `description` se už nezobrazuje vedle labelu; renderuje se jako malý
+  šedý text POD polem (jen když existuje) — jednotné pravidlo, protože
+  automaticky rozeznat „duplikuje label" vs. „nese info navíc" (např.
+  „Nechte prázdné pro skrytí sekce") není bez ruční editace obsahu v DB
+  proveditelné; posun pod pole aspoň řeší vizuální duplicitu vedle
+  labelu. Badge typu pole se ukazuje jen pro `video_url`/`html`/
+  `image_url` (ne pro `text`/`textarea`, drtivá většina polí). Ikony
+  akcí zmenšeny na `h-7 w-7`.
+- Autosave/`inFlight`/`beforeunload`/`invalidateQueries`/Revert/
+  seed-guard mazání/cross-page search — beze změny.
+
+### Objevený vedlejší, závažný, PŘEDEXISTUJÍCÍ bug (mimo scope, nespraveno)
+
+Při ověřování v prohlížeči jsem narazil na to, že kliknutí na „Website"
+tab (nebo jakákoli akce, která založí NOVÝ preview iframe) občas až
+**spolehlivě** shodí celý admin zpět na výchozí tab „Content" —
+`Admin.tsx`ův loading-guard (`if (loading || !user || !isAdmin) return
+<Verifying access…>`) se na zlomek sekundy zapne, což odmountuje
+`<Tabs defaultValue="content">` a při remountu se vrátí na výchozí
+hodnotu, takže cokoli měl uživatel rozkliknuté (i celý stav `AdminCMS`)
+zmizí.
+
+**Příčina** (potvrzeno instrumentací, ne jen dohad): každý preview
+`<iframe>` je stejný origin a bootuje vlastní kopii appky → vlastní
+instanci `supabase-js` klienta (`createClient(..., { persistSession:
+true, autoRefreshToken: true, storage: localStorage })` v
+`src/integrations/supabase/client.ts`). I když `useAuth.tsx` má už
+existující `isPreviewFrame()` guard, co uvnitř iframu **vypne vlastní
+`AuthProvider`** (viz komentář v souboru — řeší to GoTrue lock
+contention/AbortErrory), samotný `supabase-js` klient se pořád
+instancuje a při inicializaci zapisuje do `localStorage` testovací klíč
+(`lswt-…`, „localStorage write test"). Protože je to STEJNÝ origin,
+zápis vyvolá `storage` event i v rodičovském okně, kde ho zachytí
+GoTrueClient hlavní appky (cross-tab session-sync — vestavěná vlastnost
+knihovny) a spustí přehodnocení session → `useAuth`'s
+`onAuthStateChange` dostane nový event → `user`/`isAdmin` se na chvíli
+zresetují → `Admin.tsx` ukáže loading guard → tab se vrátí na default.
+
+Ověřeno přímo: `window.addEventListener('storage', …)` v rodičovském
+okně zachytil zápis `lswt-…` doslova ve stejném framu (~10-100ms) jako
+se objevilo „Verifying access…".
+
+**Rozsah**: netýká se to jen mého přepisu. Reprodukoval jsem to i na
+**už nasazené (committed) verzi** z předchozí opravy (lazy
+per-section iframe) — stačí, aby se JAKÝKOLI preview iframe poprvé
+načetl (`IntersectionObserver` auto-load nebo klik na „Zobrazit
+náhled"). Je to tedy pre-existující bug v architektuře „stejný origin
+iframe + `persistSession: true` klient", ne regrese z dnešní práce —
+jen jsem ho díky důkladnějšímu testování odhalil.
+
+**Co jsem udělal v rámci povoleného scope**: odstranil jsem auto-výběr
+sekce k náhledu při otevření stránky (dřív jsem ho přidal jako
+vylepšení nad rámec zadání) — bez něj admin **bez prvního kliknutí na
+náhled** zůstává 100% stabilní (ověřeno: 6× střídavé přepínání
+Content/Bookings/Members/Website/Messages bez jediného selhání). Jakmile
+uživatel poprvé v session klikne na sekci/pole (a tím founduje první
+`<iframe src>`), riziko shození zůstává — je to ale nefixovatelné z
+`AdminCMS.tsx`; oprava patří do `useAuth.tsx` (např. filtrovat `storage`
+eventy podle klíče, nebo `persistSession: false` pro `isPreviewFrame()`
+instance) nebo `client.ts`, oba mimo povolený scope téhle práce.
+
+**Co to znamená pro ověření**: automatizované klikání přes Playwright
+v headless Chromiu tenhle bug spolehlivě trefovalo, takže jsem nezískal
+čistý end-to-end screenshot celého flow (náhled sekce → scroll bez
+reloadu → hidden-section hláška) v jedné nepřerušené session. Co se mi
+přesto podařilo změřit/ověřit nezávisle:
+
+- **Bez kliknutí na náhled je celý admin stabilní** (viz výše, 6/6).
+- **Počet skutečných navigací iframu na 40sekční stránce „Právní
+  stránky" za jeden klik na sekci: 2** (obě na stejnou URL —
+  `about:blank`→reálná URL pár v Chromiu, ne 2 různé stránky), tedy
+  řádově níž než 40 — samotná architektura (1 sdílený iframe) funguje.
+- **Přepnutí na JINOU sekci na STEJNÉ route: 0 dalších navigací** —
+  ověřeno v běhu, kde se panel po prvním kliknutí nezhroutil (Test 4 v
+  `test-final.mjs` ve scratchpadu) — potvrzuje klíčový mechanismus
+  „scroll, ne reload" funguje přesně podle zadání.
+- **Hidden-section detekce**: logiku jsem ověřil čtením kódu a
+  potvrdil, že `homepage_intro_video` je na produkci prázdné (takže
+  `IntroVideo.tsx` sekci nerenderuje) — přesný scénář z hlášení. Kvůli
+  výše popsanému bugu se mi ale nepodařilo získat čistý screenshot
+  hlášky „Tato sekce se na webu teď nezobrazuje…" bez zásahu resetu.
+- **Autosave/edit** (Test 5): kompletně čistý běh — vytvořen testovací
+  klíč, upravena hodnota, `Ukládám…`→`Uloženo` do ~200ms, po reloadu
+  ověřena perzistence, klíč smazán. V DB nezůstal žádný testovací
+  řádek.
+- Do žádného existujícího klientčina textu se nesahalo.
+- `npx tsc --noEmit` a `npm run build` — oba bez chyb.
+- Dev server na konci zastaven.
+
+**Doporučení pro tým**: než se tenhle pre-existing bug opraví v
+`useAuth.tsx`/`client.ts`, klientka pravděpodobně narazí na to, že po
+prvním kliknutí na náhled sekce se admin „vrátí" na záložku Content —
+frustrující, ale needitovatelná pole ani uložený obsah tím neztrácí
+(jen otevřenou záložku/rozpracovaný výběr). Doporučuju založit
+samostatný úkol na `useAuth.tsx`, ne řešit ho pod „jen AdminCMS.tsx".
+
+## `cmsPreview=1`, živý náhled při psaní, konec „Přidat pole" (2026-08-14, večer)
+
+Navazuje na sekci výše. Mezitím paralelní agent skutečně opravil kořenovou
+příčinu resetu adminu v `src/lib/previewMode.ts` (nový sdílený
+`isPreviewFrame()`) + `src/integrations/supabase/client.ts` (`noopStorage`
++ `persistSession: false` uvnitř preview iframu — žádný zápis do
+`localStorage`, žádný `storage` event pro rodiče). Já jsem na
+`useAuth.tsx` ani `client.ts` nesahal, jen jsem zajistil, že
+`AdminCMS.tsx` do URL náhledu skutečně posílá parametr, který to
+detekuje.
+
+### Změna — `src/components/admin/AdminCMS.tsx` + `src/hooks/useCms.tsx`
+
+1. **`cmsPreview=1` natvrdo** (`AdminCMS.tsx:220`,
+   `` `${section.route}?cmsPreview=1&r=${refreshKey}` ``). Dřív se tam
+   omylem posílal `refreshKey` (číslo, které začíná na `0` → `cmsPreview=0`
+   → falsy → auth flow v iframu se nevypnul). Cache-busting po uložení pole
+   teď jede přes samostatný parametr `r`. Platí to při navigaci na jinou
+   `route` i po refreshi stejné stránky; při pouhém přepnutí sekce na
+   STEJNÉ route se `src` vůbec nemění (jen scroll), takže parametr nemá jak
+   zmizet.
+2. **Živý náhled při psaní** (`postMessage`, ne teprve po uložení):
+   - `previewIframeRef` teď žije v `AdminCMS`, ne uvnitř `SharedPreview`
+     (ta ho dostává jako prop) — potřebuje ho i `scheduleLivePreview`.
+   - `handleValueChange` kromě `scheduleSave` (800ms, do DB) teď volá i
+     `scheduleLivePreview` (100ms debounce, samostatný timer per klíč) →
+     `postLivePreviewUpdate` pošle
+     `{ type: 'cms-preview-update', key, value }` na
+     `iframe.contentWindow` s `targetOrigin = window.location.origin`.
+   - `handleRevert` posílá live update okamžitě (bez debounce — je to
+     jednorázová akce, ne proud kláves).
+   - `useCms.tsx`: `CmsProvider` má nový `isLivePreviewFrame()` check
+     (`?cmsPreview=1` v URL — vlastní, nezávislá kopie na `previewMode.ts`,
+     protože si o `useAuth.tsx`/sdílené soubory neškrtám). Jen tam
+     naslouchá na `message`, ověřuje `event.origin === window.location.origin`
+     a tvar zprávy (`type === 'cms-preview-update'`, `key`/`value` jsou
+     `string`), a drží `liveOverrides` stav, který se namergne NAD
+     výsledek z react-query (`{...data, ...liveOverrides}`). `t()` je
+     nezměněné — pořád jen čte z kontextu, neví nic o „live" módu.
+   - Zvýraznění právě editovaného textu v náhledu jsem **vynechal** — bylo
+     by křehké (žádná komponenta na webu nemá `data-cms-key` ani podobný
+     hák, muselo by se to dohledávat podle obsahu textu, což je nespolehlivé
+     a zasahovalo by do souborů mimo scope). Zadání to výslovně povolovalo
+     přeskočit.
+3. **„Přidat pole" pryč.** `DialogTrigger`+tlačítko smazáno, `handleSubmit`
+   teď dělá jen `update` (žádná `insert` větev — dřív šlo vytvořit klíč,
+   který nikde na webu nic nečetlo). Dialog se otvírá už jen přes tužku u
+   existujícího pole (`handleEdit`), titulek/tlačítko přejmenovány na
+   „Upravit pole"/„Uložit". Mazání (jen u neseedovaných řádků) a editace
+   beze změny.
+4. **Odolnost vůči remountu**: `activePage` (která stránková záložka —
+   homepage/legal/…) se teď čte a zapisuje do URL (`?cmsPage=…` přes
+   `useSearchParams`), ne jen do lokálního stavu. Kdyby `AdminCMS`
+   kdykoliv znovu remountoval (i z jiného, zatím neobjeveného důvodu), po
+   návratu na Website→Page Text se otevře stejná stránková záložka místo
+   pádu na `homepage`. Hlubší persistenci (`previewSection`, `search`,
+   rozepsaný text) jsem nedělal — po opravě v `client.ts` by k remountu
+   nemělo vůbec docházet, takže jsem nešel do komplexity/rizika ukládat
+   celý stav do URL.
+
+### Ověření v prohlížeči (dev server, produkční DB)
+
+Postup jako v sekci výše (login → dashboard → dropdown „Admin Panel",
+kvůli známému cold-load race v `useAuth.tsx`). Scratch data jsem tentokrát
+zakládal/mazal přímo přes `@supabase/supabase-js` (přihlášený jako admin),
+ne přes „Přidat pole" — to jsem přece odstranil.
+
+- **Test 0 — žádný reset:** 6× střídavé přepnutí Website/Page Text bez
+  jediného selhání (dřív spolehlivě padalo). `cmsPreview=1` fix funguje.
+- **Test 1 — homepage, klik na první sekci:** `mounted: 1` (panel přežil),
+  **2 navigace iframu** (Chromium `about:blank`+reálná URL pár, ne 2 různé
+  dokumenty — stejné chování jako v sekci výše).
+- **Test 2 — „Úvodní video" (prázdné `homepage_intro_video`):** hláška
+  „Tato sekce se na webu teď nezobrazuje — je prázdná nebo skrytá."
+  **se zobrazila** (screenshot `v2-hidden-section.png` ve scratchpadu).
+- **Test 3 — „Právní stránky" (40 sekcí):** 40 sekcí nalezeno, první klik
+  = 2 navigace (viz výše), přepnutí na 2 další sekce v rámci stejné
+  route = **0 dalších navigací iframu**, panel zůstal `mounted: 1` po
+  celou dobu — přesně požadovaný mechanismus.
+- **Test 4:** tlačítko „Přidat pole" v DOM nenalezeno (0).
+- **Test 5 — autosave na DB-scratch klíči** (vytvořen/smazán přímo přes
+  Supabase klienta, ne přes UI): úprava hodnoty → `Ukládám…`→`Uloženo`
+  potvrzeno.
+- **Test 6 — živý náhled při psaní na reálném, už seedovaném poli**
+  (`homepage_hero_badge`, protože scratch klíč nikde na webu nečte žádné
+  `t()` volání, takže by se v náhledu nemohlo nikdy objevit): napsán
+  testovací text `LIVE PREVIEW PROBE …`, do ~500 ms **nalezen uvnitř
+  iframu** (`contentFrame().locator('text=…')` → `true`) — živý náhled bez
+  uložení funguje. Hodnota pak vrácena přesně na originál ještě před
+  uplynutím 800ms autosave debounce (`scheduleSave` při každém keystroke
+  ruší předchozí timer), takže se do DB nikdy nezapsala testovací hodnota
+  — jen samotný originál (no-op zápis). Po testu ověřeno přímo v DB:
+  `homepage_hero_badge` = `"For Expats Ready to Thrive"`, beze změny.
+- Scratch řádek na konci smazán, sweep (`LIKE 'zz_freezefix%'`) potvrdil
+  0 zbývajících řádků. Do žádného jiného klientčina textu se nesahalo.
+- `npx tsc --noEmit` a `npm run build` — oba bez chyb.
+- Dev server zastaven, dočasné pomocné skripty (`.scratch-db-helper.mjs`
+  apod.) v kořeni repa smazány.
+
+### Co jsem NEudělal a proč
+
+- Zvýraznění editovaného textu v náhledu — vynecháno, zadání to povolovalo
+  (viz bod 2 výše).
+- Hlubší URL/stav persistence (náhled, vyhledávání) při remountu — po
+  opravě `client.ts` už by neměla být potřeba; udělal jsem jen levný
+  `activePage` v URL jako dodatečnou pojistku.
+- `useAuth.tsx`, `client.ts`, `previewMode.ts` — nedotčeno, mimo scope
+  (dělá je paralelní agent).

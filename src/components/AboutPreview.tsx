@@ -20,7 +20,7 @@ const AboutPreview = () => {
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-elevated">
                 <img
-                  src="/silvie.jpg"
+                  src={t("shared_about_preview_photo", "/silvie.jpg", "Fotka v náhledu sekce O mně")}
                   alt="Silvie Bogdanova - Art Expressive Therapist"
                   className="w-full h-auto aspect-[4/5] object-cover object-top"
                 />
