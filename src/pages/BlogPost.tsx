@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { Calendar, Tag, ArrowLeft, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
+import { useCms } from '@/hooks/useCms';
 
 interface BlogPost {
   id: string;
@@ -22,13 +23,13 @@ interface BlogPost {
   view_count: number;
 }
 
-const membershipNames = {
-  free: 'Free',
-  basic: 'Basic Membership',
-  premium: 'Premium Membership'
-};
-
 const BlogPost = () => {
+  const { t } = useCms();
+  const membershipNames = {
+    free: t("blogpost_membership_free", "Free"),
+    basic: t("blogpost_membership_basic", "Basic Membership"),
+    premium: t("blogpost_membership_premium", "Premium Membership"),
+  };
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -86,8 +87,8 @@ const BlogPost = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-gold">Loading article...</div>
+      <div id="cms-blogpost-loading" className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-gold">{t("blogpost_loading_text", "Loading article...")}</div>
       </div>
     );
   }
@@ -124,14 +125,14 @@ const BlogPost = () => {
       <Navbar />
 
       <main className="pt-20 pb-16">
-        <article className="container px-4 max-w-4xl mx-auto">
+        <article id="cms-blogpost-nav" className="container px-4 max-w-4xl mx-auto">
           {/* Back button */}
           <Link
             to="/blog"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8"
           >
             <ArrowLeft size={16} />
-            <span className="font-sans text-sm">Back to Blog</span>
+            <span className="font-sans text-sm">{t("blogpost_back_link", "Back to Blog")}</span>
           </Link>
 
           {/* Header */}
@@ -178,22 +179,21 @@ const BlogPost = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-12 text-center">
+            <div id="cms-blogpost-paywall" className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-12 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gold/20 rounded-full mb-6">
                 <Lock className="text-gold" size={32} />
               </div>
               <h2 className="text-2xl font-serif font-semibold mb-4">
-                {membershipNames[post.min_membership]} Required
+                {membershipNames[post.min_membership]} {t("blogpost_paywall_required_label", "Required")}
               </h2>
               <p className="text-muted-foreground font-sans mb-8 max-w-md mx-auto">
-                This article is exclusive to {membershipNames[post.min_membership]} members.
-                Upgrade your membership to unlock this content and access our full library.
+                {t("blogpost_paywall_text_pre", "This article is exclusive to")} {membershipNames[post.min_membership]} {t("blogpost_paywall_text_post", "members. Upgrade your membership to unlock this content and access our full library.")}
               </p>
               <Link
                 to={user ? "/profile" : "/auth"}
                 className="inline-block px-8 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all"
               >
-                {user ? "Upgrade Membership" : "Sign In to Continue"}
+                {user ? t("blogpost_paywall_button_upgrade", "Upgrade Membership") : t("blogpost_paywall_button_signin", "Sign In to Continue")}
               </Link>
             </div>
           )}

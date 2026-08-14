@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import VideoPreviewCard from "./VideoPreviewCard";
 import CategorySection from "./CategorySection";
-import { 
-  Heart, Brain, Shield, Palette, Eye, Users, 
+import {
+  Heart, Brain, Shield, Palette, Eye, Users,
   Zap, Compass, Target, Globe, Sun, Puzzle, Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCms } from "@/hooks/useCms";
 
 interface VideoCategory {
   id: string;
@@ -47,6 +48,7 @@ const iconMap: { [key: string]: React.ElementType } = {
 
 const ProgramOverview = () => {
   const navigate = useNavigate();
+  const { t } = useCms();
   const { user, profile, isAdmin } = useAuth();
   const [categories, setCategories] = useState<VideoCategory[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -111,7 +113,7 @@ const ProgramOverview = () => {
   if (loading) {
     return (
       <div className="py-16 text-center">
-        <div className="animate-pulse text-gold">Loading program content...</div>
+        <div className="animate-pulse text-gold">{t("hub_videos_loading", "Loading program content...")}</div>
       </div>
     );
   }
@@ -120,9 +122,9 @@ const ProgramOverview = () => {
     return (
       <div className="py-16 text-center">
         <Lock className="h-16 w-16 text-gold/30 mx-auto mb-4" />
-        <h3 className="font-serif text-2xl mb-2">Content in Preparation</h3>
+        <h3 className="font-serif text-2xl mb-2">{t("hub_videos_empty_title", "Content in Preparation")}</h3>
         <p className="text-muted-foreground max-w-md mx-auto">
-          We're preparing video lessons and materials. Subscribe for updates!
+          {t("hub_videos_empty_text", "We're preparing video lessons and materials. Subscribe for updates!")}
         </p>
       </div>
     );
@@ -133,7 +135,7 @@ const ProgramOverview = () => {
   const hasMoreCategories = visibleCategories < validCategories.length;
 
   return (
-    <div className="space-y-4">
+    <div id="cms-hub-videos_tab" className="space-y-4">
       {displayedCategories.map((category) => {
         const IconComponent = iconMap[category.icon] || Heart;
         const categoryVideos = videos.filter(v => v.category_id === category.id);
@@ -174,7 +176,7 @@ const ProgramOverview = () => {
               ))
             ) : (
               <div className="col-span-full text-center py-8 bg-muted/50 rounded-xl">
-                <p className="text-muted-foreground">Videos coming soon</p>
+                <p className="text-muted-foreground">{t("hub_videos_coming_soon", "Videos coming soon")}</p>
               </div>
             )}
           </CategorySection>
@@ -190,25 +192,24 @@ const ProgramOverview = () => {
             onClick={() => setVisibleCategories(prev => prev + 3)}
             className="border-gold text-gold hover:bg-gold hover:text-white mb-4"
           >
-            Show More Months ({validCategories.length - visibleCategories} remaining)
+            {t("hub_videos_more_prefix", "Show More Months (")}{validCategories.length - visibleCategories}{t("hub_videos_more_suffix", " remaining)")}
           </Button>
         )}
 
         {!user && (
           <div className="mt-8 p-8 bg-gradient-warm rounded-2xl border border-gold/20">
             <h3 className="font-serif text-2xl mb-3">
-              Get Full Program Access
+              {t("hub_videos_cta_title", "Get Full Program Access")}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Sign up or log in and unlock all video lessons, 
-              workbooks and exclusive content.
+              {t("hub_videos_cta_text", "Sign up or log in and unlock all video lessons, workbooks and exclusive content.")}
             </p>
             <div className="flex gap-4 justify-center">
               <Button asChild className="bg-gold hover:bg-gold-dark text-white shadow-gold">
-                <Link to="/free-guide">Start Free</Link>
+                <Link to="/free-guide">{t("hub_videos_cta_start", "Start Free")}</Link>
               </Button>
               <Button asChild variant="outline" className="border-gold text-gold">
-                <Link to="/pricing">View Pricing</Link>
+                <Link to="/pricing">{t("hub_videos_cta_pricing", "View Pricing")}</Link>
               </Button>
             </div>
           </div>

@@ -4,22 +4,25 @@ import PricingCards, { PricingTrustSignals } from "@/components/PricingCards";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
-
-const SESSION_TIER = {
-  name: "1:1 Session",
-  price: 107,
-  period: "/session",
-  features: [
-    "60-minute private session",
-    "Personalized action plan",
-    "Follow-up resources",
-    "Online or in-person (Spain)",
-    "Flexible scheduling",
-  ],
-  buttonText: "Book Session",
-};
+import { useCms } from "@/hooks/useCms";
 
 const Pricing = () => {
+  const { t } = useCms();
+
+  const SESSION_TIER = {
+    name: t("homepage_session_card_name", "1:1 Session"),
+    price: 107,
+    period: t("homepage_session_card_period", "/session"),
+    features: [
+      t("homepage_session_card_feature_1", "60-minute private session"),
+      t("homepage_session_card_feature_2", "Personalized action plan"),
+      t("homepage_session_card_feature_3", "Follow-up resources"),
+      t("homepage_session_card_feature_4", "Online or in-person (Spain)"),
+      t("homepage_session_card_feature_5", "Flexible scheduling"),
+    ],
+    buttonText: t("homepage_session_card_button", "Book Session"),
+  };
+
   return (
     <section id="pricing" className="relative py-24 overflow-hidden">
       {/* Background Image */}
@@ -31,20 +34,23 @@ const Pricing = () => {
         <div className="absolute inset-0 bg-foreground/8" />
       </div>
 
-      <div className="container relative z-10 px-4">
+      <div id="cms-homepage-session" className="container relative z-10 px-4">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.25)' }}>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
             <Sparkles size={16} className="text-primary" />
             <span className="text-sm font-sans font-medium text-primary">
-              Simple Pricing
+              {t("homepage_session_badge", "Simple Pricing")}
             </span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-            From Navigating Life Abroad to Truly <span className="text-gradient-gold">Thriving</span>
+            {t("homepage_session_title_prefix", "From Navigating Life Abroad to Truly")} <span className="text-gradient-gold">{t("homepage_session_title_highlight", "Thriving")}</span>
           </h2>
           <p className="text-lg text-foreground/90 font-sans">
-            A 12-month guided membership program that transforms the loneliness, uncertainty, and cultural stress of expat life into your greatest strengths.
+            {t(
+              "homepage_session_subtitle",
+              "A 12-month guided membership program that transforms the loneliness, uncertainty, and cultural stress of expat life into your greatest strengths."
+            )}
           </p>
 
         </div>
@@ -58,14 +64,20 @@ const Pricing = () => {
         {/* How to get started */}
         <div className="max-w-2xl mx-auto mt-10 p-8 bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60">
           <h3 className="text-xl md:text-2xl font-serif font-semibold mb-6 text-center">
-            How to Get Started
+            {t("homepage_session_steps_title", "How to Get Started")}
           </h3>
           <div className="space-y-4">
             {[
-              { step: "1", text: "Choose the membership that suits you." },
-              { step: "2", text: "Click Sign Up to create your personal account." },
-              { step: "3", text: "Complete your secure payment via Stripe." },
-              { step: "4", text: "You'll receive a welcome email and instant access to your private Dashboard with the full 12-month programme." },
+              { step: "1", text: t("homepage_session_steps_1", "Choose the membership that suits you.") },
+              { step: "2", text: t("homepage_session_steps_2", "Click Sign Up to create your personal account.") },
+              { step: "3", text: t("homepage_session_steps_3", "Complete your secure payment via Stripe.") },
+              {
+                step: "4",
+                text: t(
+                  "homepage_session_steps_4",
+                  "You'll receive a welcome email and instant access to your private Dashboard with the full 12-month programme."
+                ),
+              },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-4">
                 <div className="w-8 h-8 bg-gradient-gold rounded-full flex items-center justify-center flex-shrink-0">
@@ -79,7 +91,10 @@ const Pricing = () => {
 
         {/* Membership description */}
         <p className="text-center text-foreground/80 font-sans leading-relaxed max-w-3xl mx-auto mt-8 mb-4">
-          Through Resilient Mind Membership Program, you will explore personal beliefs that may be limiting your progress, develop greater self-awareness, and create space to enjoy the simple, meaningful moments of your life with clarity and presence.
+          {t(
+            "homepage_session_description",
+            "Through Resilient Mind Membership Program, you will explore personal beliefs that may be limiting your progress, develop greater self-awareness, and create space to enjoy the simple, meaningful moments of your life with clarity and presence."
+          )}
         </p>
 
         {/* 1:1 Session Card */}

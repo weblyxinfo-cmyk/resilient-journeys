@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 import { toast } from 'sonner';
+import { useCms } from "@/hooks/useCms";
 
 interface BlogPost {
   id: string;
@@ -20,6 +21,7 @@ interface BlogPost {
 }
 
 const Blog = () => {
+  const { t } = useCms();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -96,28 +98,27 @@ const Blog = () => {
       <main className="pt-20">
         {/* Hero */}
         <PageHero>
-            <div className="max-w-3xl mx-auto text-center">
+            <div id="cms-blog-hero" className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <BookOpen size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  Insights & Resources
+                  {t("blog_hero_badge", "Insights & Resources")}
                 </span>
               </div>
 
               <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-6">
-                The Resilient Mind <span className="text-gradient-gold">Blog</span>
+                {t("blog_hero_title_pre", "The Resilient Mind")} <span className="text-gradient-gold">{t("blog_hero_title_highlight", "Blog")}</span>
               </h1>
 
               <p className="text-lg text-muted-foreground font-sans max-w-2xl mx-auto">
-                Practical wisdom, creative techniques, and stories of transformation
-                for expat families building their resilient minds.
+                {t("blog_hero_subtitle", "Practical wisdom, creative techniques, and stories of transformation for expat families building their resilient minds.")}
               </p>
             </div>
         </PageHero>
 
         {/* Blog Posts — only show when there are published posts */}
         {!loading && posts.length > 0 && (
-          <section className="py-16 md:py-24 bg-background">
+          <section id="cms-blog-list" className="py-16 md:py-24 bg-background">
             <div className="container px-4">
               <div className="max-w-4xl mx-auto">
                 <div className="grid gap-8">
@@ -165,7 +166,7 @@ const Blog = () => {
                         to={`/blog/${post.slug}`}
                         className="inline-flex items-center gap-2 text-primary font-sans font-medium hover:underline"
                       >
-                        Read Article
+                        {t("blog_read_article_label", "Read Article")}
                         <ArrowRight size={16} />
                       </Link>
                     </article>
@@ -177,28 +178,27 @@ const Blog = () => {
         )}
 
         {/* Coming Soon + Newsletter */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-blog-newsletter" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-4xl mx-auto">
               {!loading && posts.length === 0 && (
                 <div className="text-center py-12 mb-8">
-                  <p className="text-lg text-muted-foreground font-sans">Articles coming soon. Subscribe below to be notified!</p>
+                  <p className="text-lg text-muted-foreground font-sans">{t("blog_empty_state_text", "Articles coming soon. Subscribe below to be notified!")}</p>
                 </div>
               )}
 
               {/* Newsletter CTA */}
               <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 text-center">
                 <h3 className="text-2xl font-serif font-semibold mb-4">
-                  Never Miss an Article
+                  {t("blog_newsletter_title", "Never Miss an Article")}
                 </h3>
                 <p className="text-muted-foreground font-sans mb-6 max-w-md mx-auto">
-                  Subscribe to receive new articles, resources, and exclusive
-                  content directly in your inbox.
+                  {t("blog_newsletter_subtitle", "Subscribe to receive new articles, resources, and exclusive content directly in your inbox.")}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                   <input
                     type="email"
-                    placeholder="Your email address"
+                    placeholder={t("blog_newsletter_placeholder", "Your email address")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
@@ -209,7 +209,7 @@ const Blog = () => {
                     disabled={subscribing}
                     className="px-6 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all disabled:opacity-50"
                   >
-                    {subscribing ? 'Subscribing...' : 'Subscribe'}
+                    {subscribing ? t("blog_newsletter_button_subscribing", "Subscribing...") : t("blog_newsletter_button_label", "Subscribe")}
                   </button>
                 </div>
               </div>

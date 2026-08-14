@@ -9,9 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
+import { useCms } from "@/hooks/useCms";
 
 const BookingSuccess = () => {
   const [searchParams] = useSearchParams();
+  const { t } = useCms();
   const bookingId = searchParams.get("id");
   const stripeSessionId = searchParams.get("session_id");
 
@@ -55,12 +57,12 @@ const BookingSuccess = () => {
   }, [fetchBooking]);
 
   const sessionTypeNames: Record<string, string> = {
-    discovery: "Discovery Call",
-    one_on_one: "Individual Consultation",
-    family: "Family Session",
-    endometriosis_support: "Endometriosis & Chronic Pain Support",
-    individual_eft_reiki_offer: "EFT Tapping & Reiki Session",
-    premium_consultation: "Premium Consultation",
+    discovery: t("booking_success_type_discovery", "Discovery Call"),
+    one_on_one: t("booking_success_type_one_on_one", "Individual Consultation"),
+    family: t("booking_success_type_family", "Family Session"),
+    endometriosis_support: t("booking_success_type_endometriosis_support", "Endometriosis & Chronic Pain Support"),
+    individual_eft_reiki_offer: t("booking_success_type_individual_eft_reiki_offer", "EFT Tapping & Reiki Session"),
+    premium_consultation: t("booking_success_type_premium_consultation", "Premium Consultation"),
   };
 
   const addToGoogleCalendar = () => {
@@ -84,10 +86,10 @@ const BookingSuccess = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div id="cms-booking-success-loading" className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading reservation...</p>
+          <p className="text-muted-foreground">{t("booking_success_loading_text", "Loading reservation...")}</p>
         </div>
       </div>
     );
@@ -99,13 +101,13 @@ const BookingSuccess = () => {
         <Navbar />
         <main className="pt-32 pb-16">
           <div className="container px-4">
-            <div className="max-w-2xl mx-auto text-center">
+            <div id="cms-booking-success-error" className="max-w-2xl mx-auto text-center">
               <div className="text-6xl mb-4">❌</div>
-              <h1 className="text-3xl font-serif font-semibold mb-4">Something went wrong</h1>
-              <p className="text-muted-foreground mb-8">{error || "Reservation not found"}</p>
+              <h1 className="text-3xl font-serif font-semibold mb-4">{t("booking_success_error_title", "Something went wrong")}</h1>
+              <p className="text-muted-foreground mb-8">{error || t("booking_success_error_fallback", "Reservation not found")}</p>
               <Button asChild className="bg-gradient-gold">
                 <Link to="/booking">
-                  Back to Booking
+                  {t("booking_success_error_button", "Back to Booking")}
                 </Link>
               </Button>
             </div>
@@ -133,32 +135,34 @@ const BookingSuccess = () => {
         <div className="container px-4">
           <div className="max-w-3xl mx-auto">
             {/* Success Header */}
-            <div className="text-center mb-12">
+            <div id="cms-booking-success-header" className="text-center mb-12">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-gold rounded-full mb-6">
                 <CheckCircle size={48} className="text-primary-foreground" />
               </div>
 
               <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-                {isConfirmed ? "Booking Confirmed!" : "Booking Created"}
+                {isConfirmed
+                  ? t("booking_success_title_confirmed", "Booking Confirmed!")
+                  : t("booking_success_title_created", "Booking Created")}
               </h1>
 
               <p className="text-lg text-muted-foreground">
                 {isConfirmed
-                  ? "Your booking has been successfully confirmed. Confirmation email has been sent."
-                  : "Booking is awaiting payment completion."}
+                  ? t("booking_success_subtitle_confirmed", "Your booking has been successfully confirmed. Confirmation email has been sent.")
+                  : t("booking_success_subtitle_pending", "Booking is awaiting payment completion.")}
               </p>
             </div>
 
             {/* Booking Details Card */}
-            <Card className="mb-8">
+            <Card id="cms-booking-success-details" className="mb-8">
               <CardHeader>
-                <CardTitle>Booking Details</CardTitle>
+                <CardTitle>{t("booking_success_details_title", "Booking Details")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Calendar className="text-primary mt-1 flex-shrink-0" size={20} />
                   <div>
-                    <p className="font-semibold">Date</p>
+                    <p className="font-semibold">{t("booking_success_label_date", "Date")}</p>
                     <p className="text-muted-foreground">
                       {format(new Date(booking.session_date), "EEEE, MMMM d, yyyy", { locale: enUS })}
                     </p>
@@ -168,7 +172,7 @@ const BookingSuccess = () => {
                 <div className="flex items-start gap-3">
                   <Clock className="text-primary mt-1 flex-shrink-0" size={20} />
                   <div>
-                    <p className="font-semibold">Time</p>
+                    <p className="font-semibold">{t("booking_success_label_time", "Time")}</p>
                     <p className="text-muted-foreground">
                       {format(new Date(booking.session_date), "HH:mm")} -{" "}
                       {format(
@@ -183,7 +187,7 @@ const BookingSuccess = () => {
                 <div className="flex items-start gap-3">
                   <Mail className="text-primary mt-1 flex-shrink-0" size={20} />
                   <div>
-                    <p className="font-semibold">Session Type</p>
+                    <p className="font-semibold">{t("booking_success_label_session_type", "Session Type")}</p>
                     <p className="text-muted-foreground">
                       {sessionTypeNames[booking.session_type] || booking.session_type}
                     </p>
@@ -192,22 +196,22 @@ const BookingSuccess = () => {
 
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Client:</span>
+                    <span className="text-muted-foreground">{t("booking_success_label_client", "Client:")}</span>
                     <span className="font-semibold">{booking.client_name}</span>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-muted-foreground">Email:</span>
+                    <span className="text-muted-foreground">{t("booking_success_label_email", "Email:")}</span>
                     <span className="font-semibold">{booking.client_email}</span>
                   </div>
                   {booking.price_cents > 0 && (
                     <div className="flex justify-between items-center mt-2">
-                      <span className="text-muted-foreground">Price:</span>
+                      <span className="text-muted-foreground">{t("booking_success_label_price", "Price:")}</span>
                       <span className="font-bold text-primary">€{(booking.price_cents / 100).toFixed(2)}</span>
                     </div>
                   )}
                   {booking.notes && (
                     <div className="mt-4">
-                      <p className="text-sm text-muted-foreground mb-1">Note:</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("booking_success_label_note", "Note:")}</p>
                       <p className="text-sm bg-muted p-3 rounded-lg">{booking.notes}</p>
                     </div>
                   )}
@@ -216,7 +220,7 @@ const BookingSuccess = () => {
             </Card>
 
             {/* Action Buttons */}
-            <div className="space-y-4">
+            <div id="cms-booking-success-actions" className="space-y-4">
               {isConfirmed && (
                 <Button
                   onClick={addToGoogleCalendar}
@@ -225,21 +229,21 @@ const BookingSuccess = () => {
                   size="lg"
                 >
                   <Calendar className="mr-2" size={20} />
-                  Add to Google Calendar
+                  {t("booking_success_calendar_button", "Add to Google Calendar")}
                 </Button>
               )}
 
               <Button asChild variant="outline" className="w-full" size="lg">
                 <Link to="/">
-                  Back to Homepage
+                  {t("booking_success_home_button", "Back to Homepage")}
                 </Link>
               </Button>
             </div>
 
             {/* What's Next */}
-            <Card className="mt-8 bg-gradient-warm border-primary/20">
+            <Card id="cms-booking-success-next" className="mt-8 bg-gradient-warm border-primary/20">
               <CardHeader>
-                <CardTitle>What's next?</CardTitle>
+                <CardTitle>{t("booking_success_next_title", "What's next?")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-3">
@@ -248,8 +252,8 @@ const BookingSuccess = () => {
                   </div>
                   <p className="text-sm">
                     {isConfirmed
-                      ? "Confirmation email has been sent to your email address"
-                      : "Complete payment to confirm your reservation"}
+                      ? t("booking_success_next_1_confirmed", "Confirmation email has been sent to your email address")
+                      : t("booking_success_next_1_pending", "Complete payment to confirm your reservation")}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -257,7 +261,7 @@ const BookingSuccess = () => {
                     2
                   </div>
                   <p className="text-sm">
-                    You will receive a reminder 24 hours before your session
+                    {t("booking_success_next_2", "You will receive a reminder 24 hours before your session")}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -265,15 +269,15 @@ const BookingSuccess = () => {
                     3
                   </div>
                   <p className="text-sm">
-                    You will receive the online session link by email one day before your appointment
+                    {t("booking_success_next_3", "You will receive the online session link by email one day before your appointment")}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Contact Info */}
-            <div className="text-center mt-12 text-sm text-muted-foreground">
-              <p>Have questions? Contact us at</p>
+            <div id="cms-booking-success-contact" className="text-center mt-12 text-sm text-muted-foreground">
+              <p>{t("booking_success_contact_text", "Have questions? Contact us at")}</p>
               <a href="mailto:contact@resilientmind.io" className="text-primary hover:underline">
                 contact@resilientmind.io
               </a>

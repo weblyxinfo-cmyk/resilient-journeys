@@ -2,6 +2,7 @@ import { Play, Lock, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCms } from "@/hooks/useCms";
 
 interface VideoPreviewCardProps {
   title: string;
@@ -15,9 +16,9 @@ interface VideoPreviewCardProps {
 }
 
 const membershipBadges = {
-  free: { label: "Free", className: "bg-muted text-muted-foreground" },
-  basic: { label: "Basic", className: "bg-gold/20 text-gold-dark border-gold/30" },
-  premium: { label: "Premium", className: "bg-gradient-gold text-white border-0" },
+  free: { key: "shared_video_card_badge_free", label: "Free", className: "bg-muted text-muted-foreground" },
+  basic: { key: "shared_video_card_badge_basic", label: "Basic", className: "bg-gold/20 text-gold-dark border-gold/30" },
+  premium: { key: "shared_video_card_badge_premium", label: "Premium", className: "bg-gradient-gold text-white border-0" },
 };
 
 const VideoPreviewCard = ({
@@ -30,13 +31,15 @@ const VideoPreviewCard = ({
   membership = 'basic',
   onClick,
 }: VideoPreviewCardProps) => {
+  const { t } = useCms();
   const badge = isFree ? membershipBadges.free : membershipBadges[membership];
 
   return (
-    <Card 
+    <Card
+      id="cms-shared-video-card"
       className={`group overflow-hidden border-border/50 transition-all duration-300 ${
-        isLocked 
-          ? "opacity-70" 
+        isLocked
+          ? "opacity-70"
           : "hover:shadow-elevated hover:-translate-y-1 cursor-pointer"
       }`}
       onClick={!isLocked ? onClick : undefined}
@@ -77,16 +80,16 @@ const VideoPreviewCard = ({
         {duration && (
           <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 bg-foreground/80 text-background text-xs rounded">
             <Clock className="h-3 w-3" />
-            {duration} min
+            {duration} {t("shared_video_card_duration_suffix", "min")}
           </div>
         )}
 
         {/* Membership badge */}
-        <Badge 
+        <Badge
           className={`absolute top-2 left-2 ${badge.className}`}
           variant="outline"
         >
-          {badge.label}
+          {t(badge.key, badge.label)}
         </Badge>
       </div>
 
@@ -100,12 +103,12 @@ const VideoPreviewCard = ({
         </p>
         
         {isLocked && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="mt-3 w-full border-gold text-gold hover:bg-gold hover:text-white"
           >
-            Unlock Access
+            {t("shared_video_card_button_unlock", "Unlock Access")}
           </Button>
         )}
       </CardContent>

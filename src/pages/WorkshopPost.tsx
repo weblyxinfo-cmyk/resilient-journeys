@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import SEO from '@/components/SEO';
 import WorkshopInquiryForm from '@/components/WorkshopInquiryForm';
 import WorkshopRegistration from '@/components/WorkshopRegistration';
+import { useCms } from '@/hooks/useCms';
 
 interface Workshop {
   id: string;
@@ -31,13 +32,13 @@ interface Workshop {
   payment_message: string | null;
 }
 
-const membershipNames = {
-  free: 'Free',
-  basic: 'Basic Membership',
-  premium: 'Premium Membership'
-};
-
 const WorkshopPost = () => {
+  const { t } = useCms();
+  const membershipNames = {
+    free: t("workshoppost_membership_free", "Free"),
+    basic: t("workshoppost_membership_basic", "Basic Membership"),
+    premium: t("workshoppost_membership_premium", "Premium Membership"),
+  };
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -93,8 +94,8 @@ const WorkshopPost = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-gold">Loading workshop...</div>
+      <div id="cms-workshoppost-loading" className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-gold">{t("workshoppost_loading_text", "Loading workshop...")}</div>
       </div>
     );
   }
@@ -126,14 +127,14 @@ const WorkshopPost = () => {
       <Navbar />
 
       <main className="pt-20 pb-16">
-        <article className="container px-4 max-w-4xl mx-auto">
+        <article id="cms-workshoppost-nav" className="container px-4 max-w-4xl mx-auto">
           {/* Back button */}
           <Link
             to="/workshopy"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8"
           >
             <ArrowLeft size={16} />
-            <span className="font-sans text-sm">Back to Workshops</span>
+            <span className="font-sans text-sm">{t("workshoppost_back_link", "Back to Workshops")}</span>
           </Link>
 
           {/* Header */}
@@ -177,8 +178,8 @@ const WorkshopPost = () => {
 
           {/* Video Content - Public */}
           {workshop.video_urls && workshop.video_urls.length > 0 && (
-            <div className="mb-12">
-              <h2 className="text-2xl font-serif font-semibold mb-6">Workshop Videos</h2>
+            <div id="cms-workshoppost-videos" className="mb-12">
+              <h2 className="text-2xl font-serif font-semibold mb-6">{t("workshoppost_videos_title", "Workshop Videos")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {workshop.video_urls.map((videoUrl, idx) => (
                   <div key={idx} className="rounded-lg overflow-hidden aspect-video">
@@ -203,22 +204,21 @@ const WorkshopPost = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-12 text-center mb-12">
+            <div id="cms-workshoppost-paywall" className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-12 text-center mb-12">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gold/20 rounded-full mb-6">
                 <Lock className="text-gold" size={32} />
               </div>
               <h2 className="text-2xl font-serif font-semibold mb-4">
-                {membershipNames[workshop.min_membership]} Required
+                {membershipNames[workshop.min_membership]} {t("workshoppost_paywall_required_label", "Required")}
               </h2>
               <p className="text-muted-foreground font-sans mb-8 max-w-md mx-auto">
-                This workshop is exclusive to {membershipNames[workshop.min_membership]} members.
-                Upgrade your membership to unlock this content and access our full library.
+                {t("workshoppost_paywall_text_pre", "This workshop is exclusive to")} {membershipNames[workshop.min_membership]} {t("workshoppost_paywall_text_post", "members. Upgrade your membership to unlock this content and access our full library.")}
               </p>
               <Link
                 to={user ? "/profile" : "/auth"}
                 className="inline-block px-8 py-3 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all"
               >
-                {user ? "Upgrade Membership" : "Sign In to Continue"}
+                {user ? t("workshoppost_paywall_button_upgrade", "Upgrade Membership") : t("workshoppost_paywall_button_signin", "Sign In to Continue")}
               </Link>
             </div>
           )}

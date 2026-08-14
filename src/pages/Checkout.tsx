@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useCms } from "@/hooks/useCms";
 import {
   MEMBERSHIP_TIERS,
   getTierPrice,
@@ -48,6 +49,7 @@ const Checkout = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, profile, loading: authLoading } = useAuth();
+  const { t } = useCms();
 
   const plans = buildPlans();
   const productParam = searchParams.get('product');
@@ -56,10 +58,29 @@ const Checkout = () => {
   const planId = (searchParams.get('plan') || 'basic_monthly') as PlanId;
   const plan = plans[planId] || plans.basic_monthly;
 
+  // Translated labels — buildPlans() keeps its English defaults so pricing
+  // logic stays untouched; render uses these maps instead of plan.name/subtitle.
+  const membershipTypeLabel: Record<'basic' | 'premium', string> = {
+    basic: t("checkout_plan_type_basic", "Basic"),
+    premium: t("checkout_plan_type_premium", "Premium"),
+  };
+  const intervalLabel: Record<string, string> = {
+    month: t("checkout_plan_interval_monthly", "Monthly"),
+    year: t("checkout_plan_interval_yearly", "Yearly"),
+  };
+
   // Hub display info
   const hubInfo: Record<string, { name: string; price: number; description: string }> = {
-    'endometriosis': { name: 'Endometriosis Management Hub', price: 147, description: 'Managing chronic pain while living abroad' },
-    'transformed_self': { name: 'The Transformed Self Hub', price: 127, description: 'Carrying Your Strength Across Borders' },
+    'endometriosis': {
+      name: t("checkout_hub_endometriosis_name", "Endometriosis Management Hub"),
+      price: 147,
+      description: t("checkout_hub_endometriosis_description", "Managing chronic pain while living abroad"),
+    },
+    'transformed_self': {
+      name: t("checkout_hub_transformed_self_name", "The Transformed Self Hub"),
+      price: 127,
+      description: t("checkout_hub_transformed_self_description", "Carrying Your Strength Across Borders"),
+    },
   };
   const hub = hubSlug ? hubInfo[hubSlug] : null;
 
@@ -81,7 +102,7 @@ const Checkout = () => {
     // Safety timeout - always reset button after 20s
     const safetyTimeout = setTimeout(() => {
       setProcessing(false);
-      setError('Request timed out. Please try again.');
+      setError(t("checkout_error_timeout", "Request timed out. Please try again."));
     }, 20000);
 
     try {
@@ -109,7 +130,7 @@ const Checkout = () => {
       if (fnError) {
         const errorMsg = typeof fnError === 'object' && fnError.message
           ? fnError.message
-          : 'Error creating payment';
+          : t("checkout_error_generic", "Error creating payment");
         throw new Error(errorMsg);
       }
 
@@ -117,10 +138,10 @@ const Checkout = () => {
         window.location.href = data.url;
         return; // Don't reset - page is navigating
       }
-      throw new Error('Could not get payment link');
+      throw new Error(t("checkout_error_no_link", "Could not get payment link"));
     } catch (err: any) {
       console.error('Checkout error:', err);
-      setError(err.message || 'An error occurred while processing payment');
+      setError(err.message || t("checkout_error_processing", "An error occurred while processing payment"));
       setProcessing(false);
     } finally {
       clearTimeout(safetyTimeout);
@@ -143,7 +164,7 @@ const Checkout = () => {
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="container px-4">
-          <div className="max-w-lg mx-auto">
+          <div id="cms-checkout-summary" className="max-w-lg mx-auto">
             {/* Back button */}
             <Button
               variant="ghost"
@@ -151,13 +172,13 @@ const Checkout = () => {
               onClick={() => navigate('/resilient-hub')}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to program
+              {t("checkout_back_button", "Back to program")}
             </Button>
 
             <Card className="border-gold/30">
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-2xl font-serif">
-                  Complete Your Order
+                  {t("checkout_title", "Complete Your Order")}
                 </CardTitle>
               </CardHeader>
 
@@ -172,7 +193,7 @@ const Checkout = () => {
                       </div>
                       <div className="text-right">
                         <span className="text-2xl font-serif font-bold">€{hub.price}</span>
-                        <span className="text-muted-foreground text-sm"> one-time</span>
+                        <span className="text-muted-foreground text-sm"> {t("checkout_hub_one_time_label", "one-time")}</span>
                       </div>
                     </div>
                   </div>
@@ -183,7 +204,7 @@ const Checkout = () => {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h3 className="font-serif font-semibold text-lg">
-                            {plan.name} - {plan.subtitle}
+                            {membershipTypeLabel[plan.membershipType]} - {intervalLabel[plan.interval]}
                           </h3>
                         </div>
                         <div className="text-right">
@@ -215,7 +236,7 @@ const Checkout = () => {
                 {/* User info */}
                 {user && (
                   <div className="text-sm text-muted-foreground">
-                    Signed in as: <span className="font-medium">{user.email}</span>
+                    {t("checkout_signed_in_as", "Signed in as:")} <span className="font-medium">{user.email}</span>
                   </div>
                 )}
 
@@ -228,12 +249,12 @@ const Checkout = () => {
                   {processing ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
+                      {t("checkout_button_processing", "Processing...")}
                     </>
                   ) : (
                     <>
                       <CreditCard className="mr-2 h-5 w-5" />
-                      Pay €{isHubPurchase && hub ? hub.price : plan.price}
+                      {t("checkout_pay_button_prefix", "Pay")} €{isHubPurchase && hub ? hub.price : plan.price}
                     </>
                   )}
                 </Button>
@@ -241,17 +262,16 @@ const Checkout = () => {
                 {/* Not logged in */}
                 {!user && (
                   <div className="text-center text-sm text-muted-foreground">
-                    Don't have an account?{' '}
+                    {t("checkout_no_account_text", "Don't have an account?")}{' '}
                     <Link to={`/auth?redirect=${encodeURIComponent(`/checkout?plan=${planId}`)}`} className="text-gold hover:underline">
-                      Sign up
+                      {t("checkout_signup_link", "Sign up")}
                     </Link>
                   </div>
                 )}
 
                 {/* Security note */}
                 <p className="text-xs text-center text-muted-foreground">
-                  Payment is secured by Stripe.
-                  Your data is encrypted.
+                  {t("checkout_security_note", "Payment is secured by Stripe. Your data is encrypted.")}
                 </p>
               </CardContent>
             </Card>
@@ -259,7 +279,7 @@ const Checkout = () => {
             {/* Other plans (only visible/monthly) - hide for hub purchases */}
             {!isHubPurchase && (
             <div className="mt-8 text-center">
-              <p className="text-muted-foreground mb-3">Different plan?</p>
+              <p className="text-muted-foreground mb-3">{t("checkout_different_plan_text", "Different plan?")}</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {visiblePlans.map(([id, p]) => (
                   <Button
@@ -269,7 +289,7 @@ const Checkout = () => {
                     className={id === planId ? "bg-gold" : ""}
                     onClick={() => navigate(`/checkout?plan=${id}`)}
                   >
-                    {p.name} {p.subtitle}
+                    {membershipTypeLabel[p.membershipType]} {intervalLabel[p.interval]}
                   </Button>
                 ))}
               </div>

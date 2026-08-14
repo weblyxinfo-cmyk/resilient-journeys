@@ -1,0 +1,56 @@
+[
+  {"key":"navbar_link_home","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — Domů","sort_order":10,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_link_about","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — O mně","sort_order":20,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_link_resilient_hub","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — Resilient Hub","sort_order":30,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_link_membership","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — Membership","sort_order":40,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_link_blog","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — Blog","sort_order":50,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_link_workshops","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — Workshopy","sort_order":60,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_link_booking","page":"navbar","section":"menu","section_title":"Hlavní menu","label":"Odkaz — Booking","sort_order":70,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+
+  {"key":"navbar_account_fallback_label","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Tlačítko účtu — náhradní text bez jména","sort_order":10,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_account_admin_panel","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Položka menu — Admin Panel","sort_order":20,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_account_dashboard","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Položka menu — Dashboard","sort_order":30,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_account_profile_settings","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Položka menu — Nastavení profilu","sort_order":40,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_account_sign_out","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Položka menu — Odhlásit se","sort_order":50,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_account_sign_in","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Tlačítko — Přihlásit se","sort_order":60,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+  {"key":"navbar_account_get_started","page":"navbar","section":"account","section_title":"Účet a přihlášení","label":"Tlačítko CTA — Get Started","sort_order":70,"field_type":"text","route":"/","anchor":"cms-navbar-menu"},
+
+  {"key":"cookiebanner_title","page":"shared","section":"cookie_banner","section_title":"Cookie lišta","label":"Nadpis","sort_order":10,"field_type":"text","route":"/","anchor":"cms-shared-cookiebanner"},
+  {"key":"cookiebanner_text","page":"shared","section":"cookie_banner","section_title":"Cookie lišta","label":"Text","sort_order":20,"field_type":"textarea","route":"/","anchor":"cms-shared-cookiebanner"},
+  {"key":"cookiebanner_link_learn_more","page":"shared","section":"cookie_banner","section_title":"Cookie lišta","label":"Odkaz — Zjistit více","sort_order":30,"field_type":"text","route":"/","anchor":"cms-shared-cookiebanner"},
+  {"key":"cookiebanner_button_accept","page":"shared","section":"cookie_banner","section_title":"Cookie lišta","label":"Tlačítko — Přijmout vše","sort_order":40,"field_type":"text","route":"/","anchor":"cms-shared-cookiebanner"},
+  {"key":"cookiebanner_button_decline","page":"shared","section":"cookie_banner","section_title":"Cookie lišta","label":"Tlačítko — Pouze nezbytné","sort_order":50,"field_type":"text","route":"/","anchor":"cms-shared-cookiebanner"},
+
+  {"key":"notfound_heading","page":"shared","section":"not_found","section_title":"Stránka 404","label":"Nadpis","sort_order":10,"field_type":"text","route":"/404","anchor":"cms-shared-notfound"},
+  {"key":"notfound_description","page":"shared","section":"not_found","section_title":"Stránka 404","label":"Popisný text","sort_order":20,"field_type":"textarea","route":"/404","anchor":"cms-shared-notfound"},
+  {"key":"notfound_button_home","page":"shared","section":"not_found","section_title":"Stránka 404","label":"Tlačítko — Na hlavní stránku","sort_order":30,"field_type":"text","route":"/404","anchor":"cms-shared-notfound"},
+  {"key":"notfound_button_back","page":"shared","section":"not_found","section_title":"Stránka 404","label":"Tlačítko — Zpět","sort_order":40,"field_type":"text","route":"/404","anchor":"cms-shared-notfound"},
+
+  {"key":"shared_about_preview_badge","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Odznak nad nadpisem","sort_order":10,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_title_prefix","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Nadpis — první část","sort_order":20,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_title_highlight","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Nadpis — zvýrazněné jméno","sort_order":30,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_text_2","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Odstavec 2 — příběh","sort_order":40,"field_type":"textarea","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_text_3","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Odstavec 3 — certifikace","sort_order":50,"field_type":"textarea","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_skill_1","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Štítek dovednosti 1","sort_order":60,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_skill_2","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Štítek dovednosti 2","sort_order":70,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_skill_3","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Štítek dovednosti 3","sort_order":80,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_cta","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Odkaz — Číst celý příběh","sort_order":90,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_location_label","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Plovoucí kartička — popisek lokace","sort_order":100,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_location_value","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Plovoucí kartička — název země","sort_order":110,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+  {"key":"shared_about_preview_location_previous","page":"shared","section":"about_preview","section_title":"O mně — náhled na homepage","label":"Plovoucí kartička — předchozí lokace","sort_order":120,"field_type":"text","route":"/","anchor":"cms-shared-about-preview"},
+
+  {"key":"shared_testimonials_title_prefix","page":"shared","section":"testimonials","section_title":"Reference — nadpis a popisek","label":"Nadpis — první část","sort_order":10,"field_type":"text","route":"/","anchor":"cms-shared-testimonials"},
+  {"key":"shared_testimonials_title_highlight","page":"shared","section":"testimonials","section_title":"Reference — nadpis a popisek","label":"Nadpis — zvýrazněné slovo","sort_order":20,"field_type":"text","route":"/","anchor":"cms-shared-testimonials"},
+  {"key":"shared_testimonials_subtitle","page":"shared","section":"testimonials","section_title":"Reference — nadpis a popisek","label":"Podnadpis","sort_order":30,"field_type":"text","route":"/","anchor":"cms-shared-testimonials"},
+
+  {"key":"shared_category_section_month_label","page":"shared","section":"category_section","section_title":"Sekce měsíce programu","label":"Předpona — \"Month\" před číslem","sort_order":10,"field_type":"text","route":"/dashboard","anchor":"cms-shared-category-section"},
+  {"key":"shared_category_section_bonus_label","page":"shared","section":"category_section","section_title":"Sekce měsíce programu","label":"Štítek — Bonus měsíc","sort_order":20,"field_type":"text","route":"/dashboard","anchor":"cms-shared-category-section"},
+  {"key":"shared_category_section_locked_badge","page":"shared","section":"category_section","section_title":"Sekce měsíce programu","label":"Štítek — Uzamčeno","sort_order":30,"field_type":"text","route":"/dashboard","anchor":"cms-shared-category-section"},
+  {"key":"shared_category_section_view_all","page":"shared","section":"category_section","section_title":"Sekce měsíce programu","label":"Tlačítko — Zobrazit vše","sort_order":40,"field_type":"text","route":"/dashboard","anchor":"cms-shared-category-section"},
+
+  {"key":"shared_video_card_badge_free","page":"shared","section":"video_card","section_title":"Karta videa — členské štítky","label":"Štítek — Free","sort_order":10,"field_type":"text","route":"/dashboard","anchor":"cms-shared-video-card"},
+  {"key":"shared_video_card_badge_basic","page":"shared","section":"video_card","section_title":"Karta videa — členské štítky","label":"Štítek — Basic","sort_order":20,"field_type":"text","route":"/dashboard","anchor":"cms-shared-video-card"},
+  {"key":"shared_video_card_badge_premium","page":"shared","section":"video_card","section_title":"Karta videa — členské štítky","label":"Štítek — Premium","sort_order":30,"field_type":"text","route":"/dashboard","anchor":"cms-shared-video-card"},
+  {"key":"shared_video_card_duration_suffix","page":"shared","section":"video_card","section_title":"Karta videa — členské štítky","label":"Jednotka délky videa (\"min\")","sort_order":40,"field_type":"text","route":"/dashboard","anchor":"cms-shared-video-card"},
+  {"key":"shared_video_card_button_unlock","page":"shared","section":"video_card","section_title":"Karta videa — členské štítky","label":"Tlačítko — Odemknout přístup","sort_order":50,"field_type":"text","route":"/dashboard","anchor":"cms-shared-video-card"}
+]

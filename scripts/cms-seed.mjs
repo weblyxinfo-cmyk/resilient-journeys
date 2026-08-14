@@ -71,6 +71,55 @@ const FILE_PAGE_MAP = {
   'src/components/Footer.tsx': 'footer',
   'src/pages/About.tsx': 'about',
   'src/components/__CmsSeedTest.tsx': 'homepage',
+
+  // CMS phase 2 (docs/cms-final-seed.md) — added when the rest of the site
+  // was wired to useCms(). page values match docs/cms-keys-*.json, the
+  // metadata source those seed migrations were generated from.
+  'src/components/Navbar.tsx': 'navbar',
+  'src/components/CookieBanner.tsx': 'shared',
+  'src/pages/NotFound.tsx': 'shared',
+  'src/components/AboutPreview.tsx': 'shared',
+  'src/components/Testimonials.tsx': 'shared',
+  'src/components/CategorySection.tsx': 'shared',
+  'src/components/VideoPreviewCard.tsx': 'shared',
+  'src/components/FreeGuideKit.tsx': 'shared',
+  'src/components/LeadMagnet.tsx': 'shared',
+  // Pricing.tsx is two different files with the same basename: the homepage
+  // teaser component renders embedded on "/", the page component is the
+  // dedicated "/pricing" route. Both map to the page their content actually
+  // belongs to per docs/cms-keys-pricing.json.
+  'src/components/Pricing.tsx': 'homepage',
+  'src/pages/Pricing.tsx': 'pricing',
+  'src/components/ProgramOverview.tsx': 'resilient-hub',
+  'src/components/WorkshopInquiryForm.tsx': 'workshop-inquiry-form',
+  'src/components/WorkshopRegistration.tsx': 'workshop-registration',
+  'src/pages/Blog.tsx': 'blog',
+  'src/pages/BlogPost.tsx': 'blog-post',
+  'src/pages/Booking.tsx': 'booking',
+  'src/pages/BookingSuccess.tsx': 'booking-success',
+  'src/pages/Checkout.tsx': 'checkout',
+  'src/pages/CheckoutSuccess.tsx': 'checkout-success',
+  'src/pages/Cookies.tsx': 'legal',
+  'src/pages/EndometriosisHub.tsx': 'endometriosis',
+  'src/pages/FreeGuide.tsx': 'free-guide',
+  'src/pages/FreeGuideThankYou.tsx': 'thank-you',
+  // membership_whydifferent_*/faq_*/howto_title/howto_step_*/howto_note are
+  // literally the same t() key+fallback as ResilientHubs.tsx (content
+  // copy-pasted from /resilient-hubs, see the "preserved from
+  // /resilient-hubs" comments in both files) and are already seeded under
+  // page='resilient-hubs' by the time this map matters for cms:gen — a
+  // fresh run skips any key that already has a migration regardless of
+  // what page this map says, so the mismatch for those ~19 keys is
+  // harmless. See docs/cms-final-seed.md.
+  'src/pages/Membership.tsx': 'membership',
+  'src/pages/Membership2.tsx': 'membership',
+  'src/pages/PricingSuccess.tsx': 'pricing-success',
+  'src/pages/Privacy.tsx': 'legal',
+  'src/pages/ResilientHub.tsx': 'resilient-hub',
+  'src/pages/ResilientHubs.tsx': 'resilient-hubs',
+  'src/pages/Terms.tsx': 'legal',
+  'src/pages/WorkshopPost.tsx': 'workshop-post',
+  'src/pages/Workshopy.tsx': 'workshopy',
 };
 
 const FIELD_NAME_WORDS = new Set([

@@ -1,9 +1,18 @@
 import { ArrowRight, MapPin, Heart, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCms } from "@/hooks/useCms";
 
 const AboutPreview = () => {
+  const { t } = useCms();
+
+  const skills = [
+    { icon: Heart, key: "shared_about_preview_skill_1", label: "Holistic Counselling" },
+    { icon: Palette, key: "shared_about_preview_skill_2", label: "Art Therapy Diploma" },
+    { icon: MapPin, key: "shared_about_preview_skill_3", label: "Reiki level III" },
+  ];
+
   return (
-    <section className="py-24 bg-background">
+    <section id="cms-shared-about-preview" className="py-24 bg-background">
       <div className="container px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -25,12 +34,12 @@ const AboutPreview = () => {
                     <MapPin size={18} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-sans font-semibold">Based in</div>
-                    <div className="text-xs text-muted-foreground">Spain</div>
+                    <div className="text-sm font-sans font-semibold">{t("shared_about_preview_location_label", "Based in")}</div>
+                    <div className="text-xs text-muted-foreground">{t("shared_about_preview_location_value", "Spain")}</div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground font-sans">
-                  Previously Australia
+                  {t("shared_about_preview_location_previous", "Previously Australia")}
                 </p>
               </div>
             </div>
@@ -40,40 +49,39 @@ const AboutPreview = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Heart size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  About Me
+                  {t("shared_about_preview_badge", "About Me")}
                 </span>
               </div>
 
               <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-6">
-                Hi, I'm <span className="text-gradient-gold">Silvie</span>
+                {t("shared_about_preview_title_prefix", "Hi, I'm")} <span className="text-gradient-gold">{t("shared_about_preview_title_highlight", "Silvie")}</span>
               </h2>
 
               <p className="text-muted-foreground font-sans leading-relaxed mb-6">
-                I help expatriates and globally mobile individuals build mental resilience, blending proven personal development techniques with insights from my own 13 years of living and thriving abroad.
+                {t(
+                  "about_intro_text",
+                  "I help expatriates and globally mobile individuals build mental resilience, blending proven personal development techniques with insights from my own 13 years of living and thriving abroad."
+                )}
               </p>
 
               <p className="text-muted-foreground font-sans leading-relaxed mb-6">
-                My journey began in the Czech Republic, where I completed my Master's degree in Economics and Management. Life presented me with unexpected challenges: a diagnosis of endometriosis, multiple surgeries, and navigating new cultures and healthcare systems far from home.
+                {t("shared_about_preview_text_2", "My journey began in the Czech Republic, where I completed my Master's degree in Economics and Management. Life presented me with unexpected challenges: a diagnosis of endometriosis, multiple surgeries, and navigating new cultures and healthcare systems far from home.")}
               </p>
 
               <p className="text-muted-foreground font-sans leading-relaxed mb-8">
-                Over the years, I've devoted myself to holistic approaches, obtaining a Certificate in Holistic Counselling, an Art Therapy Diploma (HH Dip A.Th), and Reiki level III certification. Through Resilient Mind, I guide individuals—especially women living abroad—toward inner strength and clarity.
+                {t("shared_about_preview_text_3", "Over the years, I've devoted myself to holistic approaches, obtaining a Certificate in Holistic Counselling, an Art Therapy Diploma (HH Dip A.Th), and Reiki level III certification. Through Resilient Mind, I guide individuals—especially women living abroad—toward inner strength and clarity.")}
               </p>
 
               {/* Skills */}
               <div className="flex flex-wrap gap-3 mb-8">
-                {[
-                  { icon: Heart, label: "Holistic Counselling" },
-                  { icon: Palette, label: "Art Therapy Diploma" },
-                  { icon: MapPin, label: "Reiki level III" },
-                ].map((skill, index) => (
+                {skills.map((skill, index) => (
                   <div
                     key={index}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-secondary rounded-full"
                   >
                     <skill.icon size={14} className="text-primary" />
                     <span className="text-sm font-sans font-medium text-secondary-foreground">
-                      {skill.label}
+                      {t(skill.key, skill.label)}
                     </span>
                   </div>
                 ))}
@@ -83,7 +91,7 @@ const AboutPreview = () => {
                 to="/about"
                 className="inline-flex items-center gap-2 text-primary font-sans font-semibold hover:underline"
               >
-                Read My Full Story
+                {t("shared_about_preview_cta", "Read My Full Story")}
                 <ArrowRight size={18} />
               </Link>
             </div>

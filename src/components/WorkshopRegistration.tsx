@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { CheckCircle, CreditCard, Mail, User, Phone, Sparkles } from 'lucide-react';
+import { useCms } from '@/hooks/useCms';
 
 interface WorkshopRegistrationProps {
   workshopId: string;
@@ -45,6 +46,7 @@ const WorkshopRegistration = ({
   iban,
   paymentMessage,
 }: WorkshopRegistrationProps) => {
+  const { t } = useCms();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
@@ -97,7 +99,7 @@ const WorkshopRegistration = ({
 
   if (submitted) {
     return (
-      <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 overflow-hidden">
+      <div id="cms-workshopform-reg-success" className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
@@ -106,23 +108,22 @@ const WorkshopRegistration = ({
             <CheckCircle size={32} className="text-primary" />
           </div>
           <h3 className="text-2xl font-serif font-semibold mb-3">
-            You're Registered!
+            {t("workshopform_reg_success_title", "You're Registered!")}
           </h3>
           <p className="text-muted-foreground font-sans mb-6 max-w-md mx-auto leading-relaxed">
-            Thank you for registering for <strong>{workshopTitle}</strong>. I'll send you a confirmation
-            email with all the details shortly.
+            {t("workshopform_reg_success_text_pre", "Thank you for registering for")} <strong>{workshopTitle}</strong>{t("workshopform_reg_success_text_post", ". I'll send you a confirmation email with all the details shortly.")}
           </p>
 
           {spaydString && (
             <div className="bg-card rounded-2xl p-6 shadow-elevated max-w-sm mx-auto">
               <p className="font-sans text-sm font-medium mb-4">
-                Scan to pay <strong>{formatPrice(price)}</strong>
+                {t("workshopform_reg_qr_pay_label", "Scan to pay")} <strong>{formatPrice(price)}</strong>
               </p>
               <div className="bg-white p-4 rounded-xl inline-block">
                 <QRCodeSVG value={spaydString} size={180} />
               </div>
               <p className="text-xs text-muted-foreground font-sans mt-3">
-                QR payment code for your bank app
+                {t("workshopform_reg_qr_caption", "QR payment code for your bank app")}
               </p>
             </div>
           )}
@@ -139,27 +140,26 @@ const WorkshopRegistration = ({
 
       <div className="relative z-10 grid md:grid-cols-2 gap-8 items-start">
         {/* Content side */}
-        <div>
+        <div id="cms-workshopform-reg-intro">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
             <Sparkles size={16} className="text-primary" />
             <span className="text-sm font-sans font-medium text-primary">
-              Workshop Registration
+              {t("workshopform_reg_badge", "Workshop Registration")}
             </span>
           </div>
 
           <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
-            Reserve Your <span className="text-gradient-gold">Spot</span>
+            {t("workshopform_reg_title_pre", "Reserve Your")} <span className="text-gradient-gold">{t("workshopform_reg_title_highlight", "Spot")}</span>
           </h2>
 
           <p className="text-muted-foreground font-sans mb-6 leading-relaxed">
-            Register for <strong>"{workshopTitle}"</strong> and secure your place.
-            After registering, you'll receive a confirmation with all the details.
+            {t("workshopform_reg_desc_pre", "Register for")} <strong>"{workshopTitle}"</strong> {t("workshopform_reg_desc_post", "and secure your place. After registering, you'll receive a confirmation with all the details.")}
           </p>
 
           {/* Price card */}
           <div className="bg-card rounded-2xl p-6 border border-border mb-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="font-sans text-sm text-muted-foreground">Workshop Price</span>
+              <span className="font-sans text-sm text-muted-foreground">{t("workshopform_reg_price_label", "Workshop Price")}</span>
               <CreditCard size={20} className="text-primary" />
             </div>
             <div className="text-3xl font-serif font-semibold text-gradient-gold">
@@ -171,25 +171,25 @@ const WorkshopRegistration = ({
           {spaydString && (
             <div className="bg-card rounded-2xl p-6 border border-border text-center">
               <p className="font-sans text-sm font-medium mb-4">
-                Pay via QR code in your bank app
+                {t("workshopform_reg_qr_title", "Pay via QR code in your bank app")}
               </p>
               <div className="bg-white p-4 rounded-xl inline-block shadow-soft">
                 <QRCodeSVG value={spaydString} size={160} />
               </div>
               <p className="text-xs text-muted-foreground font-sans mt-3">
-                Scan with your banking app to pay
+                {t("workshopform_reg_qr_scan_caption", "Scan with your banking app to pay")}
               </p>
             </div>
           )}
         </div>
 
         {/* Registration form */}
-        <div className="bg-card rounded-2xl p-6 shadow-elevated">
+        <div id="cms-workshopform-reg-form" className="bg-card rounded-2xl p-6 shadow-elevated">
           <h3 className="text-xl font-serif font-semibold mb-2">
-            Register Now
+            {t("workshopform_reg_form_title", "Register Now")}
           </h3>
           <p className="text-muted-foreground font-sans text-sm mb-6">
-            Fill in your details and I'll confirm your spot.
+            {t("workshopform_reg_form_subtitle", "Fill in your details and I'll confirm your spot.")}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -202,7 +202,7 @@ const WorkshopRegistration = ({
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Your full name"
+                placeholder={t("workshopform_reg_form_name_placeholder", "Your full name")}
                 required
                 className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-border bg-background font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
@@ -217,7 +217,7 @@ const WorkshopRegistration = ({
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="Your email"
+                placeholder={t("workshopform_reg_form_email_placeholder", "Your email")}
                 required
                 className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-border bg-background font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
@@ -232,7 +232,7 @@ const WorkshopRegistration = ({
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="Phone number (optional)"
+                placeholder={t("workshopform_reg_form_phone_placeholder", "Phone number (optional)")}
                 className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-border bg-background font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
@@ -240,7 +240,7 @@ const WorkshopRegistration = ({
             <textarea
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
-              placeholder="Any questions or notes? (optional)"
+              placeholder={t("workshopform_reg_form_note_placeholder", "Any questions or notes? (optional)")}
               rows={3}
               className="w-full px-4 py-3.5 rounded-xl border border-border bg-background font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
             />
@@ -250,11 +250,11 @@ const WorkshopRegistration = ({
               disabled={submitting}
               className="w-full py-3.5 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
             >
-              {submitting ? 'Registering...' : `Register — ${formatPrice(price)}`}
+              {submitting ? t("workshopform_reg_form_submit_loading", "Registering...") : `${t("workshopform_reg_form_submit_prefix", "Register —")} ${formatPrice(price)}`}
             </button>
 
             <p className="text-xs text-muted-foreground font-sans text-center">
-              You'll receive a confirmation email after registering.
+              {t("workshopform_reg_form_footer_note", "You'll receive a confirmation email after registering.")}
             </p>
           </form>
         </div>

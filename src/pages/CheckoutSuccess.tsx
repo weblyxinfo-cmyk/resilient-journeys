@@ -13,12 +13,14 @@ import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { useCms } from "@/hooks/useCms";
 
 type PageState = "loading" | "processing" | "success" | "error" | "no-session" | "not-authenticated";
 
 const CheckoutSuccess = () => {
   const [searchParams] = useSearchParams();
   const { refreshProfile, profile, user, session, loading: authLoading } = useAuth();
+  const { t } = useCms();
   const [pageState, setPageState] = useState<PageState>("loading");
   const sessionId = searchParams.get("session_id");
 
@@ -126,7 +128,7 @@ const CheckoutSuccess = () => {
           <div className="max-w-lg mx-auto text-center">
             {/* Unauthenticated user */}
             {pageState === "not-authenticated" && (
-              <Card className="border-gold/30 overflow-hidden">
+              <Card id="cms-checkout-success-login" className="border-gold/30 overflow-hidden">
                 <div className="bg-gradient-gold p-8">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto">
                     <LogIn className="h-10 w-10 text-gold" />
@@ -134,14 +136,14 @@ const CheckoutSuccess = () => {
                 </div>
                 <CardContent className="p-8">
                   <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
-                    Please Log In
+                    {t("checkout_success_login_title", "Please Log In")}
                   </h1>
                   <p className="text-muted-foreground mb-6">
-                    You need to be logged in so we can activate your membership.
+                    {t("checkout_success_login_text", "You need to be logged in so we can activate your membership.")}
                   </p>
                   <Button asChild className="bg-gradient-gold text-white">
                     <Link to="/auth">
-                      Log In
+                      {t("checkout_success_login_button", "Log In")}
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
@@ -151,7 +153,7 @@ const CheckoutSuccess = () => {
 
             {/* No session ID */}
             {pageState === "no-session" && (
-              <Card className="border-gold/30 overflow-hidden">
+              <Card id="cms-checkout-success-no-session" className="border-gold/30 overflow-hidden">
                 <div className="bg-gradient-gold p-8">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto">
                     <XCircle className="h-10 w-10 text-gold" />
@@ -159,14 +161,14 @@ const CheckoutSuccess = () => {
                 </div>
                 <CardContent className="p-8">
                   <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
-                    No Payment Session Found
+                    {t("checkout_success_no_session_title", "No Payment Session Found")}
                   </h1>
                   <p className="text-muted-foreground mb-6">
-                    If you completed a purchase, check your email or contact support.
+                    {t("checkout_success_no_session_text", "If you completed a purchase, check your email or contact support.")}
                   </p>
                   <Button asChild className="bg-gradient-gold text-white">
                     <Link to="/dashboard">
-                      Go to Dashboard
+                      {t("checkout_success_no_session_button", "Go to Dashboard")}
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
@@ -176,7 +178,7 @@ const CheckoutSuccess = () => {
 
             {/* Loading / Processing */}
             {(pageState === "loading" || pageState === "processing") && (
-              <Card className="border-gold/30 overflow-hidden">
+              <Card id="cms-checkout-success-processing" className="border-gold/30 overflow-hidden">
                 <div className="bg-gradient-gold p-8">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto">
                     <Loader2 className="h-10 w-10 text-gold animate-spin" />
@@ -184,10 +186,10 @@ const CheckoutSuccess = () => {
                 </div>
                 <CardContent className="p-8">
                   <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
-                    Processing Your Payment...
+                    {t("checkout_success_processing_title", "Processing Your Payment...")}
                   </h1>
                   <p className="text-muted-foreground">
-                    Please wait while we activate your membership.
+                    {t("checkout_success_processing_text", "Please wait while we activate your membership.")}
                   </p>
                 </CardContent>
               </Card>
@@ -195,7 +197,7 @@ const CheckoutSuccess = () => {
 
             {/* Success but activation failed — membership still free */}
             {pageState === "success" && activationFailed && (
-              <Card className="border-gold/30 overflow-hidden">
+              <Card id="cms-checkout-success-pending" className="border-gold/30 overflow-hidden">
                 <div className="bg-amber-100 p-8">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto">
                     <AlertTriangle className="h-10 w-10 text-amber-600" />
@@ -203,10 +205,13 @@ const CheckoutSuccess = () => {
                 </div>
                 <CardContent className="p-8">
                   <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
-                    Payment Processing
+                    {t("checkout_success_pending_title", "Payment Processing")}
                   </h1>
                   <p className="text-muted-foreground mb-6">
-                    We're still processing your payment. If your membership isn't active within a few minutes, please contact support at{" "}
+                    {t(
+                      "checkout_success_pending_text",
+                      "We're still processing your payment. If your membership isn't active within a few minutes, please contact support at"
+                    )}{" "}
                     <a href="mailto:contact@resilientmind.io" className="text-gold hover:underline font-medium">
                       contact@resilientmind.io
                     </a>
@@ -214,12 +219,12 @@ const CheckoutSuccess = () => {
                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 rounded-full mb-6">
                     <Loader2 size={16} className="text-amber-600 animate-spin" />
                     <span className="text-sm font-medium text-amber-700">
-                      Activation Pending
+                      {t("checkout_success_pending_badge", "Activation Pending")}
                     </span>
                   </div>
                   <div>
                     <Button asChild className="bg-gradient-gold text-white">
-                      <Link to="/dashboard">Go to Dashboard</Link>
+                      <Link to="/dashboard">{t("checkout_success_pending_button", "Go to Dashboard")}</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -228,7 +233,7 @@ const CheckoutSuccess = () => {
 
             {/* True success — membership activated */}
             {pageState === "success" && !activationFailed && (
-              <Card className="border-gold/30 overflow-hidden">
+              <Card id="cms-checkout-success-success" className="border-gold/30 overflow-hidden">
                 <div className="bg-gradient-gold p-8">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto">
                     <CheckCircle className="h-10 w-10 text-gold" />
@@ -238,20 +243,23 @@ const CheckoutSuccess = () => {
                 <CardContent className="p-8">
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <PartyPopper className="h-6 w-6 text-gold" />
-                    <span className="text-gold font-semibold">Thank you!</span>
+                    <span className="text-gold font-semibold">{t("checkout_success_thank_you", "Thank you!")}</span>
                   </div>
 
                   <h1 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
-                    Payment Successful
+                    {t("checkout_success_title", "Payment Successful")}
                   </h1>
 
                   <p className="text-muted-foreground mb-6">
-                    Your membership has been activated. You now have access to all content based on your membership level.
+                    {t(
+                      "checkout_success_text",
+                      "Your membership has been activated. You now have access to all content based on your membership level."
+                    )}
                   </p>
 
                   {profile && (
                     <div className="mb-6 p-4 bg-gradient-warm rounded-xl">
-                      <p className="text-sm text-muted-foreground mb-1">Your membership</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("checkout_success_membership_label", "Your membership")}</p>
                       <p className="font-serif font-semibold text-lg capitalize">
                         {profile.membership_type}
                       </p>
@@ -260,10 +268,10 @@ const CheckoutSuccess = () => {
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button asChild className="bg-gradient-gold text-white">
-                      <Link to="/dashboard">Go to Dashboard</Link>
+                      <Link to="/dashboard">{t("checkout_success_dashboard_button", "Go to Dashboard")}</Link>
                     </Button>
                     <Button variant="outline" asChild>
-                      <Link to="/resilient-hub">Explore Program</Link>
+                      <Link to="/resilient-hub">{t("checkout_success_explore_button", "Explore Program")}</Link>
                     </Button>
                   </div>
                 </CardContent>

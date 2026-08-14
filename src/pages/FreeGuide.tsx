@@ -20,6 +20,7 @@ import {
 import Logo from '@/components/Logo';
 import SEO from '@/components/SEO';
 import { z } from 'zod';
+import { useCms } from '@/hooks/useCms';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
@@ -32,6 +33,7 @@ interface FormData {
 
 const FreeGuide = () => {
   const navigate = useNavigate();
+  const { t } = useCms();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -116,10 +118,10 @@ const FreeGuide = () => {
           }
         }}
       />
-      <header className="p-6">
+      <header id="cms-freeguide-back" className="p-6">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Back to home
+          {t("freeguide_back_link", "Back to home")}
         </Link>
       </header>
 
@@ -133,35 +135,35 @@ const FreeGuide = () => {
           </div>
 
           {/* Hero */}
-          <div className="text-center mb-10">
+          <div id="cms-freeguide-hero" className="text-center mb-10">
             <div className="flex justify-center mb-6">
               <div className="rounded-full bg-gold/10 p-6">
                 <Download className="h-12 w-12 text-gold" />
               </div>
             </div>
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
-              3 Tools to Shift Your Energy:<br />
-              <span className="text-gold">7 Days to Calm, Clarity & Resilience Overseas</span>
+              {t("freeguide_hero_title_line1", "3 Tools to Shift Your Energy:")}<br />
+              <span className="text-gold">{t("freeguide_hero_title_line2", "7 Days to Calm, Clarity & Resilience Overseas")}</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto">
-              Practical daily exercises to release stress, calm your nervous system, and regain focus — even during challenging times abroad.
+              {t("freeguide_hero_subtitle", "Practical daily exercises to release stress, calm your nervous system, and regain focus — even during challenging times abroad.")}
             </p>
           </div>
 
           {/* What's Included */}
-          <div className="grid gap-4 mb-8">
+          <div id="cms-freeguide-included" className="grid gap-4 mb-8">
             <Card className="border-gold/20 shadow-elegant">
               <CardContent className="p-6">
-                <h2 className="font-serif text-xl mb-6 text-center">Your Free 7-Day Practice Includes</h2>
+                <h2 className="font-serif text-xl mb-6 text-center">{t("freeguide_included_title", "Your Free 7-Day Practice Includes")}</h2>
                 <div className="space-y-5">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-gold/10 p-2.5 mt-0.5 flex-shrink-0">
                       <Sun className="h-5 w-5 text-gold" />
                     </div>
                     <div>
-                      <p className="font-medium">🌅 Morning Gratitude Workbook</p>
+                      <p className="font-medium">{t("freeguide_included_1_title", "🌅 Morning Gratitude Workbook")}</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Start your day noticing small wins and strengths. Feel calmer, more grounded, and ready to face the challenges of a new country.
+                        {t("freeguide_included_1_description", "Start your day noticing small wins and strengths. Feel calmer, more grounded, and ready to face the challenges of a new country.")}
                       </p>
                     </div>
                   </div>
@@ -170,9 +172,9 @@ const FreeGuide = () => {
                       <Play className="h-5 w-5 text-gold" />
                     </div>
                     <div>
-                      <p className="font-medium">🌤 Midday EFT Tapping Video + Workbook</p>
+                      <p className="font-medium">{t("freeguide_included_2_title", "🌤 Midday EFT Tapping Video + Workbook")}</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Release stress, anxiety, and tension from language barriers, job uncertainty, or feeling out of place. Calm your nervous system and regain focus.
+                        {t("freeguide_included_2_description", "Release stress, anxiety, and tension from language barriers, job uncertainty, or feeling out of place. Calm your nervous system and regain focus.")}
                       </p>
                     </div>
                   </div>
@@ -181,9 +183,9 @@ const FreeGuide = () => {
                       <Moon className="h-5 w-5 text-gold" />
                     </div>
                     <div>
-                      <p className="font-medium">🌙 Evening Reflection</p>
+                      <p className="font-medium">{t("freeguide_included_3_title", "🌙 Evening Reflection")}</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Pause, reflect, and gently reframe your thoughts. End the day with clarity and a calmer mindset — ready to rest and recharge.
+                        {t("freeguide_included_3_description", "Pause, reflect, and gently reframe your thoughts. End the day with clarity and a calmer mindset — ready to rest and recharge.")}
                       </p>
                     </div>
                   </div>
@@ -193,33 +195,33 @@ const FreeGuide = () => {
           </div>
 
           {/* Social Proof */}
-          <div className="text-center mb-8">
+          <div id="cms-freeguide-social_proof" className="text-center mb-8">
             <p className="text-muted-foreground italic text-lg">
-              "In just 30 minutes a day, you'll notice your energy shifting, your nervous system relaxing, and your mind becoming clearer."
+              {t("freeguide_social_quote", "\"In just 30 minutes a day, you'll notice your energy shifting, your nervous system relaxing, and your mind becoming clearer.\"")}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              No perfection, no pressure — just simple, realistic tools for expats who want to feel stronger and more in control.
+              {t("freeguide_social_note", "No perfection, no pressure — just simple, realistic tools for expats who want to feel stronger and more in control.")}
             </p>
           </div>
 
           {/* Email Capture Form */}
-          <Card className="border-gold/20 shadow-elegant">
+          <Card id="cms-freeguide-form" className="border-gold/20 shadow-elegant">
             <form onSubmit={handleSubmit}>
               <CardHeader>
                 <CardTitle className="font-serif text-2xl text-center">
-                  Download Your Free Practice Kit
+                  {t("freeguide_form_title", "Download Your Free Practice Kit")}
                 </CardTitle>
                 <CardDescription className="text-center">
-                  Get instant access to both workbooks + the guided EFT video
+                  {t("freeguide_form_subtitle", "Get instant access to both workbooks + the guided EFT video")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Your Name</Label>
+                  <Label htmlFor="name">{t("freeguide_form_name_label", "Your Name")}</Label>
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Jane Doe"
+                    placeholder={t("freeguide_form_name_placeholder", "Jane Doe")}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
@@ -228,11 +230,11 @@ const FreeGuide = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">{t("freeguide_form_email_label", "Email Address")}</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("freeguide_form_email_placeholder", "you@example.com")}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
@@ -250,7 +252,7 @@ const FreeGuide = () => {
                     className="border-gold/30 data-[state=checked]:bg-gold data-[state=checked]:border-gold mt-1"
                   />
                   <Label htmlFor="agree" className="text-sm text-muted-foreground font-normal cursor-pointer">
-                    I'd like to receive resilience tips and updates (optional)
+                    {t("freeguide_form_agree_label", "I'd like to receive resilience tips and updates (optional)")}
                   </Label>
                 </div>
 
@@ -262,51 +264,51 @@ const FreeGuide = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Sending...
+                      {t("freeguide_form_submit_loading", "Sending...")}
                     </>
                   ) : (
                     <>
                       <Download className="h-5 w-5 mr-2" />
-                      Get My Free 7-Day Practice Kit
+                      {t("freeguide_form_submit_label", "Get My Free 7-Day Practice Kit")}
                     </>
                   )}
                 </Button>
 
                 <div className="flex items-center justify-center gap-6 pt-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <FileText className="h-3.5 w-3.5" /> 2 PDF Workbooks
+                    <FileText className="h-3.5 w-3.5" /> {t("freeguide_form_badge_pdfs", "2 PDF Workbooks")}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Play className="h-3.5 w-3.5" /> Guided Video
+                    <Play className="h-3.5 w-3.5" /> {t("freeguide_form_badge_video", "Guided Video")}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Mail className="h-3.5 w-3.5" /> No spam
+                    <Mail className="h-3.5 w-3.5" /> {t("freeguide_form_badge_nospam", "No spam")}
                   </span>
                 </div>
 
                 <div className="mt-5 rounded-xl border-2 border-gold/50 bg-gold/10 p-4 text-center shadow-sm">
                   <p className="text-sm font-bold text-foreground">
-                    📧 Important: Check your Promotions or Spam folder
+                    {t("freeguide_form_spam_notice_title", "📧 Important: Check your Promotions or Spam folder")}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Add <span className="font-semibold text-gold">contact@resilientmind.io</span> to your contacts so you don't miss your free practice materials.
+                    {t("freeguide_form_spam_notice_text_pre", "Add")} <span className="font-semibold text-gold">{t("freeguide_form_spam_notice_email", "contact@resilientmind.io")}</span> {t("freeguide_form_spam_notice_text_post", "to your contacts so you don't miss your free practice materials.")}
                   </p>
                 </div>
 
                 <div className="pt-2 text-center text-xs text-muted-foreground">
-                  By signing up, you agree to our{' '}
-                  <Link to="/terms" className="text-gold hover:underline">Terms</Link>
-                  {' '}and{' '}
-                  <Link to="/privacy" className="text-gold hover:underline">Privacy Policy</Link>
+                  {t("freeguide_form_legal_pre", "By signing up, you agree to our")}{' '}
+                  <Link to="/terms" className="text-gold hover:underline">{t("freeguide_form_legal_terms", "Terms")}</Link>
+                  {' '}{t("freeguide_form_legal_and", "and")}{' '}
+                  <Link to="/privacy" className="text-gold hover:underline">{t("freeguide_form_legal_privacy", "Privacy Policy")}</Link>
                 </div>
               </CardContent>
             </form>
           </Card>
 
           {/* Upsell teaser */}
-          <div className="mt-8 text-center">
+          <div id="cms-freeguide-upsell" className="mt-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Curious to go deeper? This is just the beginning of your <span className="font-medium text-foreground">Resilient Mind</span> journey — designed to show you the kind of transformation possible when you consistently care for your nervous system, mindset, and self-awareness.
+              {t("freeguide_upsell_text_pre", "Curious to go deeper? This is just the beginning of your")} <span className="font-medium text-foreground">{t("freeguide_upsell_brand", "Resilient Mind")}</span> {t("freeguide_upsell_text_post", "journey — designed to show you the kind of transformation possible when you consistently care for your nervous system, mindset, and self-awareness.")}
             </p>
           </div>
         </div>

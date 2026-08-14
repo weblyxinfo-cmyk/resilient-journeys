@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCms } from "@/hooks/useCms";
 
 interface CategorySectionProps {
   monthNumber: number;
@@ -21,8 +22,10 @@ const CategorySection = ({
   isLocked = false,
   onViewAll,
 }: CategorySectionProps) => {
+  const { t } = useCms();
+
   return (
-    <section className={`py-8 ${isLocked ? "opacity-60" : ""}`}>
+    <section id="cms-shared-category-section" className={`py-8 ${isLocked ? "opacity-60" : ""}`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
@@ -32,11 +35,11 @@ const CategorySection = ({
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="text-xs font-semibold uppercase tracking-wider text-gold">
-                {monthNumber <= 12 ? `Month ${monthNumber}` : "Bonus"}
+                {monthNumber <= 12 ? `${t("shared_category_section_month_label", "Month")} ${monthNumber}` : t("shared_category_section_bonus_label", "Bonus")}
               </span>
               {isLocked && (
                 <span className="text-xs px-2 py-0.5 bg-muted rounded-full text-muted-foreground">
-                  Locked
+                  {t("shared_category_section_locked_badge", "Locked")}
                 </span>
               )}
             </div>
@@ -50,7 +53,7 @@ const CategorySection = ({
             )}
           </div>
         </div>
-        
+
         {!isLocked && onViewAll && (
           <Button
             variant="ghost"
@@ -58,7 +61,7 @@ const CategorySection = ({
             className="hidden md:flex text-gold hover:text-gold-dark hover:bg-gold/10 cursor-pointer"
             onClick={onViewAll}
           >
-            View All
+            {t("shared_category_section_view_all", "View All")}
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         )}

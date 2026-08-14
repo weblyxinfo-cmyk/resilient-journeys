@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Star, Quote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCms } from "@/hooks/useCms";
 
 interface Testimonial {
   id: string;
@@ -11,6 +12,7 @@ interface Testimonial {
 }
 
 const Testimonials = () => {
+  const { t } = useCms();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,14 +39,14 @@ const Testimonials = () => {
   }
 
   return (
-    <section className="py-24 bg-background">
+    <section id="cms-shared-testimonials" className="py-24 bg-background">
       <div className="container px-4">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-            Stories of <span className="text-gradient-gold">Transformation</span>
+            {t("shared_testimonials_title_prefix", "Stories of")} <span className="text-gradient-gold">{t("shared_testimonials_title_highlight", "Transformation")}</span>
           </h2>
           <p className="text-muted-foreground font-sans">
-            Hear from other expat families who have walked this path.
+            {t("shared_testimonials_subtitle", "Hear from other expat families who have walked this path.")}
           </p>
         </div>
 

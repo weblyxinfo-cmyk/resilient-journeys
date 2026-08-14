@@ -16,6 +16,7 @@ import { format, addMonths, startOfMonth } from "date-fns";
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
 import { enUS } from "date-fns/locale";
+import { useCms } from "@/hooks/useCms";
 
 const SESSION_TYPES: SessionTypeConfig[] = [
   {
@@ -161,6 +162,7 @@ const SESSION_TYPES: SessionTypeConfig[] = [
 type SessionType = string;
 
 const Booking = () => {
+  const { t } = useCms();
   const { user, profile } = useAuth();
   const { visibleCards, allCards } = useBookingCards(SESSION_TYPES);
 
@@ -362,7 +364,15 @@ const Booking = () => {
   };
 
   const calendarDays = generateCalendarDays();
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekDays = [
+    t("booking_calendar_day_mon", "Mon"),
+    t("booking_calendar_day_tue", "Tue"),
+    t("booking_calendar_day_wed", "Wed"),
+    t("booking_calendar_day_thu", "Thu"),
+    t("booking_calendar_day_fri", "Fri"),
+    t("booking_calendar_day_sat", "Sat"),
+    t("booking_calendar_day_sun", "Sun"),
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -376,20 +386,20 @@ const Booking = () => {
       <main className="pt-20 pb-16">
         {/* Hero Section */}
         <PageHero>
-            <div className="max-w-3xl mx-auto text-center">
+            <div id="cms-booking-hero" className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Calendar size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  Session Booking
+                  {t("booking_hero_badge", "Session Booking")}
                 </span>
               </div>
 
               <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-4">
-                Let's Work Together
+                {t("booking_hero_title", "Let's Work Together")}
               </h1>
 
               <p className="text-lg text-muted-foreground font-sans">
-                Select session type and schedule a time that works for you
+                {t("booking_hero_subtitle", "Select session type and schedule a time that works for you")}
               </p>
 
               {/* Progress Steps */}
@@ -422,9 +432,9 @@ const Booking = () => {
             <div className="max-w-4xl mx-auto">
               {/* Step 1: Session Type Selection */}
               {step === 1 && (
-                <div className="space-y-6">
+                <div id="cms-booking-step1" className="space-y-6">
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Select Session Type
+                    {t("booking_step1_title", "Select Session Type")}
                   </h2>
 
                   <div className="grid md:grid-cols-2 gap-5">
@@ -448,7 +458,7 @@ const Booking = () => {
                         >
                           {isSelected && (
                             <div className="absolute -top-2.5 left-4 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full z-10">
-                              Selected
+                              {t("booking_selected_badge", "Selected")}
                             </div>
                           )}
                           {session.image && (
@@ -482,7 +492,7 @@ const Booking = () => {
                               {session.title}
                             </CardTitle>
                             <div className="text-2xl font-serif font-bold text-primary mt-2">
-                              {session.price === 0 ? "Free" : `€${session.price}`}
+                              {session.price === 0 ? t("booking_price_free", "Free") : `€${session.price}`}
                             </div>
                             {session.priceNote && (
                               <div className="text-sm text-muted-foreground">
@@ -573,13 +583,13 @@ const Booking = () => {
                               </div>
                             ) : session.phone ? (
                               <p className="text-sm mt-4">
-                                <span className="text-muted-foreground">Questions? </span>
+                                <span className="text-muted-foreground">{t("booking_card_questions_label", "Questions? ")}</span>
                                 <a
                                   href={`tel:${session.phone.replace(/\s+/g, "")}`}
                                   onClick={(e) => e.stopPropagation()}
                                   className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
                                 >
-                                  Call
+                                  {t("booking_card_call_label", "Call")}
                                 </a>
                                 <span className="text-muted-foreground"> · </span>
                                 <a
@@ -589,9 +599,9 @@ const Booking = () => {
                                   onClick={(e) => e.stopPropagation()}
                                   className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
                                 >
-                                  WhatsApp
+                                  {t("booking_card_whatsapp_label", "WhatsApp")}
                                 </a>
-                                <span className="text-muted-foreground"> Silvie: {session.phone}</span>
+                                <span className="text-muted-foreground">{t("booking_card_agent_prefix", " Silvie: ")}{session.phone}</span>
                               </p>
                             ) : null}
                           </CardContent>
@@ -606,7 +616,7 @@ const Booking = () => {
                       disabled={!selectedType}
                       className="bg-gradient-gold"
                     >
-                      Continue <ArrowRight className="ml-2" size={16} />
+                      {t("booking_button_continue", "Continue")} <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </div>
                 </div>
@@ -614,10 +624,10 @@ const Booking = () => {
 
               {/* Step 2: Date Selection */}
               {step === 2 && selectedSessionType && (
-                <div className="space-y-6">
+                <div id="cms-booking-step2" className="space-y-6">
                   <div className="flex items-center justify-between mb-6">
                     <Button variant="ghost" onClick={() => setStep(1)}>
-                      <ArrowLeft className="mr-2" size={16} /> Back
+                      <ArrowLeft className="mr-2" size={16} /> {t("booking_button_back", "Back")}
                     </Button>
                     <Badge variant="outline" className="text-sm">
                       {selectedSessionType.title} - {selectedSessionType.durationLabel || `${selectedSessionType.duration} min`}
@@ -625,7 +635,7 @@ const Booking = () => {
                   </div>
 
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Select Date
+                    {t("booking_step2_title", "Select Date")}
                   </h2>
 
                   {/* Month Navigation */}
@@ -693,7 +703,7 @@ const Booking = () => {
 
                       {availableDays.length === 0 && !loadingDays && (
                         <p className="text-center text-muted-foreground mt-6">
-                          There are no available dates this month
+                          {t("booking_calendar_empty", "There are no available dates this month")}
                         </p>
                       )}
                     </div>
@@ -705,7 +715,7 @@ const Booking = () => {
                       disabled={!selectedDate}
                       className="bg-gradient-gold"
                     >
-                      Continue <ArrowRight className="ml-2" size={16} />
+                      {t("booking_button_continue", "Continue")} <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </div>
                 </div>
@@ -713,13 +723,13 @@ const Booking = () => {
 
               {/* Step 3: Time Selection */}
               {step === 3 && selectedSessionType && selectedDate && (
-                <div className="space-y-6">
+                <div id="cms-booking-step3" className="space-y-6">
                   <div className="flex items-center justify-between mb-6">
                     <Button variant="ghost" onClick={() => {
                       setStep(2);
                       setSelectedTime(null);
                     }}>
-                      <ArrowLeft className="mr-2" size={16} /> Back
+                      <ArrowLeft className="mr-2" size={16} /> {t("booking_button_back", "Back")}
                     </Button>
                     <Badge variant="outline" className="text-sm">
                       {format(new Date(selectedDate), "MMMM d, yyyy", { locale: enUS })}
@@ -727,7 +737,7 @@ const Booking = () => {
                   </div>
 
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Select Time
+                    {t("booking_step3_title", "Select Time")}
                   </h2>
 
                   {loadingSlots ? (
@@ -755,7 +765,7 @@ const Booking = () => {
 
                   {availableSlots.filter((s) => s.available).length === 0 && !loadingSlots && (
                     <p className="text-center text-muted-foreground">
-                      No available times for this day
+                      {t("booking_no_slots", "No available times for this day")}
                     </p>
                   )}
 
@@ -765,7 +775,7 @@ const Booking = () => {
                       disabled={!selectedTime}
                       className="bg-gradient-gold"
                     >
-                      Continue <ArrowRight className="ml-2" size={16} />
+                      {t("booking_button_continue", "Continue")} <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </div>
                 </div>
@@ -773,45 +783,45 @@ const Booking = () => {
 
               {/* Step 4: Client Info & Confirmation */}
               {step === 4 && selectedSessionType && selectedDate && selectedTime && (
-                <div className="space-y-6">
+                <div id="cms-booking-step4" className="space-y-6">
                   <div className="flex items-center justify-between mb-6">
                     <Button variant="ghost" onClick={() => setStep(3)}>
-                      <ArrowLeft className="mr-2" size={16} /> Back
+                      <ArrowLeft className="mr-2" size={16} /> {t("booking_button_back", "Back")}
                     </Button>
                   </div>
 
                   <h2 className="text-2xl font-serif font-semibold text-center mb-8">
-                    Your Information
+                    {t("booking_step4_title", "Your Information")}
                   </h2>
 
                   {/* Booking Summary */}
                   <Card className="bg-gradient-warm border-primary/20">
                     <CardHeader>
-                      <CardTitle className="text-lg">Booking Summary</CardTitle>
+                      <CardTitle className="text-lg">{t("booking_summary_title", "Booking Summary")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Session type:</span>
+                        <span className="text-muted-foreground">{t("booking_summary_type_label", "Session type:")}</span>
                         <span className="font-semibold">{selectedSessionType.title}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Date:</span>
+                        <span className="text-muted-foreground">{t("booking_summary_date_label", "Date:")}</span>
                         <span className="font-semibold">
                           {format(new Date(selectedDate), "MMMM d, yyyy", { locale: enUS })}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Time:</span>
+                        <span className="text-muted-foreground">{t("booking_summary_time_label", "Time:")}</span>
                         <span className="font-semibold">{selectedTime}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Duration:</span>
+                        <span className="text-muted-foreground">{t("booking_summary_duration_label", "Duration:")}</span>
                         <span className="font-semibold">{selectedSessionType.durationLabel || `${selectedSessionType.duration} min`}</span>
                       </div>
                       <div className="flex justify-between text-lg pt-2 border-t">
-                        <span className="font-semibold">Price:</span>
+                        <span className="font-semibold">{t("booking_summary_price_label", "Price:")}</span>
                         <span className="font-bold text-primary">
-                          {selectedSessionType.price === 0 ? "Free" : `€${selectedSessionType.price}`}
+                          {selectedSessionType.price === 0 ? t("booking_price_free", "Free") : `€${selectedSessionType.price}`}
                         </span>
                       </div>
                     </CardContent>
@@ -820,41 +830,41 @@ const Booking = () => {
                   {/* Client Form */}
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="client_name">Full Name *</Label>
+                      <Label htmlFor="client_name">{t("booking_form_name_label", "Full Name *")}</Label>
                       <Input
                         id="client_name"
                         value={formData.client_name}
                         onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                         required
                         minLength={2}
-                        placeholder="John Smith"
+                        placeholder={t("booking_form_name_placeholder", "John Smith")}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="client_email">Email *</Label>
+                      <Label htmlFor="client_email">{t("booking_form_email_label", "Email *")}</Label>
                       <Input
                         id="client_email"
                         type="email"
                         value={formData.client_email}
                         onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
                         required
-                        placeholder="john@example.com"
+                        placeholder={t("booking_form_email_placeholder", "john@example.com")}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="notes">Note (optional)</Label>
+                      <Label htmlFor="notes">{t("booking_form_notes_label", "Note (optional)")}</Label>
                       <Textarea
                         id="notes"
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        placeholder="Tell us something about yourself or what you need help with..."
+                        placeholder={t("booking_form_notes_placeholder", "Tell us something about yourself or what you need help with...")}
                         maxLength={500}
                         rows={4}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formData.notes.length}/500 characters
+                        {formData.notes.length}/500 {t("booking_form_notes_counter_suffix", "characters")}
                       </p>
                     </div>
 
@@ -863,12 +873,12 @@ const Booking = () => {
                         {loading ? (
                           <>
                             <Loader2 className="mr-2 animate-spin" size={16} />
-                            Processing...
+                            {t("booking_button_processing", "Processing...")}
                           </>
                         ) : selectedSessionType.price === 0 ? (
-                          "Confirm Booking"
+                          t("booking_button_confirm", "Confirm Booking")
                         ) : (
-                          `Go to Payment (€${selectedSessionType.price})`
+                          `${t("booking_button_pay_prefix", "Go to Payment")} (€${selectedSessionType.price})`
                         )}
                       </Button>
                     </div>

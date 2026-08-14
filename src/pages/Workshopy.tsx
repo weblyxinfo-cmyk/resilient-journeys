@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import WorkshopInquiryForm from '@/components/WorkshopInquiryForm';
 import PageHero from "@/components/PageHero";
 import SEO from "@/components/SEO";
+import { useCms } from "@/hooks/useCms";
 
 interface Workshop {
   id: string;
@@ -25,6 +26,7 @@ interface Workshop {
 }
 
 const Workshopy = () => {
+  const { t } = useCms();
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -64,27 +66,26 @@ const Workshopy = () => {
       <main className="pt-20">
         {/* Hero */}
         <PageHero>
-            <div className="max-w-3xl mx-auto text-center">
+            <div id="cms-workshops-hero" className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
                 <Sparkles size={16} className="text-primary" />
                 <span className="text-sm font-sans font-medium text-primary">
-                  Interactive Learning
+                  {t("workshops_hero_badge", "Interactive Learning")}
                 </span>
               </div>
 
               <h1 className="text-3xl md:text-5xl font-serif font-semibold mb-6">
-                Transformative <span className="text-gradient-gold">Workshops</span>
+                {t("workshops_hero_title_pre", "Transformative")} <span className="text-gradient-gold">{t("workshops_hero_title_highlight", "Workshops")}</span>
               </h1>
 
               <p className="text-lg text-muted-foreground font-sans max-w-2xl mx-auto">
-                Hands-on workshops combining art expressive therapy and creative practices
-                to help you build resilience and thrive in your expat journey.
+                {t("workshops_hero_subtitle", "Hands-on workshops combining art expressive therapy and creative practices to help you build resilience and thrive in your expat journey.")}
               </p>
             </div>
         </PageHero>
 
         {/* Section 1: Silk Paintings */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-workshops-silk" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-3 mb-6">
@@ -92,36 +93,36 @@ const Workshopy = () => {
                   <Palette size={24} className="text-primary" />
                 </div>
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold">
-                  My Creations — Silk Paintings
+                  {t("workshops_silk_title", "My Creations — Silk Paintings")}
                 </h2>
               </div>
 
               <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-4">
-                I discovered silk painting as my personal way to relax my mind — a space where time seemed to stop, and all the usual thoughts quieted down. It became my "power of now," a moment to simply be and let creativity flow.
+                {t("workshops_silk_text_1", "I discovered silk painting as my personal way to relax my mind — a space where time seemed to stop, and all the usual thoughts quieted down. It became my \"power of now,\" a moment to simply be and let creativity flow.")}
               </p>
               <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-8">
-                Stepping into a world of color and texture, participants often pause, smile, and breathe a little deeper. These silk painting sessions offer a space to explore creativity without pressure, where each brushstroke can capture a feeling, a thought, or a moment.
+                {t("workshops_silk_text_2", "Stepping into a world of color and texture, participants often pause, smile, and breathe a little deeper. These silk painting sessions offer a space to explore creativity without pressure, where each brushstroke can capture a feeling, a thought, or a moment.")}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-1.jpg"
-                    alt="Silk painting artwork"
+                    alt={t("workshops_silk_alt", "Silk painting artwork")}
                     className="w-full h-72 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-2.jpg"
-                    alt="Silk painting artwork"
+                    alt={t("workshops_silk_alt", "Silk painting artwork")}
                     className="w-full h-72 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-3.jpg"
-                    alt="Silk painting artwork"
+                    alt={t("workshops_silk_alt", "Silk painting artwork")}
                     className="w-full h-72 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -131,7 +132,7 @@ const Workshopy = () => {
         </section>
 
         {/* Section 2: Kids & Parents */}
-        <section className="py-16 md:py-24 bg-card">
+        <section id="cms-workshops-kids" className="py-16 md:py-24 bg-card">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-3 mb-6">
@@ -139,29 +140,29 @@ const Workshopy = () => {
                   <Users size={24} className="text-primary" />
                 </div>
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold">
-                  Expressive Art Workshops — Kids & Parents
+                  {t("workshops_kids_title", "Expressive Art Workshops — Kids & Parents")}
                 </h2>
               </div>
 
               <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-4">
-                These workshops are a wonderful opportunity for parents and children to spend valuable time together, creating, learning, and discovering more about each other. They are full of laughter, curiosity, and shared exploration. Parents and children paint side by side, experimenting with colors, shapes, and textures, while gently connecting in a space that encourages creativity and presence.
+                {t("workshops_kids_text_1", "These workshops are a wonderful opportunity for parents and children to spend valuable time together, creating, learning, and discovering more about each other. They are full of laughter, curiosity, and shared exploration. Parents and children paint side by side, experimenting with colors, shapes, and textures, while gently connecting in a space that encourages creativity and presence.")}
               </p>
               <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-8">
-                It's amazing to watch everyone relax, let go, and connect through art. By the end of the session, the room is alive with happiness, gentle pride, and colorful creations that tell stories only your hearts can tell.
+                {t("workshops_kids_text_2", "It's amazing to watch everyone relax, let go, and connect through art. By the end of the session, the room is alive with happiness, gentle pride, and colorful creations that tell stories only your hearts can tell.")}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-4.jpg"
-                    alt="Kids and parents workshop"
+                    alt={t("workshops_kids_alt", "Kids and parents workshop")}
                     className="w-full h-80 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-5.jpg"
-                    alt="Kids and parents workshop"
+                    alt={t("workshops_kids_alt", "Kids and parents workshop")}
                     className="w-full h-80 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -171,7 +172,7 @@ const Workshopy = () => {
         </section>
 
         {/* Section 3: Adults */}
-        <section className="py-16 md:py-24 bg-background">
+        <section id="cms-workshops-adults" className="py-16 md:py-24 bg-background">
           <div className="container px-4">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-3 mb-6">
@@ -179,43 +180,43 @@ const Workshopy = () => {
                   <Heart size={24} className="text-primary" />
                 </div>
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold">
-                  Expressive Art Workshops — Adults
+                  {t("workshops_adults_title", "Expressive Art Workshops — Adults")}
                 </h2>
               </div>
 
               <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-4">
-                In this space, adults allow themselves to slow down and reconnect with their creativity. Through expressive art, participants release stress, explore emotions, and embrace playfulness. Many leave feeling lighter, refreshed, and inspired — carrying with them not only the artworks they created but also the joy and relaxation of a day fully spent expressing themselves.
+                {t("workshops_adults_text_1", "In this space, adults allow themselves to slow down and reconnect with their creativity. Through expressive art, participants release stress, explore emotions, and embrace playfulness. Many leave feeling lighter, refreshed, and inspired — carrying with them not only the artworks they created but also the joy and relaxation of a day fully spent expressing themselves.")}
               </p>
               <p className="text-lg text-muted-foreground font-sans leading-relaxed mb-8">
-                People leave not only with a unique piece of art that tells their story, but also with a sense of calm, clarity, and a little spark of joy.
+                {t("workshops_adults_text_2", "People leave not only with a unique piece of art that tells their story, but also with a sense of calm, clarity, and a little spark of joy.")}
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-6.jpg"
-                    alt="Adult expressive art workshop"
+                    alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-7.jpg"
-                    alt="Adult expressive art workshop"
+                    alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-8.jpg"
-                    alt="Adult expressive art workshop"
+                    alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="rounded-2xl overflow-hidden shadow-elevated">
                   <img
                     src="/workshops/workshop-9.jpg"
-                    alt="Adult expressive art workshop"
+                    alt={t("workshops_adults_alt", "Adult expressive art workshop")}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -226,11 +227,11 @@ const Workshopy = () => {
 
         {/* Dynamic Workshops from CMS — only show when there are published workshops */}
         {!loading && workshops.length > 0 && (
-          <section className="py-16 md:py-24 bg-card">
+          <section id="cms-workshops-upcoming" className="py-16 md:py-24 bg-card">
             <div className="container px-4">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl md:text-4xl font-serif font-semibold mb-8 text-center">
-                  Upcoming Workshops
+                  {t("workshops_upcoming_title", "Upcoming Workshops")}
                 </h2>
                 <div className="grid gap-8">
                   {workshops.map((workshop) => (
@@ -307,7 +308,7 @@ const Workshopy = () => {
                         to={`/workshopy/${workshop.slug}`}
                         className="inline-flex items-center gap-2 text-primary font-sans font-medium hover:underline"
                       >
-                        View Workshop
+                        {t("workshops_view_workshop_label", "View Workshop")}
                         <ArrowRight size={16} />
                       </Link>
                     </article>
