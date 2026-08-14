@@ -267,7 +267,12 @@ const SectionPreview = ({ section, refreshKey }: { section: CMSSection; refreshK
   };
 
   const liveUrl = `${section.route}${section.anchor ? `#${section.anchor}` : ''}`;
-  const previewSrc = `${section.route}?cmsPreview=${refreshKey}${section.anchor ? `#${section.anchor}` : ''}`;
+  // cmsPreview must stay 1: the app reads it to skip its auth bootstrap inside
+  // the frame. It used to carry refreshKey, so the very first render asked for
+  // cmsPreview=0 — the frame booted a second AuthProvider, that touched the
+  // shared session, and the resulting auth event remounted the whole admin
+  // back to its default tab. Cache-busting moved to its own parameter.
+  const previewSrc = `${section.route}?cmsPreview=1&r=${refreshKey}${section.anchor ? `#${section.anchor}` : ''}`;
 
   const handleLoad = () => {
     setLoaded(true);
