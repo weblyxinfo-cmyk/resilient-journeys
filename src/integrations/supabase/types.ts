@@ -270,34 +270,40 @@ export type Database = {
       cms_content: {
         Row: {
           created_at: string
+          default_value: string | null
           description: string | null
           field_type: string
           id: string
           key: string
           page: string
           section: string | null
+          sort_order: number
           updated_at: string
           value: string
         }
         Insert: {
           created_at?: string
+          default_value?: string | null
           description?: string | null
           field_type?: string
           id?: string
           key: string
           page: string
           section?: string | null
+          sort_order?: number
           updated_at?: string
           value: string
         }
         Update: {
           created_at?: string
+          default_value?: string | null
           description?: string | null
           field_type?: string
           id?: string
           key?: string
           page?: string
           section?: string | null
+          sort_order?: number
           updated_at?: string
           value?: string
         }

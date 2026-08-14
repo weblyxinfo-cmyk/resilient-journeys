@@ -4,12 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Video, Users, Star, Settings, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil } from 'lucide-react';
+import { Shield, Video, Users, Star, FileText, CreditCard, Download, BookOpen, Type, Calendar, Clock, MessageSquare, Pencil } from 'lucide-react';
 import AdminVideos from '@/components/admin/AdminVideos';
 import AdminBookingCards from '@/components/admin/AdminBookingCards';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminTestimonials from '@/components/admin/AdminTestimonials';
-import AdminSettings from '@/components/admin/AdminSettings';
 import AdminCategories from '@/components/admin/AdminCategories';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import AdminResources from '@/components/admin/AdminResources';
@@ -59,7 +58,7 @@ const Admin = () => {
             </div>
           </div>
 
-          {/* Main Tabs — simplified to 6 core sections */}
+          {/* Main Tabs — simplified to 5 core sections */}
           <Tabs defaultValue="content" className="w-full">
             <TabsList className="bg-cream/50 mb-6 flex-wrap h-auto gap-1">
               <TabsTrigger value="content" className="data-[state=active]:bg-gold data-[state=active]:text-white">
@@ -81,10 +80,6 @@ const Admin = () => {
               <TabsTrigger value="inquiries" className="data-[state=active]:bg-gold data-[state=active]:text-white">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Messages
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
               </TabsTrigger>
             </TabsList>
 
@@ -156,19 +151,23 @@ const Admin = () => {
               </Tabs>
             </TabsContent>
 
-            {/* WEBSITE — CMS */}
+            {/* WEBSITE — CMS text content. Nested Tabs so future editors
+                (membership tiers, FAQ, program quarters) can sit alongside
+                the free-text editor without another top-level tab. */}
             <TabsContent value="website">
-              <AdminCMS />
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="bg-muted/50 mb-4 h-auto gap-1">
+                  <TabsTrigger value="text" className="text-xs data-[state=active]:bg-white">
+                    <Type className="h-3.5 w-3.5 mr-1.5" /> Page Text
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="text"><AdminCMS /></TabsContent>
+              </Tabs>
             </TabsContent>
 
             {/* MESSAGES — Inquiries */}
             <TabsContent value="inquiries">
               <AdminInquiries />
-            </TabsContent>
-
-            {/* SETTINGS */}
-            <TabsContent value="settings">
-              <AdminSettings />
             </TabsContent>
           </Tabs>
         </div>

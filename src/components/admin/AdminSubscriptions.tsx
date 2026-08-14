@@ -27,7 +27,7 @@ const plans = [
   {
     id: 'basic_monthly',
     name: 'Basic Monthly',
-    price: 27,
+    price: 37,
     interval: 'monthly',
     type: 'basic' as const,
     features: ['Monthly videos', 'Worksheets', 'Program access']
@@ -120,8 +120,8 @@ const AdminSubscriptions = () => {
   };
 
   const calculateMonthlyRevenue = () => {
-    // Approximate: basic = 27€, premium = 47€
-    return (stats.basic * 27) + (stats.premium * 47);
+    // Approximate: basic = 37€, premium = 47€
+    return (stats.basic * 37) + (stats.premium * 47);
   };
 
   if (loading) {
@@ -202,7 +202,7 @@ const AdminSubscriptions = () => {
             <div className="p-4 bg-gold/10 rounded-lg text-center border border-gold/20">
               <p className="text-4xl font-bold text-gold">{stats.basic}</p>
               <p className="text-sm text-muted-foreground mt-1">Basic</p>
-              <Badge className="mt-2 bg-gold text-white">€27/month</Badge>
+              <Badge className="mt-2 bg-gold text-white">€37/month</Badge>
             </div>
             <div className="p-4 bg-gradient-to-br from-gold/20 to-gold/5 rounded-lg text-center border border-gold/30">
               <p className="text-4xl font-bold text-gold-dark">{stats.premium}</p>

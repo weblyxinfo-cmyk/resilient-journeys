@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 import { Mail, Facebook, Instagram, GraduationCap } from "lucide-react";
 import Logo from "./Logo";
+import { useCms } from "@/hooks/useCms";
 
 const Footer = () => {
+  const { t } = useCms();
+  const contactEmail = t("shared_contact_email", "contact@resilientmind.io");
+
   return (
     <footer className="bg-secondary border-t border-border">
       <div className="container px-4 py-16">
@@ -18,7 +22,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-4">
               <a
-                href="mailto:contact@resilientmind.io"
+                href={`mailto:${contactEmail}`}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 <Mail size={18} />
@@ -77,7 +81,7 @@ const Footer = () => {
           <div>
             <h4 className="font-serif font-semibold text-lg mb-4">Contact</h4>
             <ul className="space-y-3 text-muted-foreground font-sans">
-              <li><a href="mailto:contact@resilientmind.io" className="hover:text-primary transition-colors">contact@resilientmind.io</a></li>
+              <li><a href={`mailto:${contactEmail}`} className="hover:text-primary transition-colors">{contactEmail}</a></li>
               <li>Based in Spain, serving worldwide</li>
               <li className="pt-4">
                 <Link
