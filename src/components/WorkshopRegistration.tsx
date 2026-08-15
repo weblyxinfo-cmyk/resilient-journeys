@@ -84,6 +84,23 @@ const WorkshopRegistration = ({
 
       toast.success('Registration sent successfully!');
       setSubmitted(true);
+
+      // Best-effort notification — the registration is already saved above,
+      // so a failure here must never block the success state shown above.
+      supabase.functions
+        .invoke('notify-inquiry', {
+          body: {
+            type: 'registration',
+            name: form.name.trim(),
+            email: form.email.trim(),
+            workshopTitle,
+            phone: form.phone.trim() || null,
+            note: form.note.trim() || null,
+          },
+        })
+        .catch((notifyError) => {
+          console.error('Failed to send registration notification:', notifyError);
+        });
     } catch (error: any) {
       toast.error('Something went wrong. Please try again.');
       console.error('Registration error:', error);

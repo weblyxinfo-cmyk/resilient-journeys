@@ -46,6 +46,25 @@ const WorkshopInquiryForm = ({ workshopId, workshopTitle }: WorkshopInquiryFormP
 
       toast.success('Your inquiry has been sent successfully!');
       setSubmitted(true);
+
+      // Best-effort notification — the inquiry is already saved above, so a
+      // failure here must never block the success state shown to the user.
+      supabase.functions
+        .invoke('notify-inquiry', {
+          body: {
+            type: 'inquiry',
+            name: form.name.trim(),
+            email: form.email.trim(),
+            workshopTitle: workshopTitle || null,
+            company: form.company.trim() || null,
+            groupSize: form.group_size || null,
+            message: form.message.trim(),
+          },
+        })
+        .catch((notifyError) => {
+          console.error('Failed to send inquiry notification:', notifyError);
+        });
+
       setForm({ name: '', email: '', company: '', group_size: '', message: '' });
     } catch (error: any) {
       toast.error('Something went wrong. Please try again.');
