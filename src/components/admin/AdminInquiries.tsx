@@ -34,8 +34,12 @@ interface Registration {
   note: string | null;
   status: string;
   payment_status: string;
+  paid_amount_cents: number | null;
+  paid_currency: string | null;
   created_at: string;
   workshop_title?: string;
+  workshop_price?: number;
+  workshop_currency?: string;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -94,10 +98,10 @@ const AdminInquiries = () => {
     if (ids.length === 0) return {};
     const { data: workshops } = await supabase
       .from("blog_posts")
-      .select("id, title")
+      .select("id, title, workshop_price, workshop_currency")
       .in("id", ids);
     return workshops
-      ? Object.fromEntries(workshops.map((w) => [w.id, w.title]))
+      ? Object.fromEntries(workshops.map((w) => [w.id, w]))
       : {};
   };
 
@@ -118,7 +122,7 @@ const AdminInquiries = () => {
       setInquiries(
         (data || []).map((inquiry) => ({
           ...inquiry,
-          workshop_title: inquiry.workshop_id ? workshopMap[inquiry.workshop_id] : undefined,
+          workshop_title: inquiry.workshop_id ? workshopMap[inquiry.workshop_id]?.title : undefined,
         }))
       );
     } catch (error: any) {
@@ -142,7 +146,9 @@ const AdminInquiries = () => {
       setRegistrations(
         (data || []).map((reg) => ({
           ...reg,
-          workshop_title: workshopMap[reg.workshop_id],
+          workshop_title: workshopMap[reg.workshop_id]?.title,
+          workshop_price: workshopMap[reg.workshop_id]?.workshop_price,
+          workshop_currency: workshopMap[reg.workshop_id]?.workshop_currency,
         }))
       );
     } catch (error: any) {
@@ -165,6 +171,28 @@ const AdminInquiries = () => {
     } catch (error: any) {
       toast.error("Error updating status: " + error.message);
     }
+  };
+
+  // paid_amount_cents is only ever set for a registration confirmed through
+  // stripe-webhook's client_reference_id (Payment Link) branch — see
+  // docs/workshop-payment-link.md. Shown whenever set, not just on
+  // mismatch, so an external-link payment stays identifiable even once
+  // payment_status reads 'paid' the same as a built-in-checkout row.
+  const formatPaidVsListed = (reg: Registration): { text: string; mismatch: boolean } | null => {
+    if (reg.paid_amount_cents == null) return null;
+    const paidCurrency = (reg.paid_currency || "").toUpperCase();
+    const paidStr = `${(reg.paid_amount_cents / 100).toFixed(2)} ${paidCurrency}`;
+    if (reg.workshop_price == null) {
+      return { text: `Zaplaceno ${paidStr}`, mismatch: false };
+    }
+    const listedCurrency = (reg.workshop_currency || "EUR").toUpperCase();
+    const listedStr = `${Number(reg.workshop_price).toFixed(2)} ${listedCurrency}`;
+    const mismatch =
+      reg.paid_amount_cents !== Math.round(Number(reg.workshop_price) * 100) || paidCurrency !== listedCurrency;
+    return {
+      text: mismatch ? `Zaplaceno ${paidStr} ≠ web ${listedStr}` : `Zaplaceno ${paidStr}`,
+      mismatch,
+    };
   };
 
   const filteredInquiries = searchTerm
@@ -293,6 +321,11 @@ const AdminInquiries = () => {
                             <Badge className={PAYMENT_STATUS_COLORS[reg.payment_status] || "bg-gray-100 text-gray-800"}>
                               {PAYMENT_STATUS_LABELS[reg.payment_status] || reg.payment_status}
                             </Badge>
+                            {formatPaidVsListed(reg) && (
+                              <p className={`text-xs mt-1 whitespace-nowrap ${formatPaidVsListed(reg)!.mismatch ? "text-red-600 font-semibold" : "text-muted-foreground"}`}>
+                                {formatPaidVsListed(reg)!.text}
+                              </p>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge className={STATUS_COLORS[reg.status] || "bg-gray-100 text-gray-800"}>
@@ -488,6 +521,11 @@ const AdminInquiries = () => {
                   <Badge className={PAYMENT_STATUS_COLORS[selectedRegistration.payment_status] || "bg-gray-100"}>
                     {PAYMENT_STATUS_LABELS[selectedRegistration.payment_status] || selectedRegistration.payment_status}
                   </Badge>
+                  {formatPaidVsListed(selectedRegistration) && (
+                    <p className={`text-xs mt-1 ${formatPaidVsListed(selectedRegistration)!.mismatch ? "text-red-600 font-semibold" : "text-muted-foreground"}`}>
+                      {formatPaidVsListed(selectedRegistration)!.text}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Status</Label>

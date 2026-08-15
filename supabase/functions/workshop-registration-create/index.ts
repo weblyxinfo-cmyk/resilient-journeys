@@ -218,6 +218,11 @@ serve(async (req) => {
     // accept.
     if (workshop.stripePaymentLink) {
       const redirectUrl = new URL(workshop.stripePaymentLink);
+      // .set() (not .append()) is deliberate: if the pasted link already
+      // has its own client_reference_id/prefilled_email query params (e.g.
+      // pasted from somewhere that already customized it), ours must win —
+      // stripe-webhook can only match this registration back to a payment
+      // if the id it receives from Stripe is the one we generated here.
       redirectUrl.searchParams.set("client_reference_id", registration.id);
       redirectUrl.searchParams.set("prefilled_email", trimmedEmail);
       return new Response(

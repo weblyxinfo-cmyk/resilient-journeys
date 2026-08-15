@@ -66,18 +66,42 @@ Link. Here's the actual outcome after this change:
 ### 1. "Webhook has nothing to match the registration to" — **solved**
 
 Stripe Payment Links accept `client_reference_id` and `prefilled_email` as
-URL query parameters (documented Stripe behavior) and copy them onto the
-Checkout Session created when someone pays through the link.
+URL query parameters and copy them onto the Checkout Session created when
+someone pays through the link — this is what makes the matching below
+possible at all. **Verification caveat:** this sandbox has no internet
+access, so I could not open Stripe's live docs to double-check the exact
+wording, and I'm not treating "I recall this" as good enough on its own —
+see the character-set/length reasoning two paragraphs down for why the
+implementation doesn't actually need to trust the exact documented limits.
+If you want to confirm the mechanism itself before relying on this for a
+real paid workshop, the fastest check is Stripe's own dashboard: open a test
+Payment Link, append `?client_reference_id=test123` to it, complete a test
+payment, and look at the resulting Checkout Session's `client_reference_id`
+field in the Stripe Dashboard or via `stripe.checkout.sessions.retrieve`.
+
 `workshop-registration-create` appends the new registration's own id as
-`client_reference_id` before redirecting. `stripe-webhook` gained a new
-branch in `checkout.session.completed`, placed right after the existing
-metadata-based `workshop_registration_id` branch and before the membership
-branch: if `session.client_reference_id` is set, it updates the matching
-`workshop_registrations` row (`payment_status: 'external'` →
-`'paid'`, `status: 'confirmed'`, and now also stores `stripe_session_id`)
-using the exact same `.eq("payment_status", "external")` guard-then-`select`
-idempotency pattern the existing branches use, so retries/duplicate events
-are safe no-ops.
+`client_reference_id` **and overwrites** any `client_reference_id` /
+`prefilled_email` the pasted link might already carry — it uses
+`URLSearchParams.set()`, not `.append()`, specifically so a link someone
+customized elsewhere can't end up with two conflicting values or, worse,
+one Stripe keeps and ours getting silently dropped. `stripe-webhook` only
+finds *our* id in `session.client_reference_id`, never the visitor's.
+
+Registration ids are Postgres UUIDs: exactly 36 characters, always
+lowercase hex digits and hyphens (`8-4-4-4-12` groups). That's a fixed,
+narrow character set and a fixed, short length — so even without confirming
+Stripe's exact undocumented limits, our specific values can't be the thing
+that breaks (the brief's own guess of "alphanumeric + dash, ~200 chars" was
+generous by roughly 5x on length alone).
+
+`stripe-webhook` gained a new branch in `checkout.session.completed`,
+placed right after the existing metadata-based `workshop_registration_id`
+branch and before the membership branch: if `session.client_reference_id`
+is set, it updates the matching `workshop_registrations` row
+(`payment_status: 'external'` → `'paid'`, `status: 'confirmed'`, plus
+`stripe_session_id` and the paid-amount fields below) using the exact same
+`.eq("payment_status", "external")` guard-then-`select` idempotency pattern
+the existing branches use, so retries/duplicate events are safe no-ops.
 
 This confirmation is a normal Stripe webhook event fired directly by Stripe
 to our endpoint — it does **not** depend on the visitor's browser ever
@@ -93,17 +117,29 @@ fires, and the registration stays `'external'` forever — a manual check in
 Stripe Dashboard is the only recovery. This is inherent to using someone
 else's payment page, not something code can close off completely.
 
-### 2. "Price can drift from what the web shows" — **not solved, documented**
+### 2. "Price can drift from what the web shows" — **can't prevent it, but it's no longer silent**
 
 The Payment Link's price lives in Stripe's own configuration, entirely
-outside `blog_posts.workshop_price`. `expectedPriceEur` is skipped when
-`stripe_payment_link` is set (see `workshop-registration-create/index.ts`)
-because there is nothing authoritative left to compare it against — the
-price the visitor sees on the workshop page is just whatever
-`workshop_price` says, independent of the real charge. The admin field's
-inline warning tells Silvie to keep both numbers in sync by hand; nothing
-in code enforces it, because there's no way to read a Payment Link's price
-back from its public URL.
+outside `blog_posts.workshop_price`, and nothing in code can force those
+two to match — `expectedPriceEur` is skipped when `stripe_payment_link` is
+set (see `workshop-registration-create/index.ts`) because there is nothing
+authoritative left to compare it against at *registration* time.
+
+What's new: `stripe-webhook`'s `client_reference_id` branch now also writes
+`paid_amount_cents`/`paid_currency` from `session.amount_total` /
+`session.currency` — Stripe's own record of what was actually charged —
+onto the registration row (migration
+`20260815160000_add_workshop_registration_paid_amount.sql`). This is only
+known *after* payment, so it can't stop a mismatched charge from happening,
+but it does mean the mismatch is no longer invisible after the fact:
+AdminInquiries.tsx now shows "Zaplaceno 25 € ≠ web 35 €" (in red) under the
+Payment badge, comparing that actual charge to the workshop's *current*
+`workshop_price` at page-load time, for every registration where this field
+is set — which stays true even once `payment_status` reads `'paid'` the
+same as any built-in-checkout row, so an external-link payment doesn't
+blend back in once confirmed. The admin field's inline warning still tells
+Silvie to keep the two numbers in sync by hand up front; this is the
+after-the-fact safety net for when that doesn't happen.
 
 ### 3. New, minor: the success page may not be reached
 
@@ -144,7 +180,10 @@ amber, labeled "Verify manually" — next to the existing "Awaiting payment /
 Paid / Expired". This is what actually lets Silvie *see* the distinction the
 brief asked for: a registration sitting on "Verify manually" for a while is
 the signal to go check Stripe by hand; one that flips to "Paid" confirmed
-itself the same as any other.
+itself the same as any other. Underneath that badge (both the table and the
+detail dialog), any registration with a recorded `paid_amount_cents` shows
+the actual amount paid, in red with "≠ web ..." appended if it doesn't match
+`workshop_price`.
 
 ## Migration (apply in this order, after `20260815140100`)
 
@@ -155,12 +194,19 @@ itself the same as any other.
    `pending|paid|expired` to also allow `external`. No backfill needed:
    every existing row's `payment_status` is already one of the first three
    values.
+2. `20260815160000_add_workshop_registration_paid_amount.sql` — adds
+   `workshop_registrations.paid_amount_cents` and `.paid_currency`, both
+   nullable, no default. Only ever written by `stripe-webhook`'s
+   `client_reference_id` branch; stays NULL for every built-in-checkout
+   registration and for every external one that hasn't (yet, or ever) been
+   matched by that branch.
 
-## Deploy order (functions, after the migration — not done here)
+## Deploy order (functions, after both migrations — not done here)
 
 1. `workshop-registration-create` — reads/validates `stripe_payment_link`,
    branches before the Stripe API call.
-2. `stripe-webhook` — new `client_reference_id` branch.
+2. `stripe-webhook` — new `client_reference_id` branch, now also capturing
+   `paid_amount_cents`/`paid_currency`.
 
 Neither function's existing behavior changes when `stripe_payment_link` is
 NULL/empty — confirmed by reading the diff: every new branch is gated on
@@ -180,6 +226,34 @@ this change. `AdminBlog.tsx`'s new field/labels are plain hardcoded admin
 UI strings, same convention as the existing "Paid Workshop" / "Price" /
 "Currency" labels in that file — not CMS-driven, matching how the rest of
 that admin form already works.
+
+## What works automatically vs. what doesn't (summary)
+
+**Works automatically, no manual step required:**
+- Registration is saved the moment the visitor submits the form, for both
+  paths.
+- Confirmation of an external-link payment (`payment_status: 'external' →
+  'paid'`, `status → 'confirmed'`) and Silvie's notification email — driven
+  by Stripe's own webhook, independent of whether the visitor's browser
+  ever returns to the site.
+- Recording what was actually charged (`paid_amount_cents`/`paid_currency`)
+  and flagging a mismatch against `workshop_price` in AdminInquiries.tsx.
+- URL validation (`https://` + Stripe domain), both on save in the admin
+  and again at registration time.
+- Overwriting any `client_reference_id`/`prefilled_email` already present
+  in a pasted link, so ours is always the one Stripe reports back.
+
+**Does NOT work automatically / needs a manual step or a manual check:**
+- Keeping `workshop_price` in sync with the Payment Link's actual Stripe
+  price — nothing enforces this; the admin warning and the after-the-fact
+  mismatch badge are the only safeguards.
+- Landing the visitor on `/workshopy/success` after paying via the link —
+  requires Silvie to configure the Payment Link's "After payment" redirect
+  in the Stripe Dashboard by hand; without it the visitor sees Stripe's own
+  generic confirmation instead (payment confirmation itself is unaffected).
+- Recovering a registration that never matched (link shared/used without
+  the `client_reference_id` parameter) — stays `'external'` forever;
+  Stripe Dashboard is the only way to check it.
 
 ## Build status
 

@@ -222,12 +222,23 @@ serve(async (req) => {
           console.log(`Processing external payment-link workshop registration for id: ${clientReferenceId}`);
 
           try {
+            // amount_total/currency are Stripe's own record of what was
+            // actually charged through the Payment Link — captured here
+            // because it's the only place this code ever sees it, and
+            // because the link's configured price can drift from
+            // blog_posts.workshop_price (see docs/workshop-payment-link.md).
+            // Kept even after this row later reads as 'paid' like any other
+            // registration, so Silvie can still tell it went through the
+            // external path and check it against the workshop's current
+            // listed price in AdminInquiries.
             const { data: updatedExternal, error } = await supabaseAdmin
               .from("workshop_registrations")
               .update({
                 payment_status: "paid",
                 status: "confirmed",
                 stripe_session_id: session.id,
+                paid_amount_cents: session.amount_total ?? null,
+                paid_currency: session.currency ?? null,
               })
               .eq("id", clientReferenceId)
               .eq("payment_status", "external")
