@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import UserBookings from '@/components/booking/UserBookings';
 import FreeGuideKit from '@/components/FreeGuideKit';
+import { useCms } from '@/hooks/useCms';
 
 interface VideoCategory {
   id: string;
@@ -97,12 +98,6 @@ const iconMap: { [key: string]: React.ElementType } = {
   puzzle: Puzzle
 };
 
-const membershipLabels = {
-  free: 'Free',
-  basic: 'Basic',
-  premium: 'Premium'
-};
-
 const membershipColors = {
   free: 'bg-muted text-muted-foreground',
   basic: 'bg-gold/20 text-gold-dark',
@@ -111,8 +106,15 @@ const membershipColors = {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useCms();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, profile, loading, signOut, isAdmin } = useAuth();
+
+  const membershipLabels = {
+    free: t('dashboard_membership_free_label', 'Free'),
+    basic: t('dashboard_membership_basic_label', 'Basic'),
+    premium: t('dashboard_membership_premium_label', 'Premium'),
+  };
   const [categories, setCategories] = useState<VideoCategory[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -165,8 +167,8 @@ const Dashboard = () => {
   // Welcome message for free guide users
   useEffect(() => {
     if (!loading && user && searchParams.get('free_guide') === 'true') {
-      toast.success('Welcome! Your Free Guide Kit is ready below.', {
-        description: 'Follow the 3-step daily practice to start your resilience journey.',
+      toast.success(t('dashboard_toast_free_guide_title', 'Welcome! Your Free Guide Kit is ready below.'), {
+        description: t('dashboard_toast_free_guide_description', 'Follow the 3-step daily practice to start your resilience journey.'),
         duration: 6000,
       });
       // Remove the query parameter from URL
@@ -252,7 +254,7 @@ const Dashboard = () => {
   };
 
   const handleDownloadResource = (resource: Resource) => {
-    toast.success(`Downloading: ${resource.title}`);
+    toast.success(`${t('dashboard_toast_downloading_prefix', 'Downloading:')} ${resource.title}`);
 
     // Increment download count in background
     supabase
@@ -266,8 +268,8 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="flex items-center justify-center pt-24" style={{ minHeight: 'calc(100vh - 6rem)' }}>
-          <div className="animate-pulse text-gold">Loading...</div>
+        <div id="cms-dashboard-loading" className="flex items-center justify-center pt-24" style={{ minHeight: 'calc(100vh - 6rem)' }}>
+          <div className="animate-pulse text-gold">{t('dashboard_loading_text', 'Loading...')}</div>
         </div>
       </div>
     );
@@ -285,7 +287,7 @@ const Dashboard = () => {
     if (category.is_additional_hub) {
       const hubVideos = categoryVideos.filter(v => !v.is_intro);
       return (
-        <div className="space-y-6">
+        <div id="cms-dashboard-category_detail" className="space-y-6">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -294,7 +296,7 @@ const Dashboard = () => {
               className="border-gold/30 hover:bg-gold/10"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              {t('dashboard_detail_back_button', 'Back')}
             </Button>
             <div className="flex items-center gap-3">
               <div className="p-3 bg-gold/10 rounded-full">
@@ -339,13 +341,13 @@ const Dashboard = () => {
                         onClick={() => navigate(`/video/${hVideo.id}`)}
                       >
                         <Play className="h-4 w-4 mr-2" />
-                        Watch Video
+                        {t('dashboard_detail_watch_button', 'Watch Video')}
                       </Button>
                     ) : (
                       <Button asChild variant="outline" className="w-full border-gold text-gold hover:bg-gold hover:text-white">
                         <Link to="/resilient-hub">
                           <Lock className="h-4 w-4 mr-2" />
-                          Unlock
+                          {t('dashboard_detail_unlock_button', 'Unlock')}
                         </Link>
                       </Button>
                     )}
@@ -358,7 +360,7 @@ const Dashboard = () => {
                       >
                         <a href={hWorkbook.file_url} target="_blank" rel="noopener noreferrer">
                           <Download className="h-4 w-4 mr-2" />
-                          Download Workbook
+                          {t('dashboard_detail_download_workbook_button', 'Download Workbook')}
                         </a>
                       </Button>
                     )}
@@ -370,7 +372,7 @@ const Dashboard = () => {
               <Card className="border-gold/20 opacity-60 bg-muted/30">
                 <CardContent className="py-12 text-center">
                   <Sparkles className="h-8 w-8 text-gold/40 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">Content coming soon</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard_detail_content_soon', 'Content coming soon')}</p>
                 </CardContent>
               </Card>
             )}
@@ -390,7 +392,7 @@ const Dashboard = () => {
       : null;
 
     return (
-      <div className="space-y-6">
+      <div id="cms-dashboard-category_detail" className="space-y-6">
         {/* Header with back button */}
         <div className="flex items-center gap-4">
           <Button
@@ -400,7 +402,7 @@ const Dashboard = () => {
             className="border-gold/30 hover:bg-gold/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {t('dashboard_detail_back_button', 'Back')}
           </Button>
           <div className="flex items-center gap-3">
             <div className="p-3 bg-gold/10 rounded-full">
@@ -411,7 +413,7 @@ const Dashboard = () => {
                 {category.name}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Month {category.month_number} - {category.description}
+                {t('dashboard_detail_month_prefix', 'Month')} {category.month_number} - {category.description}
               </p>
             </div>
           </div>
@@ -426,7 +428,7 @@ const Dashboard = () => {
                 value={week.toString()}
                 className="data-[state=active]:bg-gold data-[state=active]:text-white"
               >
-                {week === 5 ? 'Free Bonus' : `Week ${week}`}
+                {week === 5 ? t('dashboard_detail_bonus_label', 'Free Bonus') : `${t('dashboard_detail_week_label', 'Week')} ${week}`}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -456,7 +458,7 @@ const Dashboard = () => {
                           )}
                         </div>
                         {wVideo.is_free && (
-                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Free</Badge>
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">{t('dashboard_detail_free_badge', 'Free')}</Badge>
                         )}
                       </div>
                       {wVideo.description && (
@@ -472,13 +474,13 @@ const Dashboard = () => {
                           onClick={() => navigate(`/video/${wVideo.id}`)}
                         >
                           <Play className="h-4 w-4 mr-2" />
-                          Watch Video
+                          {t('dashboard_detail_watch_button', 'Watch Video')}
                         </Button>
                       ) : (
                         <Button asChild variant="outline" className="w-full border-gold text-gold hover:bg-gold hover:text-white">
                           <Link to="/resilient-hub">
                             <Lock className="h-4 w-4 mr-2" />
-                            Unlock
+                            {t('dashboard_detail_unlock_button', 'Unlock')}
                           </Link>
                         </Button>
                       )}
@@ -493,7 +495,7 @@ const Dashboard = () => {
                         >
                           <a href={wWorkbook.file_url} target="_blank" rel="noopener noreferrer">
                             <Download className="h-4 w-4 mr-2" />
-                            Download Workbook
+                            {t('dashboard_detail_download_workbook_button', 'Download Workbook')}
                           </a>
                         </Button>
                       )}
@@ -503,9 +505,9 @@ const Dashboard = () => {
                   <Card className="border-gold/20 opacity-60 bg-muted/30">
                     <CardContent className="py-12 text-center">
                       <Sparkles className="h-8 w-8 text-gold/40 mx-auto mb-3" />
-                      <h3 className="font-serif text-lg mb-1">{week === 5 ? 'Free Bonus' : `Week ${week}`}</h3>
+                      <h3 className="font-serif text-lg mb-1">{week === 5 ? t('dashboard_detail_bonus_label', 'Free Bonus') : `${t('dashboard_detail_week_label', 'Week')} ${week}`}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Content coming soon
+                        {t('dashboard_detail_content_soon', 'Content coming soon')}
                       </p>
                     </CardContent>
                   </Card>
@@ -525,10 +527,10 @@ const Dashboard = () => {
       <main className="pt-24 pb-16">
         <div className="container max-w-7xl mx-auto px-4">
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div id="cms-dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
               <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-2">
-                Welcome, {profile?.full_name || 'member'}
+                {t('dashboard_header_welcome_title', 'Welcome, {name}').replace('{name}', profile?.full_name || 'member')}
               </h1>
               <div className="flex items-center gap-3">
                 <Badge className={membershipColors[profile?.membership_type || 'free']}>
@@ -538,7 +540,7 @@ const Dashboard = () => {
                 {(!profile || profile.membership_type === 'free') && (
                   <Button asChild variant="outline" size="sm" className="border-gold text-gold hover:bg-gold hover:text-white">
                     <Link to="/resilient-hub">
-                      Upgrade Membership
+                      {t('dashboard_header_upgrade_button', 'Upgrade Membership')}
                     </Link>
                   </Button>
                 )}
@@ -547,17 +549,17 @@ const Dashboard = () => {
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
                 <Settings className="h-4 w-4 mr-2" />
-                Settings
+                {t('dashboard_header_settings_button', 'Settings')}
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                {t('dashboard_header_signout_button', 'Sign Out')}
               </Button>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div id="cms-dashboard-stats" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card className="border-gold/20">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -565,7 +567,7 @@ const Dashboard = () => {
                     <Play className="h-6 w-6 text-gold" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Completed</p>
+                    <p className="text-sm text-muted-foreground">{t('dashboard_stats_completed_label', 'Completed')}</p>
                     <p className="text-2xl font-semibold">
                       {completedVideos} / {totalAccessibleVideos}
                     </p>
@@ -588,7 +590,7 @@ const Dashboard = () => {
                     <Calendar className="h-6 w-6 text-gold" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Months Unlocked</p>
+                    <p className="text-sm text-muted-foreground">{t('dashboard_stats_months_unlocked_label', 'Months Unlocked')}</p>
                     <p className="text-2xl font-semibold">{monthsUnlocked} / 12</p>
                   </div>
                 </div>
@@ -601,7 +603,7 @@ const Dashboard = () => {
                     <Crown className="h-6 w-6 text-gold" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Membership</p>
+                    <p className="text-sm text-muted-foreground">{t('dashboard_stats_membership_label', 'Membership')}</p>
                     <p className="text-2xl font-semibold capitalize">
                       {membershipLabels[profile?.membership_type || 'free']}
                     </p>
@@ -613,10 +615,10 @@ const Dashboard = () => {
 
           {/* Premium Community - Skool & Zoom */}
           {profile?.membership_type === 'premium' && (
-            <div className="mb-8">
+            <div id="cms-dashboard-premium_community" className="mb-8">
               <h2 className="font-serif text-xl md:text-2xl text-foreground mb-4 flex items-center gap-2">
                 <Crown className="h-5 w-5 text-gold" />
-                Premium Community
+                {t('dashboard_premium_title', 'Premium Community')}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="border-gold/20 hover:shadow-elegant transition-all">
@@ -626,21 +628,21 @@ const Dashboard = () => {
                         <GraduationCap className="h-6 w-6 text-gold" />
                       </div>
                       <div>
-                        <CardTitle className="font-serif text-lg">Skool Community</CardTitle>
-                        <CardDescription>Connect with fellow premium members</CardDescription>
+                        <CardTitle className="font-serif text-lg">{t('dashboard_premium_skool_title', 'Skool Community')}</CardTitle>
+                        <CardDescription>{t('dashboard_premium_skool_description', 'Connect with fellow premium members')}</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Join our private Skool community for discussions, resources, and peer support from expats around the world.
+                      {t('dashboard_premium_skool_text', 'Join our private Skool community for discussions, resources, and peer support from expats around the world.')}
                     </p>
                     <Button
                       className="w-full bg-gold hover:bg-gold-dark text-white"
                       onClick={() => window.open('https://www.skool.com/resilient-mind-expats-premium-3871', '_blank')}
                     >
                       <GraduationCap className="h-4 w-4 mr-2" />
-                      Join Community
+                      {t('dashboard_premium_skool_button', 'Join Community')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -651,16 +653,16 @@ const Dashboard = () => {
                         <Video className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <div>
-                        <CardTitle className="font-serif text-lg text-muted-foreground">Live Group Sessions</CardTitle>
+                        <CardTitle className="font-serif text-lg text-muted-foreground">{t('dashboard_premium_live_title', 'Live Group Sessions')}</CardTitle>
                         <Badge variant="outline" className="mt-1 text-xs text-muted-foreground">
-                          Coming Soon
+                          {t('dashboard_premium_live_badge', 'Coming Soon')}
                         </Badge>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Live group sessions are being prepared. In the meantime, connect with fellow members in our Skool community.
+                      {t('dashboard_premium_live_text', 'Live group sessions are being prepared. In the meantime, connect with fellow members in our Skool community.')}
                     </p>
                     <Button
                       variant="outline"
@@ -668,7 +670,7 @@ const Dashboard = () => {
                       disabled
                     >
                       <Calendar className="h-4 w-4 mr-2" />
-                      Coming Soon
+                      {t('dashboard_premium_live_badge', 'Coming Soon')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -686,36 +688,36 @@ const Dashboard = () => {
 
           {/* Content Tabs */}
           <Tabs defaultValue="program" className="w-full">
-            <TabsList className="bg-cream/50 mb-6">
+            <TabsList id="cms-dashboard-tabs" className="bg-cream/50 mb-6">
               <TabsTrigger value="program" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                12-Month Program
+                {t('dashboard_tabs_program', '12-Month Program')}
               </TabsTrigger>
               <TabsTrigger value="resources" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                Resources
+                {t('dashboard_tabs_resources', 'Resources')}
               </TabsTrigger>
               <TabsTrigger value="sessions" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                Sessions
+                {t('dashboard_tabs_sessions', 'Sessions')}
               </TabsTrigger>
             </TabsList>
 
             {/* Program Tab */}
-            <TabsContent value="program">
+            <TabsContent id="cms-dashboard-program_tab" value="program">
               {loadingContent ? (
-                <div className="text-center py-12 text-muted-foreground">Loading content...</div>
+                <div className="text-center py-12 text-muted-foreground">{t('dashboard_program_loading', 'Loading content...')}</div>
               ) : categories.length === 0 ? (
                 <Card className="border-gold/20">
                   <CardContent className="py-12 text-center">
                     <Play className="h-12 w-12 text-gold/50 mx-auto mb-4" />
-                    <h3 className="font-serif text-xl mb-2">Content Coming Soon</h3>
+                    <h3 className="font-serif text-xl mb-2">{t('dashboard_program_empty_title', 'Content Coming Soon')}</h3>
                     <p className="text-muted-foreground">
-                      We're preparing video lessons and materials. Stay tuned for updates!
+                      {t('dashboard_program_empty_text', "We're preparing video lessons and materials. Stay tuned for updates!")}
                     </p>
                   </CardContent>
                 </Card>
               ) : selectedCategory ? (
                 <CategoryWeekView />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="cms-dashboard-category_card" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {categories.map((category) => {
                     const IconComponent = iconMap[category.icon] || Heart;
                     const categoryVideos = videos.filter(v => v.category_id === category.id);
@@ -746,7 +748,7 @@ const Dashboard = () => {
                               <IconComponent className="h-5 w-5 text-gold" />
                             </div>
                             <Badge variant="outline" className="text-xs">
-                              {category.is_additional_hub ? 'Additional Hub' : `Month ${category.month_number}`}
+                              {category.is_additional_hub ? t('dashboard_category_hub_badge', 'Additional Hub') : `${t('dashboard_category_month_badge', 'Month')} ${category.month_number}`}
                             </Badge>
                           </div>
                           <CardTitle className="font-serif text-xl flex items-center gap-2">
@@ -758,17 +760,17 @@ const Dashboard = () => {
                         <CardContent>
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">
-                              {categoryVideos.length} {categoryVideos.length === 1 ? 'video' : 'videos'}
+                              {categoryVideos.length} {categoryVideos.length === 1 ? t('dashboard_category_video_singular', 'video') : t('dashboard_category_video_plural', 'videos')}
                             </span>
                             {hasAccess ? (
                               <Button size="sm" className="bg-gold hover:bg-gold-dark text-white">
                                 <Play className="h-4 w-4 mr-1" />
-                                Start
+                                {t('dashboard_category_start_button', 'Start')}
                               </Button>
                             ) : (
                               <Button asChild size="sm" variant="outline" className="border-gold text-gold">
                                 <Link to="/resilient-hub" onClick={(e) => e.stopPropagation()}>
-                                  Unlock
+                                  {t('dashboard_category_unlock_button', 'Unlock')}
                                 </Link>
                               </Button>
                             )}
@@ -782,27 +784,27 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Resources Tab */}
-            <TabsContent value="resources">
+            <TabsContent id="cms-dashboard-resources_tab" value="resources">
               {loadingContent ? (
-                <div className="text-center py-12 text-muted-foreground">Loading resources...</div>
+                <div className="text-center py-12 text-muted-foreground">{t('dashboard_resources_loading', 'Loading resources...')}</div>
               ) : resources.length === 0 ? (
                 <Card className="border-gold/20">
                   <CardContent className="py-12 text-center">
                     <div className="p-4 bg-gold/10 rounded-full w-fit mx-auto mb-4">
                       <Palette className="h-8 w-8 text-gold" />
                     </div>
-                    <h3 className="font-serif text-xl mb-2">Workbook Materials</h3>
+                    <h3 className="font-serif text-xl mb-2">{t('dashboard_resources_empty_title', 'Workbook Materials')}</h3>
                     <p className="text-muted-foreground mb-6">
-                      Downloadable worksheets, meditations, and creative exercises
+                      {t('dashboard_resources_empty_text', 'Downloadable worksheets, meditations, and creative exercises')}
                     </p>
                     {profile?.membership_type === 'free' ? (
                       <Button asChild className="bg-gold hover:bg-gold-dark text-white">
                         <Link to="/resilient-hub">
-                          Get Access to Materials
+                          {t('dashboard_resources_empty_cta', 'Get Access to Materials')}
                         </Link>
                       </Button>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Materials will be available soon</p>
+                      <p className="text-sm text-muted-foreground">{t('dashboard_resources_empty_soon', 'Materials will be available soon')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -846,7 +848,7 @@ const Dashboard = () => {
                           >
                             <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
                               <Download className="h-4 w-4 mr-2" />
-                              Download
+                              {t('dashboard_resources_download_button', 'Download')}
                             </a>
                           </Button>
                         </CardContent>
@@ -858,7 +860,7 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Sessions Tab */}
-            <TabsContent value="sessions">
+            <TabsContent id="cms-dashboard-sessions_tab" value="sessions">
               <div className="space-y-6">
                 {/* Premium Credits Widget - only for premium members */}
                 {profile?.membership_type === 'premium' && premiumCredits && (
@@ -870,8 +872,8 @@ const Dashboard = () => {
                             <Crown className="h-6 w-6 text-white" />
                           </div>
                           <div>
-                            <CardTitle className="font-serif text-xl">Premium Consultations</CardTitle>
-                            <CardDescription>Your annual consultation credits for {new Date().getFullYear()}</CardDescription>
+                            <CardTitle className="font-serif text-xl">{t('dashboard_sessions_credits_title', 'Premium Consultations')}</CardTitle>
+                            <CardDescription>{t('dashboard_sessions_credits_description', 'Your annual consultation credits for {year}').replace('{year}', String(new Date().getFullYear()))}</CardDescription>
                           </div>
                         </div>
                       </div>
@@ -882,7 +884,7 @@ const Dashboard = () => {
                           <p className="text-3xl font-semibold text-gold">
                             {premiumCredits.total - premiumCredits.used} / {premiumCredits.total}
                           </p>
-                          <p className="text-sm text-muted-foreground">Sessions remaining</p>
+                          <p className="text-sm text-muted-foreground">{t('dashboard_sessions_credits_remaining', 'Sessions remaining')}</p>
                         </div>
                       </div>
                       <div className="w-full bg-muted rounded-full h-3">

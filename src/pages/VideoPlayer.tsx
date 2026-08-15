@@ -10,18 +10,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { useCms } from "@/hooks/useCms";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 type Video = Database['public']['Tables']['videos']['Row'];
 type MembershipType = Database['public']['Enums']['membership_type'];
-
-const membershipLabels: Record<MembershipType, string> = {
-  free: 'Free',
-  basic: 'Basic',
-  premium: 'Premium',
-};
 
 const membershipHierarchy: Record<MembershipType, number> = {
   free: 0,
@@ -50,7 +45,14 @@ const getEmbedUrl = (url: string): string => {
 const VideoPlayer = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const navigate = useNavigate();
+  const { t } = useCms();
   const { user, profile, loading: authLoading, isAdmin } = useAuth();
+
+  const membershipLabels: Record<MembershipType, string> = {
+    free: t('videoplayer_membership_free_label', 'Free'),
+    basic: t('videoplayer_membership_basic_label', 'Basic'),
+    premium: t('videoplayer_membership_premium_label', 'Premium'),
+  };
 
   const [video, setVideo] = useState<Video | null>(null);
   const [categoryInfo, setCategoryInfo] = useState<{ is_additional_hub: boolean; hub_slug: string | null; month_number?: number } | null>(null);
@@ -196,10 +198,10 @@ const VideoPlayer = () => {
 
       if (error) throw error;
       setIsCompleted(newStatus);
-      toast.success(newStatus ? 'Video marked as completed!' : 'Completion unmarked');
+      toast.success(newStatus ? t('videoplayer_toast_marked_completed', 'Video marked as completed!') : t('videoplayer_toast_unmarked', 'Completion unmarked'));
     } catch (err) {
       console.error('Error updating progress:', err);
-      toast.error('Could not update progress');
+      toast.error(t('videoplayer_toast_progress_error', 'Could not update progress'));
     } finally {
       setProgressLoading(false);
     }
@@ -254,22 +256,22 @@ const VideoPlayer = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="pt-24 pb-16">
-          <div className="container px-4">
+          <div id="cms-videoplayer-signup_prompt" className="container px-4">
             <div className="max-w-xl mx-auto text-center">
               <Card className="p-8">
                 <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
                 <h1 className="text-2xl font-serif font-semibold mb-4">
-                  Start Free to Watch Videos
+                  {t('videoplayer_signup_title', 'Start Free to Watch Videos')}
                 </h1>
                 <p className="text-muted-foreground mb-6">
-                  Enter your email to get free access to intro videos — no password needed.
+                  {t('videoplayer_signup_text', 'Enter your email to get free access to intro videos — no password needed.')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button asChild className="bg-gradient-gold text-white">
-                    <Link to="/free-guide">Start Free</Link>
+                    <Link to="/free-guide">{t('videoplayer_signup_start_free_button', 'Start Free')}</Link>
                   </Button>
                   <Button variant="outline" asChild>
-                    <Link to="/resilient-hub">Back to program</Link>
+                    <Link to="/resilient-hub">{t('videoplayer_signup_back_button', 'Back to program')}</Link>
                   </Button>
                 </div>
               </Card>
@@ -288,31 +290,31 @@ const VideoPlayer = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="pt-24 pb-16">
-          <div className="container px-4">
+          <div id="cms-videoplayer-access_denied" className="container px-4">
             <div className="max-w-xl mx-auto text-center">
               <Card className="p-8 border-gold/30">
                 <div className="w-20 h-20 bg-gradient-gold rounded-full flex items-center justify-center mx-auto mb-6">
                   <Crown className="h-10 w-10 text-white" />
                 </div>
                 <Badge className="mb-4 bg-gold/20 text-gold-dark border-gold/30">
-                  Requires {membershipLabels[requiredMembership]} membership
+                  {t('videoplayer_denied_badge', 'Requires {membership} membership').replace('{membership}', membershipLabels[requiredMembership])}
                 </Badge>
                 <h1 className="text-2xl font-serif font-semibold mb-4">
-                  Members Only Content
+                  {t('videoplayer_denied_title', 'Members Only Content')}
                 </h1>
                 <p className="text-muted-foreground mb-6">
-                  This video is available for members with{' '}
-                  <strong>{membershipLabels[requiredMembership]}</strong> level or higher.
-                  Upgrade your membership to access all content.
+                  {t('videoplayer_denied_text_before', 'This video is available for members with')}{' '}
+                  <strong>{membershipLabels[requiredMembership]}</strong>{' '}
+                  {t('videoplayer_denied_text_after', 'level or higher. Upgrade your membership to access all content.')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button asChild className="bg-gradient-gold text-white">
-                    <Link to="/resilient-hubs#pricing">View pricing</Link>
+                    <Link to="/resilient-hubs#pricing">{t('videoplayer_denied_pricing_button', 'View pricing')}</Link>
                   </Button>
                   <Button variant="outline" asChild>
                     <Link to="/resilient-hub">
                       <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back to program
+                      {t('videoplayer_denied_back_button', 'Back to program')}
                     </Link>
                   </Button>
                 </div>
@@ -331,17 +333,17 @@ const VideoPlayer = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="pt-24 pb-16">
-          <div className="container px-4">
+          <div id="cms-videoplayer-not_found" className="container px-4">
             <div className="max-w-xl mx-auto text-center">
               <Card className="p-8">
                 <Play className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
                 <h1 className="text-2xl font-serif font-semibold mb-4">
-                  Video Not Found
+                  {t('videoplayer_notfound_title', 'Video Not Found')}
                 </h1>
                 <Button variant="outline" asChild>
                   <Link to="/resilient-hub">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to program
+                    {t('videoplayer_notfound_back_button', 'Back to program')}
                   </Link>
                 </Button>
               </Card>
@@ -359,10 +361,10 @@ const VideoPlayer = () => {
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="container px-4">
-          <div className="max-w-4xl mx-auto">
+          <div id="cms-videoplayer-player" className="max-w-4xl mx-auto">
             <Button variant="ghost" className="mb-6" onClick={() => navigate(-1)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('videoplayer_back_button', 'Back')}
             </Button>
 
             <div className="aspect-video bg-foreground rounded-2xl overflow-hidden mb-6">
@@ -393,7 +395,7 @@ const VideoPlayer = () => {
                   }
                   variant="outline"
                 >
-                  {video.is_free ? 'Free' : membershipLabels[video.min_membership as MembershipType]}
+                  {video.is_free ? t('videoplayer_free_badge', 'Free') : membershipLabels[video.min_membership as MembershipType]}
                 </Badge>
                 {video.duration_minutes && (
                   <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -420,7 +422,7 @@ const VideoPlayer = () => {
                   onClick={() => window.open(workbook.file_url, '_blank')}
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Download Workbook (PDF)
+                  {t('videoplayer_download_workbook_button', 'Download Workbook (PDF)')}
                 </Button>
               )}
 
@@ -438,24 +440,24 @@ const VideoPlayer = () => {
                   {progressLoading ? (
                     <>
                       <Circle className="mr-2 h-5 w-5 animate-spin" />
-                      Saving...
+                      {t('videoplayer_mark_completed_saving', 'Saving...')}
                     </>
                   ) : isCompleted ? (
                     <>
                       <CheckCircle2 className="mr-2 h-5 w-5" />
-                      Completed
+                      {t('videoplayer_mark_completed_done', 'Completed')}
                     </>
                   ) : (
                     <>
                       <Circle className="mr-2 h-5 w-5" />
-                      Mark as completed
+                      {t('videoplayer_mark_completed_button', 'Mark as completed')}
                     </>
                   )}
                 </Button>
 
                 {isCompleted && (
                   <span className="text-sm text-muted-foreground">
-                    Great job! Continue with the next video.
+                    {t('videoplayer_completed_hint', 'Great job! Continue with the next video.')}
                   </span>
                 )}
               </div>

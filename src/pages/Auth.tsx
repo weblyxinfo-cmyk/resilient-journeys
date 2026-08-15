@@ -12,6 +12,7 @@ import { Eye, EyeOff, ArrowLeft, Mail, KeyRound, CheckCircle2 } from 'lucide-rea
 import { z } from 'zod';
 import Logo from '@/components/Logo';
 import SEO from '@/components/SEO';
+import { useCms } from '@/hooks/useCms';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -21,6 +22,7 @@ type AuthView = 'default' | 'forgotPassword' | 'resetSent' | 'resetPassword';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { t } = useCms();
   const [searchParams] = useSearchParams();
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
@@ -66,7 +68,7 @@ const Auth = () => {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth_toast_validation_error_title', 'Validation Error'),
           description: err.errors[0].message,
           variant: 'destructive'
         });
@@ -78,21 +80,21 @@ const Auth = () => {
     const { error } = await signIn(loginEmail, loginPassword);
 
     if (error) {
-      let message = 'An error occurred during sign in';
+      let message = t('auth_toast_login_error_generic', 'An error occurred during sign in');
       if (error.message.includes('Invalid login credentials')) {
-        message = 'Invalid email or password';
+        message = t('auth_toast_login_error_invalid_credentials', 'Invalid email or password');
       } else if (error.message.includes('Email not confirmed')) {
-        message = 'Please confirm your email address';
+        message = t('auth_toast_login_error_email_unconfirmed', 'Please confirm your email address');
       }
       toast({
-        title: 'Sign In Error',
+        title: t('auth_toast_login_error_title', 'Sign In Error'),
         description: message,
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully signed in'
+        title: t('auth_toast_login_success_title', 'Welcome back!'),
+        description: t('auth_toast_login_success_description', 'You have successfully signed in')
       });
       navigate(redirectTo);
     }
@@ -111,7 +113,7 @@ const Auth = () => {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth_toast_validation_error_title', 'Validation Error'),
           description: err.errors[0].message,
           variant: 'destructive'
         });
@@ -123,19 +125,19 @@ const Auth = () => {
     const { error } = await signUp(registerEmail, registerPassword, registerName);
 
     if (error) {
-      let message = 'An error occurred during registration';
+      let message = t('auth_toast_register_error_generic', 'An error occurred during registration');
       if (error.message.includes('already registered')) {
-        message = 'This email is already registered';
+        message = t('auth_toast_register_error_exists', 'This email is already registered');
       }
       toast({
-        title: 'Registration Error',
+        title: t('auth_toast_register_error_title', 'Registration Error'),
         description: message,
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'Account Created!',
-        description: 'Welcome to Resilient Mind'
+        title: t('auth_toast_register_success_title', 'Account Created!'),
+        description: t('auth_toast_register_success_description', 'Welcome to Resilient Mind')
       });
       navigate(redirectTo);
     }
@@ -152,7 +154,7 @@ const Auth = () => {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth_toast_validation_error_title', 'Validation Error'),
           description: err.errors[0].message,
           variant: 'destructive'
         });
@@ -167,8 +169,8 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to send reset email',
+        title: t('auth_toast_error_title', 'Error'),
+        description: error.message || t('auth_toast_forgot_error_description', 'Failed to send reset email'),
         variant: 'destructive'
       });
     } else {
@@ -184,8 +186,8 @@ const Auth = () => {
 
     if (resetPassword.length < 6) {
       toast({
-        title: 'Validation Error',
-        description: 'Password must be at least 6 characters',
+        title: t('auth_toast_validation_error_title', 'Validation Error'),
+        description: t('auth_toast_resetpw_min_length', 'Password must be at least 6 characters'),
         variant: 'destructive'
       });
       setIsLoading(false);
@@ -194,8 +196,8 @@ const Auth = () => {
 
     if (resetPassword !== resetConfirmPassword) {
       toast({
-        title: 'Validation Error',
-        description: 'Passwords do not match',
+        title: t('auth_toast_validation_error_title', 'Validation Error'),
+        description: t('auth_toast_resetpw_mismatch', 'Passwords do not match'),
         variant: 'destructive'
       });
       setIsLoading(false);
@@ -206,14 +208,14 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to reset password',
+        title: t('auth_toast_error_title', 'Error'),
+        description: error.message || t('auth_toast_resetpw_error_description', 'Failed to reset password'),
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'Password Updated',
-        description: 'Your password has been reset successfully'
+        title: t('auth_toast_resetpw_success_title', 'Password Updated'),
+        description: t('auth_toast_resetpw_success_description', 'Your password has been reset successfully')
       });
       setAuthView('default');
       navigate('/dashboard');
@@ -224,8 +226,8 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-gold">Loading...</div>
+      <div id="cms-auth-loading" className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-gold">{t('auth_loading_text', 'Loading...')}</div>
       </div>
     );
   }
@@ -233,12 +235,12 @@ const Auth = () => {
   // Forgot password view
   if (authView === 'forgotPassword') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
+      <div id="cms-auth-forgot_password" className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
         <SEO title="Reset Password | Resilient Mind" description="Reset your Resilient Mind account password." path="/auth" />
         <header className="p-6">
           <button onClick={() => setAuthView('default')} className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Back to sign in
+            {t('auth_back_to_signin', 'Back to sign in')}
           </button>
         </header>
         <main className="flex-1 flex items-center justify-center p-6">
@@ -254,18 +256,18 @@ const Auth = () => {
                       <Mail className="h-6 w-6 text-gold" />
                     </div>
                   </div>
-                  <CardTitle className="font-serif text-2xl text-center">Forgot Password?</CardTitle>
+                  <CardTitle className="font-serif text-2xl text-center">{t('auth_forgot_title', 'Forgot Password?')}</CardTitle>
                   <CardDescription className="text-center">
-                    Enter your email and we'll send you a link to reset your password.
+                    {t('auth_forgot_description', "Enter your email and we'll send you a link to reset your password.")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="forgot-email">Email</Label>
+                    <Label htmlFor="forgot-email">{t('auth_email_label', 'Email')}</Label>
                     <Input
                       id="forgot-email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t('auth_email_placeholder', 'you@example.com')}
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       required
@@ -275,7 +277,7 @@ const Auth = () => {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" className="w-full bg-gold hover:bg-gold-dark text-white" disabled={isLoading}>
-                    {isLoading ? 'Sending...' : 'Send Reset Link'}
+                    {isLoading ? t('auth_forgot_sending_label', 'Sending...') : t('auth_forgot_submit_button', 'Send Reset Link')}
                   </Button>
                 </CardFooter>
               </form>
@@ -289,12 +291,12 @@ const Auth = () => {
   // Reset sent confirmation view
   if (authView === 'resetSent') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
+      <div id="cms-auth-reset_sent" className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
         <SEO title="Check Your Email | Resilient Mind" description="Password reset email sent." path="/auth" />
         <header className="p-6">
           <button onClick={() => setAuthView('default')} className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Back to sign in
+            {t('auth_back_to_signin', 'Back to sign in')}
           </button>
         </header>
         <main className="flex-1 flex items-center justify-center p-6">
@@ -309,16 +311,16 @@ const Auth = () => {
                     <CheckCircle2 className="h-6 w-6 text-green-600" />
                   </div>
                 </div>
-                <CardTitle className="font-serif text-2xl text-center">Check Your Email</CardTitle>
+                <CardTitle className="font-serif text-2xl text-center">{t('auth_resetsent_title', 'Check Your Email')}</CardTitle>
                 <CardDescription className="text-center">
-                  We've sent a password reset link to <strong>{forgotEmail}</strong>. Please check your inbox and click the link to set a new password.
+                  {t('auth_resetsent_description_before', "We've sent a password reset link to")} <strong>{forgotEmail}</strong>{t('auth_resetsent_description_after', '. Please check your inbox and click the link to set a new password.')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground text-center">
-                  Didn't receive the email? Check your spam folder or{' '}
+                  {t('auth_resetsent_hint_text', "Didn't receive the email? Check your spam folder or")}{' '}
                   <button onClick={() => setAuthView('forgotPassword')} className="text-gold hover:underline">
-                    try again
+                    {t('auth_resetsent_retry_button', 'try again')}
                   </button>.
                 </p>
               </CardContent>
@@ -332,12 +334,12 @@ const Auth = () => {
   // Reset password view (after clicking email link)
   if (authView === 'resetPassword') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
+      <div id="cms-auth-reset_password" className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
         <SEO title="Set New Password | Resilient Mind" description="Set your new password." path="/auth" />
         <header className="p-6">
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Back to home
+            {t('auth_back_to_home', 'Back to home')}
           </Link>
         </header>
         <main className="flex-1 flex items-center justify-center p-6">
@@ -353,19 +355,19 @@ const Auth = () => {
                       <KeyRound className="h-6 w-6 text-gold" />
                     </div>
                   </div>
-                  <CardTitle className="font-serif text-2xl text-center">Set New Password</CardTitle>
+                  <CardTitle className="font-serif text-2xl text-center">{t('auth_resetpw_title', 'Set New Password')}</CardTitle>
                   <CardDescription className="text-center">
-                    Enter your new password below.
+                    {t('auth_resetpw_description', 'Enter your new password below.')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-password">New Password</Label>
+                    <Label htmlFor="reset-password">{t('auth_resetpw_new_label', 'New Password')}</Label>
                     <div className="relative">
                       <Input
                         id="reset-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
+                        placeholder={t('auth_password_placeholder', '••••••••')}
                         value={resetPassword}
                         onChange={(e) => setResetPassword(e.target.value)}
                         required
@@ -379,14 +381,14 @@ const Auth = () => {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+                    <p className="text-xs text-muted-foreground">{t('auth_min_chars_hint', 'Minimum 6 characters')}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reset-confirm-password">Confirm Password</Label>
+                    <Label htmlFor="reset-confirm-password">{t('auth_resetpw_confirm_label', 'Confirm Password')}</Label>
                     <Input
                       id="reset-confirm-password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
+                      placeholder={t('auth_password_placeholder', '••••••••')}
                       value={resetConfirmPassword}
                       onChange={(e) => setResetConfirmPassword(e.target.value)}
                       required
@@ -396,7 +398,7 @@ const Auth = () => {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" className="w-full bg-gold hover:bg-gold-dark text-white" disabled={isLoading}>
-                    {isLoading ? 'Updating...' : 'Update Password'}
+                    {isLoading ? t('auth_resetpw_updating_label', 'Updating...') : t('auth_resetpw_submit_button', 'Update Password')}
                   </Button>
                 </CardFooter>
               </form>
@@ -415,10 +417,10 @@ const Auth = () => {
         path="/auth"
       />
       {/* Header */}
-      <header className="p-6">
+      <header id="cms-auth-default_header" className="p-6">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Back to home
+          {t('auth_back_to_home', 'Back to home')}
         </Link>
       </header>
 
@@ -434,31 +436,31 @@ const Auth = () => {
 
           <Card className="border-gold/20 shadow-elegant">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-cream/50">
+              <TabsList id="cms-auth-tabs" className="grid w-full grid-cols-2 bg-cream/50">
                 <TabsTrigger value="login" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                  Sign In
+                  {t('auth_tab_signin', 'Sign In')}
                 </TabsTrigger>
                 <TabsTrigger value="register" className="data-[state=active]:bg-gold data-[state=active]:text-white">
-                  Sign Up
+                  {t('auth_tab_signup', 'Sign Up')}
                 </TabsTrigger>
               </TabsList>
 
               {/* Login Tab */}
-              <TabsContent value="login">
+              <TabsContent id="cms-auth-login" value="login">
                 <form onSubmit={handleLogin}>
                   <CardHeader>
-                    <CardTitle className="font-serif text-2xl">Welcome Back</CardTitle>
+                    <CardTitle className="font-serif text-2xl">{t('auth_login_title', 'Welcome Back')}</CardTitle>
                     <CardDescription>
-                      Sign in to your account to continue
+                      {t('auth_login_description', 'Sign in to your account to continue')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
+                      <Label htmlFor="login-email">{t('auth_email_label', 'Email')}</Label>
                       <Input
                         id="login-email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder={t('auth_email_placeholder', 'you@example.com')}
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         required
@@ -466,12 +468,12 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
+                      <Label htmlFor="login-password">{t('auth_login_password_label', 'Password')}</Label>
                       <div className="relative">
                         <Input
                           id="login-password"
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="••••••••"
+                          placeholder={t('auth_password_placeholder', '••••••••')}
                           value={loginPassword}
                           onChange={(e) => setLoginPassword(e.target.value)}
                           required
@@ -491,7 +493,7 @@ const Auth = () => {
                       onClick={() => setAuthView('forgotPassword')}
                       className="text-sm text-gold hover:underline"
                     >
-                      Forgot your password?
+                      {t('auth_login_forgot_link', 'Forgot your password?')}
                     </button>
                   </CardContent>
                   <CardFooter>
@@ -500,28 +502,28 @@ const Auth = () => {
                       className="w-full bg-gold hover:bg-gold-dark text-white"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Signing in...' : 'Sign In'}
+                      {isLoading ? t('auth_login_signing_in_label', 'Signing in...') : t('auth_login_submit_button', 'Sign In')}
                     </Button>
                   </CardFooter>
                 </form>
               </TabsContent>
 
               {/* Register Tab */}
-              <TabsContent value="register">
+              <TabsContent id="cms-auth-register" value="register">
                 <form onSubmit={handleRegister}>
                   <CardHeader>
-                    <CardTitle className="font-serif text-2xl">Create Your Account</CardTitle>
+                    <CardTitle className="font-serif text-2xl">{t('auth_register_title', 'Create Your Account')}</CardTitle>
                     <CardDescription>
-                      Begin your journey to inner strength
+                      {t('auth_register_description', 'Begin your journey to inner strength')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="register-name">Full Name</Label>
+                      <Label htmlFor="register-name">{t('auth_register_name_label', 'Full Name')}</Label>
                       <Input
                         id="register-name"
                         type="text"
-                        placeholder="Jane Doe"
+                        placeholder={t('auth_register_name_placeholder', 'Jane Doe')}
                         value={registerName}
                         onChange={(e) => setRegisterName(e.target.value)}
                         required
@@ -529,11 +531,11 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
+                      <Label htmlFor="register-email">{t('auth_register_email_label', 'Email')}</Label>
                       <Input
                         id="register-email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder={t('auth_email_placeholder', 'you@example.com')}
                         value={registerEmail}
                         onChange={(e) => setRegisterEmail(e.target.value)}
                         required
@@ -541,12 +543,12 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-password">Password</Label>
+                      <Label htmlFor="register-password">{t('auth_register_password_label', 'Password')}</Label>
                       <div className="relative">
                         <Input
                           id="register-password"
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="••••••••"
+                          placeholder={t('auth_password_placeholder', '••••••••')}
                           value={registerPassword}
                           onChange={(e) => setRegisterPassword(e.target.value)}
                           required
@@ -560,7 +562,7 @@ const Auth = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+                      <p className="text-xs text-muted-foreground">{t('auth_min_chars_hint', 'Minimum 6 characters')}</p>
                     </div>
                   </CardContent>
                   <CardFooter>
@@ -569,7 +571,7 @@ const Auth = () => {
                       className="w-full bg-gold hover:bg-gold-dark text-white"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Creating account...' : 'Sign Up'}
+                      {isLoading ? t('auth_register_creating_label', 'Creating account...') : t('auth_register_submit_button', 'Sign Up')}
                     </Button>
                   </CardFooter>
                 </form>
@@ -577,11 +579,11 @@ const Auth = () => {
             </Tabs>
           </Card>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            By registering, you agree to our{' '}
-            <Link to="/terms" className="text-gold hover:underline">Terms of Service</Link>
-            {' '}and{' '}
-            <Link to="/privacy" className="text-gold hover:underline">Privacy Policy</Link>
+          <p id="cms-auth-terms" className="text-center text-sm text-muted-foreground mt-6">
+            {t('auth_terms_prefix', 'By registering, you agree to our')}{' '}
+            <Link to="/terms" className="text-gold hover:underline">{t('auth_terms_link', 'Terms of Service')}</Link>
+            {' '}{t('auth_terms_and', 'and')}{' '}
+            <Link to="/privacy" className="text-gold hover:underline">{t('auth_privacy_link', 'Privacy Policy')}</Link>
           </p>
         </div>
       </main>

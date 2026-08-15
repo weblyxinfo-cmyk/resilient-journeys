@@ -12,12 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Crown, User, Mail, Calendar, CreditCard, Lock, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const membershipLabels = {
-  free: 'Free',
-  basic: 'Basic',
-  premium: 'Premium'
-};
+import { useCms } from '@/hooks/useCms';
 
 const membershipColors = {
   free: 'bg-muted text-muted-foreground',
@@ -27,9 +22,16 @@ const membershipColors = {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { t } = useCms();
   const { user, profile, loading, refreshProfile } = useAuth();
   const { toast } = useToast();
-  
+
+  const membershipLabels = {
+    free: t('profile_membership_tier_free', 'Free'),
+    basic: t('profile_membership_tier_basic', 'Basic'),
+    premium: t('profile_membership_tier_premium', 'Premium'),
+  };
+
   const [fullName, setFullName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -43,7 +45,7 @@ const Profile = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({ title: 'Error', description: 'Please sign in again', variant: 'destructive' });
+        toast({ title: t('profile_toast_error_title', 'Error'), description: t('profile_toast_signin_again', 'Please sign in again'), variant: 'destructive' });
         return;
       }
 
@@ -68,8 +70,8 @@ const Profile = () => {
     } catch (err) {
       console.error('Portal error:', err);
       toast({
-        title: 'Error',
-        description: err instanceof Error ? err.message : 'Failed to open payment portal',
+        title: t('profile_toast_error_title', 'Error'),
+        description: err instanceof Error ? err.message : t('profile_toast_portal_failed', 'Failed to open payment portal'),
         variant: 'destructive'
       });
     } finally {
@@ -101,15 +103,15 @@ const Profile = () => {
     
     if (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to save changes',
+        title: t('profile_toast_error_title', 'Error'),
+        description: t('profile_toast_save_failed', 'Failed to save changes'),
         variant: 'destructive'
       });
     } else {
       await refreshProfile();
       toast({
-        title: 'Saved',
-        description: 'Your changes have been saved'
+        title: t('profile_toast_saved_title', 'Saved'),
+        description: t('profile_toast_saved_description', 'Your changes have been saved')
       });
     }
     
@@ -121,8 +123,8 @@ const Profile = () => {
 
     if (newPassword.length < 6) {
       toast({
-        title: 'Error',
-        description: 'New password must be at least 6 characters',
+        title: t('profile_toast_error_title', 'Error'),
+        description: t('profile_toast_password_min_length', 'New password must be at least 6 characters'),
         variant: 'destructive'
       });
       return;
@@ -130,8 +132,8 @@ const Profile = () => {
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: 'Error',
-        description: 'Passwords do not match',
+        title: t('profile_toast_error_title', 'Error'),
+        description: t('profile_toast_password_mismatch', 'Passwords do not match'),
         variant: 'destructive'
       });
       return;
@@ -145,14 +147,14 @@ const Profile = () => {
 
     if (error) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to change password',
+        title: t('profile_toast_error_title', 'Error'),
+        description: error.message || t('profile_toast_password_change_failed', 'Failed to change password'),
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'Password Changed',
-        description: 'Your password has been updated successfully'
+        title: t('profile_toast_password_changed_title', 'Password Changed'),
+        description: t('profile_toast_password_changed_description', 'Your password has been updated successfully')
       });
       setCurrentPassword('');
       setNewPassword('');
@@ -164,8 +166,8 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-gold">Loading...</div>
+      <div id="cms-profile-loading" className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-gold">{t('profile_loading_text', 'Loading...')}</div>
       </div>
     );
   }
@@ -176,8 +178,8 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-gold">Loading profile...</div>
+      <div id="cms-profile-loading" className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-gold">{t('profile_loading_profile_text', 'Loading profile...')}</div>
       </div>
     );
   }
@@ -199,28 +201,28 @@ const Profile = () => {
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+            {t('profile_back_link', 'Back to Dashboard')}
           </Link>
 
-          <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8">
-            Profile Settings
+          <h1 id="cms-profile-header" className="font-serif text-3xl md:text-4xl text-foreground mb-8">
+            {t('profile_page_title', 'Profile Settings')}
           </h1>
 
           <div className="space-y-6">
             {/* Profile Info */}
-            <Card className="border-gold/20">
+            <Card id="cms-profile-personal_info" className="border-gold/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5 text-gold" />
-                  Personal Information
+                  {t('profile_personal_info_title', 'Personal Information')}
                 </CardTitle>
                 <CardDescription>
-                  Edit your personal information
+                  {t('profile_personal_info_description', 'Edit your personal information')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">{t('profile_fullname_label', 'Full Name')}</Label>
                   <Input
                     id="fullName"
                     value={fullName}
@@ -229,7 +231,7 @@ const Profile = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('profile_email_label', 'Email')}</Label>
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">{profile.email}</span>
@@ -240,42 +242,42 @@ const Profile = () => {
                   disabled={isSaving}
                   className="bg-gold hover:bg-gold-dark text-white"
                 >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? t('profile_saving_label', 'Saving...') : t('profile_save_button', 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>
 
             {/* Change Password */}
-            <Card className="border-gold/20">
+            <Card id="cms-profile-change_password" className="border-gold/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Lock className="h-5 w-5 text-gold" />
-                  Change Password
+                  {t('profile_password_title', 'Change Password')}
                 </CardTitle>
                 <CardDescription>
-                  Update your account password
+                  {t('profile_password_description', 'Update your account password')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword">{t('profile_new_password_label', 'New Password')}</Label>
                   <Input
                     id="newPassword"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min. 6 characters"
+                    placeholder={t('profile_new_password_placeholder', 'Min. 6 characters')}
                     className="border-gold/30 focus:border-gold"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">{t('profile_confirm_password_label', 'Confirm New Password')}</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeat new password"
+                    placeholder={t('profile_confirm_password_placeholder', 'Repeat new password')}
                     className="border-gold/30 focus:border-gold"
                   />
                 </div>
@@ -284,25 +286,25 @@ const Profile = () => {
                   disabled={isChangingPassword || !newPassword || !confirmPassword}
                   className="bg-gold hover:bg-gold-dark text-white"
                 >
-                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                  {isChangingPassword ? t('profile_changing_password_label', 'Changing...') : t('profile_change_password_button', 'Change Password')}
                 </Button>
               </CardContent>
             </Card>
 
             {/* Membership Info */}
-            <Card className="border-gold/20">
+            <Card id="cms-profile-membership" className="border-gold/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Crown className="h-5 w-5 text-gold" />
-                  Membership
+                  {t('profile_membership_title', 'Membership')}
                 </CardTitle>
                 <CardDescription>
-                  Information about your membership
+                  {t('profile_membership_description', 'Information about your membership')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Current Plan</span>
+                  <span className="text-muted-foreground">{t('profile_membership_current_plan_label', 'Current Plan')}</span>
                   <Badge className={membershipColors[profile.membership_type]}>
                     {profile.membership_type === 'premium' && <Crown className="h-3 w-3 mr-1" />}
                     {membershipLabels[profile.membership_type]}
@@ -313,7 +315,7 @@ const Profile = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      Membership Start
+                      {t('profile_membership_start_label', 'Membership Start')}
                     </span>
                     <span>{formatDate(profile.membership_started_at)}</span>
                   </div>
@@ -323,7 +325,7 @@ const Profile = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      Valid Until
+                      {t('profile_membership_valid_until_label', 'Valid Until')}
                     </span>
                     <span>{formatDate(profile.membership_expires_at)}</span>
                   </div>
@@ -332,11 +334,11 @@ const Profile = () => {
                 {profile.membership_type === 'free' && (
                   <div className="pt-4 border-t border-gold/10">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Upgrade to a paid membership and get access to all materials
+                      {t('profile_membership_upgrade_text', 'Upgrade to a paid membership and get access to all materials')}
                     </p>
                     <Button asChild className="w-full bg-gold hover:bg-gold-dark text-white">
                       <Link to="/resilient-hub">
-                        Upgrade Membership
+                        {t('profile_membership_upgrade_button', 'Upgrade Membership')}
                       </Link>
                     </Button>
                   </div>
@@ -355,10 +357,10 @@ const Profile = () => {
                       ) : (
                         <CreditCard className="h-4 w-4 mr-2" />
                       )}
-                      {isOpeningPortal ? 'Opening...' : 'Manage Payment'}
+                      {isOpeningPortal ? t('profile_membership_opening_label', 'Opening...') : t('profile_membership_manage_payment_button', 'Manage Payment')}
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                      View invoices and payment history
+                      {t('profile_membership_invoices_text', 'View invoices and payment history')}
                     </p>
                   </div>
                 )}
