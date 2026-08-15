@@ -19,8 +19,11 @@ const AboutPreview = () => {
             {/* Image */}
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-elevated">
+                {/* Same key as the About page: it is one photo of Silvie in two
+                    places, and giving it two fields meant replacing it in the
+                    admin changed one and silently left the other. */}
                 <img
-                  src={t("shared_about_preview_photo", "/silvie.jpg", "Fotka v náhledu sekce O mně")}
+                  src={t("about_intro_photo", "/silvie.jpg", "Fotka Silvie")}
                   alt="Silvie Bogdanova - Art Expressive Therapist"
                   className="w-full h-auto aspect-[4/5] object-cover object-top"
                 />
