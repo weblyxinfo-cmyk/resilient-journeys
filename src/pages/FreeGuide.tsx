@@ -97,8 +97,8 @@ const FreeGuide = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
       <SEO
-        title="Free 7-Day Practice Kit — Calm, Clarity & Resilience Overseas | Resilient Mind"
-        description="Download a free 7-day EFT practice kit with workbooks and guided exercises. Build calm and clarity as an expatriate."
+        title={t("free_guide_seo_title", "Free 7-Day Practice Kit — Calm, Clarity & Resilience Overseas | Resilient Mind")}
+        description={t("free_guide_seo_description", "Download a free 7-day EFT practice kit with workbooks and guided exercises. Build calm and clarity as an expatriate.")}
         path="/free-guide"
         jsonLd={{
           "@context": "https://schema.org",

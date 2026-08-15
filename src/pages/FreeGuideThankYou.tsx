@@ -26,8 +26,8 @@ const FreeGuideThankYou = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream to-background flex flex-col">
       <SEO
-        title="Thank You — Your Free Practice Kit Is Ready! | Resilient Mind"
-        description="Download your free 7-day practice kit with workbooks and guided EFT video."
+        title={t("thank_you_seo_title", "Thank You — Your Free Practice Kit Is Ready! | Resilient Mind")}
+        description={t("thank_you_seo_description", "Download your free 7-day practice kit with workbooks and guided EFT video.")}
         path="/thank-you"
       />
       <header id="cms-freeguide-thanks_back" className="p-6">

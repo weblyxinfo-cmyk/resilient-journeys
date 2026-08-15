@@ -69,10 +69,10 @@ const Membership = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Resilient Mind Membership — Feel Like Yourself Again | Online Support for Expat Women"
-        description="A gentle online membership for expat women who feel overwhelmed, disconnected, or not quite themselves. EFT tapping, expressive arts and nervous system regulation — feel calm, grounded, and at home within."
+        title={t("membership_seo_title", "Resilient Mind Membership — Feel Like Yourself Again | Online Support for Expat Women")}
+        description={t("membership_seo_description", "A gentle online membership for expat women who feel overwhelmed, disconnected, or not quite themselves. EFT tapping, expressive arts and nervous system regulation — feel calm, grounded, and at home within.")}
         path="/membership"
-        keywords="expat women membership, EFT for expats, expat emotional support, feel like yourself abroad, nervous system regulation, expat loneliness, online therapy membership"
+        keywords={t("membership_seo_keywords", "expat women membership, EFT for expats, expat emotional support, feel like yourself abroad, nervous system regulation, expat loneliness, online therapy membership")}
         jsonLd={[
           breadcrumb([
             { name: "Home", path: "/" },

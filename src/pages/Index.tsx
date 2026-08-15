@@ -8,13 +8,15 @@ import Pricing from "@/components/Pricing";
 import LeadMagnet from "@/components/LeadMagnet";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { useCms } from "@/hooks/useCms";
 
 const Index = () => {
+  const { t } = useCms();
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Resilient Mind — Transform Uncertainty Into Your Greatest Strength | Support for Expats"
-        description="Build inner strength through art expressive therapy. Monthly video lessons, workbooks & consultations for expatriates navigating life abroad."
+        title={t("homepage_seo_title", "Resilient Mind — Transform Uncertainty Into Your Greatest Strength | Support for Expats")}
+        description={t("homepage_seo_description", "Build inner strength through art expressive therapy. Monthly video lessons, workbooks & consultations for expatriates navigating life abroad.")}
         path="/"
         jsonLd={{
           "@context": "https://schema.org",

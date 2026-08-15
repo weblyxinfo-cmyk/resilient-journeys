@@ -117,8 +117,8 @@ const CheckoutSuccess = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Checkout Confirmed | Resilient Mind"
-        description="Your purchase was confirmed."
+        title={t("checkout_success_seo_title", "Checkout Confirmed | Resilient Mind")}
+        description={t("checkout_success_seo_description", "Your purchase was confirmed.")}
         path="/checkout/success"
         noindex
       />

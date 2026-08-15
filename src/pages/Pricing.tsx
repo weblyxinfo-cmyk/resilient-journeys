@@ -23,8 +23,8 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`Pricing — Membership Plans from €${basicMonthlyPrice} | Resilient Mind`}
-        description={`Choose from Basic or Premium membership plans. Pay as you go from €${basicMonthlyPrice} or yearly from €${getTier('basic_yearly')?.price ?? 370}. One-time payments, no auto-renewal. Includes video lessons, workbooks and more.`}
+        title={`${t("pricing_seo_title_prefix", "Pricing — Membership Plans from €")}${basicMonthlyPrice}${t("pricing_seo_title_suffix", " | Resilient Mind")}`}
+        description={`${t("pricing_seo_description_prefix", "Choose from Basic or Premium membership plans. Pay as you go from €")}${basicMonthlyPrice}${t("pricing_seo_description_middle", " or yearly from €")}${getTier('basic_yearly')?.price ?? 370}${t("pricing_seo_description_suffix", ". One-time payments, no auto-renewal. Includes video lessons, workbooks and more.")}`}
         path="/pricing"
         jsonLd={{
           "@context": "https://schema.org",

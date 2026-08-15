@@ -108,7 +108,7 @@ const WorkshopPost = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`${workshop.title} | Resilient Mind Workshops`}
+        title={`${workshop.title} | ${t("workshop_post_seo_title_suffix", "Resilient Mind Workshops")}`}
         description={workshop.excerpt || workshop.content.substring(0, 160)}
         path={`/workshopy/${workshop.slug}`}
         ogType="article"

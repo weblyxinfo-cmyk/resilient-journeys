@@ -124,8 +124,8 @@ const BookingSuccess = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Booking Confirmed | Resilient Mind"
-        description="Your booking has been confirmed."
+        title={t("booking_success_seo_title", "Booking Confirmed | Resilient Mind")}
+        description={t("booking_success_seo_description", "Your booking has been confirmed.")}
         path="/booking/success"
         noindex
       />

@@ -23,8 +23,8 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="About Silvie Bogdanova — Art Expressive Therapist for Expatriates | Resilient Mind"
-        description="Meet Silvie Bogdanova, art expressive therapist helping expatriates build resilience and navigate life transitions abroad."
+        title={t("about_seo_title", "About Silvie Bogdanova — Art Expressive Therapist for Expatriates | Resilient Mind")}
+        description={t("about_seo_description", "Meet Silvie Bogdanova, art expressive therapist helping expatriates build resilience and navigate life transitions abroad.")}
         path="/about"
         jsonLd={{
           "@context": "https://schema.org",

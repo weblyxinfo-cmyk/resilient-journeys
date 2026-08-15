@@ -11,8 +11,8 @@ const Privacy = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Personal Data Protection (GDPR) | Resilient Mind"
-        description="Statement on the Processing of Personal Data in accordance with GDPR. How Resilient Mind handles your personal data and your rights."
+        title={t("privacy_seo_title", "Personal Data Protection (GDPR) | Resilient Mind")}
+        description={t("privacy_seo_description", "Statement on the Processing of Personal Data in accordance with GDPR. How Resilient Mind handles your personal data and your rights.")}
         path="/privacy"
       />
       <Navbar />

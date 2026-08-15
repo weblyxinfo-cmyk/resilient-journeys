@@ -13,8 +13,8 @@ const EndometriosisHub = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Endometriosis Management Hub for Expats Living Abroad | Resilient Mind"
-        description="Support module for women managing endometriosis and chronic pain while living abroad. Creative techniques for daily resilience."
+        title={t("endometriosis_seo_title", "Endometriosis Management Hub for Expats Living Abroad | Resilient Mind")}
+        description={t("endometriosis_seo_description", "Support module for women managing endometriosis and chronic pain while living abroad. Creative techniques for daily resilience.")}
         path="/endometriosis-hub"
       />
       <Navbar />

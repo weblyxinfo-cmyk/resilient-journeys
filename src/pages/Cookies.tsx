@@ -11,8 +11,8 @@ const Cookies = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Cookies Policy | Resilient Mind"
-        description="Learn how Resilient Mind uses cookies and similar technologies on our website, and how you can manage your preferences."
+        title={t("cookies_seo_title", "Cookies Policy | Resilient Mind")}
+        description={t("cookies_seo_description", "Learn how Resilient Mind uses cookies and similar technologies on our website, and how you can manage your preferences.")}
         path="/cookies"
       />
       <Navbar />

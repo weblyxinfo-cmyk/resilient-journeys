@@ -57,8 +57,8 @@ const Workshopy = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Workshops — Interactive Sessions for Organizations | Resilient Mind"
-        description="Interactive art expressive therapy workshops for organizations and groups. Build team resilience through creative sessions."
+        title={t("workshopy_seo_title", "Workshops — Interactive Sessions for Organizations | Resilient Mind")}
+        description={t("workshopy_seo_description", "Interactive art expressive therapy workshops for organizations and groups. Build team resilience through creative sessions.")}
         path="/workshopy"
       />
       <Navbar />

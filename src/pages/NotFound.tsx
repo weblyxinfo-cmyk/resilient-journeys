@@ -11,8 +11,8 @@ const NotFound = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
-        title="Page Not Found (404) | Resilient Mind"
-        description="The page you're looking for doesn't exist or has been moved."
+        title={t("notfound_seo_title", "Page Not Found (404) | Resilient Mind")}
+        description={t("notfound_seo_description", "The page you're looking for doesn't exist or has been moved.")}
         path="/404"
         noindex
       />

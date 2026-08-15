@@ -78,8 +78,8 @@ const Blog = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Blog — Resilience Tips for Expatriates | Resilient Mind"
-        description="Read articles on building resilience, managing expat stress, art therapy techniques and thriving while living abroad."
+        title={t("blog_seo_title", "Blog — Resilience Tips for Expatriates | Resilient Mind")}
+        description={t("blog_seo_description", "Read articles on building resilience, managing expat stress, art therapy techniques and thriving while living abroad.")}
         path="/blog"
         jsonLd={{
           "@context": "https://schema.org",

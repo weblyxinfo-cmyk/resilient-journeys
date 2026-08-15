@@ -11,8 +11,8 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="General Terms and Conditions | Resilient Mind"
-        description="General Terms and Conditions for the sale of digital products by Resilient Mind. Rights, obligations, payments, refunds and data protection."
+        title={t("terms_seo_title", "General Terms and Conditions | Resilient Mind")}
+        description={t("terms_seo_description", "General Terms and Conditions for the sale of digital products by Resilient Mind. Rights, obligations, payments, refunds and data protection.")}
         path="/terms"
       />
       <Navbar />

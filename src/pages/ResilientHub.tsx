@@ -128,10 +128,10 @@ const ResilientHub = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Resilient Hub — A Guided 12-Month Membership for Expat Women | Resilient Mind"
-        description="A structured 12-month online membership combining EFT, nervous system regulation and reflective tools. Monthly themes, video lessons, and guided practices to support your emotional wellbeing while living abroad."
+        title={t("resilient_hub_seo_title", "Resilient Hub — A Guided 12-Month Membership for Expat Women | Resilient Mind")}
+        description={t("resilient_hub_seo_description", "A structured 12-month online membership combining EFT, nervous system regulation and reflective tools. Monthly themes, video lessons, and guided practices to support your emotional wellbeing while living abroad.")}
         path="/resilient-hub"
-        keywords="12-month membership, expat women, EFT tapping, nervous system regulation, expressive art therapy, expatriate wellbeing, online program for expats"
+        keywords={t("resilient_hub_seo_keywords", "12-month membership, expat women, EFT tapping, nervous system regulation, expressive art therapy, expatriate wellbeing, online program for expats")}
         jsonLd={[
           breadcrumb([
             { name: "Home", path: "/" },

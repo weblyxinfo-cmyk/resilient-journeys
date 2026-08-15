@@ -123,8 +123,8 @@ const PricingSuccess = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Welcome to Resilient Mind Membership"
-        description="Your membership is active."
+        title={t("pricing_success_seo_title", "Welcome to Resilient Mind Membership")}
+        description={t("pricing_success_seo_description", "Your membership is active.")}
         path="/pricing/success"
         noindex
       />

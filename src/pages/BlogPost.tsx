@@ -100,7 +100,7 @@ const BlogPost = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`${post.title} | Resilient Mind Blog`}
+        title={`${post.title} | ${t("blog_post_seo_title_suffix", "Resilient Mind Blog")}`}
         description={post.excerpt || post.content.substring(0, 160)}
         path={`/blog/${post.slug}`}
         ogType="article"
