@@ -170,12 +170,19 @@ serve(async (req) => {
         });
       }
 
-      const [{ data: tiers, error: tiersError }, { data: hubs, error: hubsError }] = await Promise.all([
+      const [{ data: tiers, error: tiersError }, { data: hubs, error: hubsError }, { data: workshops, error: workshopsError }] = await Promise.all([
         supabaseClient.from("membership_tiers").select("tier_key, price_eur").eq("is_active", true),
         supabaseClient.from("hub_products").select("hub_slug, price_eur").eq("is_active", true),
+        supabaseClient
+          .from("blog_posts")
+          .select("id, slug, workshop_price, workshop_currency")
+          .eq("category", "workshop")
+          .eq("is_paid_workshop", true)
+          .eq("is_published", true),
       ]);
       if (tiersError) throw tiersError;
       if (hubsError) throw hubsError;
+      if (workshopsError) throw workshopsError;
 
       const diagnostics = [
         ...(tiers ?? []).map((t: { tier_key: string; price_eur: number }) => ({
@@ -187,6 +194,14 @@ serve(async (req) => {
           tier_key: h.hub_slug,
           unit_amount: Math.round(Number(h.price_eur) * 100),
           currency: "eur",
+        })),
+        // Handled by workshop-registration-create, not this function — listed
+        // here too so an admin can verify every workshop's DB→cents mapping
+        // from one endpoint without a real payment.
+        ...(workshops ?? []).map((w: { id: string; slug: string; workshop_price: number; workshop_currency: string }) => ({
+          tier_key: `workshop:${w.slug}`,
+          unit_amount: Math.round(Number(w.workshop_price) * 100),
+          currency: (w.workshop_currency || "EUR").toLowerCase(),
         })),
       ];
 

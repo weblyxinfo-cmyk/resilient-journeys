@@ -33,6 +33,7 @@ interface Registration {
   phone: string | null;
   note: string | null;
   status: string;
+  payment_status: string;
   created_at: string;
   workshop_title?: string;
 }
@@ -49,6 +50,21 @@ const STATUS_COLORS: Record<string, string> = {
   confirmed: "bg-blue-100 text-blue-800",
   paid: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
+};
+
+// Set by Stripe via stripe-webhook, never by the admin — a separate field
+// from `status` (Silvie's own logistics tracker) so an unpaid registration
+// can never be mistaken for a paid one. See docs/workshop-stripe.md.
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "Awaiting payment",
+  paid: "Paid",
+  expired: "Expired",
+};
+
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  pending: "bg-gray-100 text-gray-700",
+  paid: "bg-green-100 text-green-800",
+  expired: "bg-red-100 text-red-800",
 };
 
 const AdminInquiries = () => {
@@ -249,6 +265,7 @@ const AdminInquiries = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Workshop</TableHead>
+                        <TableHead>Payment</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -263,6 +280,11 @@ const AdminInquiries = () => {
                           <TableCell>{reg.email}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{reg.workshop_title || "—"}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={PAYMENT_STATUS_COLORS[reg.payment_status] || "bg-gray-100 text-gray-800"}>
+                              {PAYMENT_STATUS_LABELS[reg.payment_status] || reg.payment_status}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge className={STATUS_COLORS[reg.status] || "bg-gray-100 text-gray-800"}>
@@ -452,6 +474,12 @@ const AdminInquiries = () => {
                 <div>
                   <Label className="text-muted-foreground">Workshop</Label>
                   <p className="font-semibold">{selectedRegistration.workshop_title || "—"}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Payment</Label>
+                  <Badge className={PAYMENT_STATUS_COLORS[selectedRegistration.payment_status] || "bg-gray-100"}>
+                    {PAYMENT_STATUS_LABELS[selectedRegistration.payment_status] || selectedRegistration.payment_status}
+                  </Badge>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Status</Label>

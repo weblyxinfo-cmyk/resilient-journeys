@@ -23,6 +23,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Workshopy = lazy(() => import("./pages/Workshopy"));
 const WorkshopPost = lazy(() => import("./pages/WorkshopPost"));
+const WorkshopRegistrationSuccess = lazy(() => import("./pages/WorkshopRegistrationSuccess"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -110,6 +111,7 @@ const App = () => (
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/workshopy" element={<Workshopy />} />
+                  <Route path="/workshopy/success" element={<WorkshopRegistrationSuccess />} />
                   <Route path="/workshopy/:slug" element={<WorkshopPost />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/dashboard" element={<Dashboard />} />

@@ -60,6 +60,47 @@ async function sendMembershipEmail(userId: string, membershipType: string) {
   }
 }
 
+/**
+ * Notifies Silvie that someone paid for a workshop, via the same
+ * notify-inquiry function the (now-removed) manual registration flow used.
+ * Best-effort: notify-inquiry always responds 200 even on its own internal
+ * failure (see its comment), so this never throws and never blocks the
+ * payment confirmation above it from succeeding.
+ */
+async function notifyWorkshopRegistrationPaid(name: string, email: string, workshopTitle: string | null, phone: string | null, note: string | null) {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Missing SUPABASE_URL/SERVICE_ROLE_KEY, skipping registration notification");
+      return;
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/notify-inquiry`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: serviceRoleKey,
+      },
+      body: JSON.stringify({
+        type: "registration",
+        name,
+        email,
+        workshopTitle,
+        phone,
+        note,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("notify-inquiry call failed:", response.status, await response.text());
+    }
+  } catch (err) {
+    console.error("Failed to notify about paid workshop registration:", err);
+  }
+}
+
 serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
@@ -106,6 +147,61 @@ serve(async (req) => {
             console.log(`Booking ${bookingId} confirmed successfully`);
           } catch (error) {
             console.error(`Error processing booking payment:`, error);
+            throw error;
+          }
+          break;
+        }
+
+        // Handle WORKSHOP REGISTRATION payments — anonymous, no user_id.
+        const workshopRegistrationId = session.metadata?.workshop_registration_id;
+        if (workshopRegistrationId) {
+          console.log(`Processing workshop registration payment for registration_id: ${workshopRegistrationId}`);
+
+          try {
+            // Guarded by .eq("payment_status", "pending") so a Stripe retry
+            // of this same event (or the fallback below racing a first
+            // delivery) updates zero rows the second time — .select()
+            // returns the updated row only on the transition that actually
+            // happened, which is what gates the notification email.
+            const { data: updatedRegistrations, error } = await supabaseAdmin
+              .from("workshop_registrations")
+              .update({
+                payment_status: "paid",
+                status: "confirmed",
+              })
+              .eq("id", workshopRegistrationId)
+              .eq("payment_status", "pending")
+              .select("name, email, phone, note, workshop_id")
+              .limit(1);
+
+            if (error) {
+              console.error(`Failed to confirm workshop registration ${workshopRegistrationId}:`, error);
+              throw error;
+            }
+
+            const registration = updatedRegistrations?.[0];
+            if (!registration) {
+              console.log(`Workshop registration ${workshopRegistrationId} already paid — skipping duplicate notification`);
+              break;
+            }
+
+            console.log(`Workshop registration ${workshopRegistrationId} confirmed as paid`);
+
+            const { data: workshop } = await supabaseAdmin
+              .from("blog_posts")
+              .select("title")
+              .eq("id", registration.workshop_id)
+              .maybeSingle();
+
+            await notifyWorkshopRegistrationPaid(
+              registration.name,
+              registration.email,
+              workshop?.title ?? null,
+              registration.phone,
+              registration.note
+            );
+          } catch (error) {
+            console.error(`Error processing workshop registration payment:`, error);
             throw error;
           }
           break;
@@ -331,6 +427,32 @@ serve(async (req) => {
             console.log(`Booking ${bookingId} marked as expired`);
           } catch (error) {
             console.error(`Error processing expired session:`, error);
+            throw error;
+          }
+          break;
+        }
+
+        const workshopRegistrationId = session.metadata?.workshop_registration_id;
+        if (workshopRegistrationId) {
+          console.log(`Checkout session expired for workshop registration: ${workshopRegistrationId}`);
+
+          try {
+            // Only touch it if still pending — an already-paid registration
+            // must never be overwritten by a late expired event.
+            const { error } = await supabaseAdmin
+              .from("workshop_registrations")
+              .update({ payment_status: "expired" })
+              .eq("id", workshopRegistrationId)
+              .eq("payment_status", "pending");
+
+            if (error) {
+              console.error(`Failed to expire workshop registration ${workshopRegistrationId}:`, error);
+              throw error;
+            }
+
+            console.log(`Workshop registration ${workshopRegistrationId} marked as expired`);
+          } catch (error) {
+            console.error(`Error processing expired workshop registration session:`, error);
             throw error;
           }
         }

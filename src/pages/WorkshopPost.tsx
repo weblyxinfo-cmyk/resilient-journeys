@@ -27,10 +27,6 @@ interface Workshop {
   view_count: number;
   is_paid_workshop: boolean;
   workshop_price: number;
-  workshop_currency: string;
-  payment_iban: string | null;
-  payment_message: string | null;
-  payment_beneficiary_name: string | null;
 }
 
 const WorkshopPost = () => {
@@ -258,10 +254,6 @@ const WorkshopPost = () => {
                 workshopId={workshop.id}
                 workshopTitle={workshop.title}
                 price={workshop.workshop_price}
-                currency={workshop.workshop_currency}
-                iban={workshop.payment_iban}
-                paymentMessage={workshop.payment_message}
-                beneficiaryName={workshop.payment_beneficiary_name}
               />
             ) : (
               <WorkshopInquiryForm workshopId={workshop.id} workshopTitle={workshop.title} />

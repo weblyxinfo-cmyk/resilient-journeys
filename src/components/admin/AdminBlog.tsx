@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Upload, ImageIcon, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { shouldUseEpc } from '@/lib/paymentQr';
 
 interface BlogPost {
   id: string;
@@ -566,74 +565,35 @@ const AdminBlog = () => {
                           onCheckedChange={(checked) => setFormData({ ...formData, is_paid_workshop: checked })}
                         />
                         <Label htmlFor="is_paid_workshop" className="cursor-pointer font-semibold">
-                          Paid Workshop (with registration & QR payment)
+                          Paid Workshop (registration with card payment via Stripe)
                         </Label>
                       </div>
 
                       {formData.is_paid_workshop && (
-                        <>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="workshop_price">Price</Label>
-                              <Input
-                                id="workshop_price"
-                                type="number"
-                                min={0}
-                                value={formData.workshop_price}
-                                onChange={(e) => setFormData({ ...formData, workshop_price: parseInt(e.target.value) || 0 })}
-                                placeholder="e.g. 1500"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="workshop_currency">Currency</Label>
-                              <Select value={formData.workshop_currency} onValueChange={(v) => setFormData({ ...formData, workshop_currency: v })}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="EUR">EUR</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="payment_iban">Bank Account (IBAN)</Label>
+                            <Label htmlFor="workshop_price">Price</Label>
                             <Input
-                              id="payment_iban"
-                              value={formData.payment_iban}
-                              onChange={(e) => setFormData({ ...formData, payment_iban: e.target.value })}
-                              placeholder="CZ6508000000192000145399"
+                              id="workshop_price"
+                              type="number"
+                              min={0}
+                              value={formData.workshop_price}
+                              onChange={(e) => setFormData({ ...formData, workshop_price: parseInt(e.target.value) || 0 })}
+                              placeholder="e.g. 1500"
                             />
-                            <p className="text-xs text-muted-foreground">IBAN for QR payment code</p>
                           </div>
-
                           <div className="space-y-2">
-                            <Label htmlFor="payment_message">Payment Message / Note</Label>
-                            <Input
-                              id="payment_message"
-                              value={formData.payment_message}
-                              onChange={(e) => setFormData({ ...formData, payment_message: e.target.value })}
-                              placeholder="e.g. Workshop Resilience 2026"
-                            />
-                            <p className="text-xs text-muted-foreground">Message shown in bank transfer</p>
+                            <Label htmlFor="workshop_currency">Currency</Label>
+                            <Select value={formData.workshop_currency} onValueChange={(v) => setFormData({ ...formData, workshop_currency: v })}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="EUR">EUR</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="payment_beneficiary_name">Jméno majitele účtu (povinné pro QR platbu ze zahraničí)</Label>
-                            <Input
-                              id="payment_beneficiary_name"
-                              value={formData.payment_beneficiary_name}
-                              onChange={(e) => setFormData({ ...formData, payment_beneficiary_name: e.target.value })}
-                              placeholder="e.g. Jane Doe"
-                            />
-                            {!formData.payment_beneficiary_name && (
-                              <p className="text-xs text-destructive">
-                                Bez jména se QR platba nezobrazí — návštěvníkům se místo ní ukážou platební údaje textem.
-                              </p>
-                            )}
-                          </div>
-                        </>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
@@ -735,14 +695,9 @@ const AdminBlog = () => {
                         {activeCategory === 'workshop' && (
                           <TableCell>
                             {post.is_paid_workshop ? (
-                              <div className="flex items-center gap-2">
-                                <Badge className="bg-green-100 text-green-800">
-                                  €{post.workshop_price}
-                                </Badge>
-                                {post.payment_iban && shouldUseEpc(post.payment_iban, post.workshop_currency) && !post.payment_beneficiary_name && (
-                                  <Badge variant="destructive">Missing beneficiary name</Badge>
-                                )}
-                              </div>
+                              <Badge className="bg-green-100 text-green-800">
+                                €{post.workshop_price}
+                              </Badge>
                             ) : (
                               <span className="text-muted-foreground text-sm">Free inquiry</span>
                             )}

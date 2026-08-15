@@ -1,19 +1,14 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { QRCodeSVG } from 'qrcode.react';
-import { CheckCircle, CreditCard, Mail, User, Phone, Sparkles } from 'lucide-react';
+import { AlertCircle, CreditCard, Loader2, Mail, User, Phone, Sparkles } from 'lucide-react';
 import { useCms } from '@/hooks/useCms';
-import { generateSpayd, generateEpcQr, shouldUseEpc } from '@/lib/paymentQr';
 
 interface WorkshopRegistrationProps {
   workshopId: string;
   workshopTitle: string;
   price: number;
-  currency: string;
-  iban: string | null;
-  paymentMessage: string | null;
-  beneficiaryName: string | null;
 }
 
 function formatPrice(price: number) {
@@ -24,41 +19,18 @@ const WorkshopRegistration = ({
   workshopId,
   workshopTitle,
   price,
-  currency,
-  iban,
-  paymentMessage,
-  beneficiaryName,
 }: WorkshopRegistrationProps) => {
   const { t } = useCms();
+  const [searchParams] = useSearchParams();
+  const paymentCancelled = searchParams.get('payment') === 'cancelled';
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
     note: '',
   });
-
-  const useEpc = iban ? shouldUseEpc(iban, currency) : false;
-  const missingBeneficiaryName = useEpc && !beneficiaryName?.trim();
-
-  const qrString = !iban
-    ? null
-    : useEpc
-    ? beneficiaryName?.trim()
-      ? generateEpcQr({
-          iban,
-          beneficiaryName,
-          amount: price,
-          message: paymentMessage || workshopTitle,
-        })
-      : null
-    : generateSpayd({
-        iban,
-        amount: price,
-        currency,
-        message: paymentMessage || workshopTitle,
-      });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,96 +41,45 @@ const WorkshopRegistration = ({
     }
 
     setSubmitting(true);
+    setError(null);
+
     try {
-      const { error } = await supabase
-        .from('workshop_registrations')
-        .insert({
-          workshop_id: workshopId,
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('payment');
+
+      const { data, error: fnError } = await supabase.functions.invoke('workshop-registration-create', {
+        body: {
+          workshopId,
           name: form.name.trim(),
           email: form.email.trim(),
           phone: form.phone.trim() || null,
           note: form.note.trim() || null,
-        });
+          expectedPriceEur: price,
+          successUrl: `${window.location.origin}/workshopy/success`,
+          cancelUrl: `${currentUrl.toString()}${currentUrl.search ? '&' : '?'}payment=cancelled`,
+        },
+      });
 
-      if (error) throw error;
+      if (fnError) {
+        const errorMsg = typeof fnError === 'object' && fnError.message
+          ? fnError.message
+          : t("workshopform_reg_payment_error", "Payment is temporarily unavailable. Please try again in a moment.");
+        throw new Error(errorMsg);
+      }
 
-      toast.success('Registration sent successfully!');
-      setSubmitted(true);
+      if (data?.checkout_url) {
+        window.location.href = data.checkout_url;
+        return; // Don't reset — page is navigating to Stripe
+      }
 
-      // Best-effort notification — the registration is already saved above,
-      // so a failure here must never block the success state shown above.
-      supabase.functions
-        .invoke('notify-inquiry', {
-          body: {
-            type: 'registration',
-            name: form.name.trim(),
-            email: form.email.trim(),
-            workshopTitle,
-            phone: form.phone.trim() || null,
-            note: form.note.trim() || null,
-          },
-        })
-        .catch((notifyError) => {
-          console.error('Failed to send registration notification:', notifyError);
-        });
-    } catch (error: any) {
-      toast.error('Something went wrong. Please try again.');
-      console.error('Registration error:', error);
-    } finally {
+      throw new Error(t("workshopform_reg_payment_error", "Payment is temporarily unavailable. Please try again in a moment."));
+    } catch (err: any) {
+      const message = err?.message || t("workshopform_reg_payment_error", "Payment is temporarily unavailable. Please try again in a moment.");
+      toast.error(message);
+      setError(message);
       setSubmitting(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div id="cms-workshopform-reg-success" className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-        <div className="relative z-10 text-center py-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={32} className="text-primary" />
-          </div>
-          <h3 className="text-2xl font-serif font-semibold mb-3">
-            {t("workshopform_reg_success_title", "You're Registered!")}
-          </h3>
-          <p className="text-muted-foreground font-sans mb-6 max-w-md mx-auto leading-relaxed">
-            {t("workshopform_reg_success_text_pre", "Thank you for registering for")} <strong>{workshopTitle}</strong>{t("workshopform_reg_success_text_post", ". I'll send you a confirmation email with all the details shortly.")}
-          </p>
-
-          {qrString && (
-            <div className="bg-card rounded-2xl p-6 shadow-elevated max-w-sm mx-auto">
-              <p className="font-sans text-sm font-medium mb-4">
-                {t("workshopform_reg_qr_pay_label", "Scan to pay")} <strong>{formatPrice(price)}</strong>
-              </p>
-              <div className="bg-white p-4 rounded-xl inline-block">
-                <QRCodeSVG value={qrString} size={180} level="M" />
-              </div>
-              <p className="text-xs text-muted-foreground font-sans mt-3">
-                {t("workshopform_reg_qr_caption", "QR payment code for your bank app")}
-              </p>
-            </div>
-          )}
-
-          {missingBeneficiaryName && (
-            <div className="bg-card rounded-2xl p-6 shadow-elevated max-w-sm mx-auto text-left">
-              <p className="font-sans text-sm font-medium mb-3">
-                {t("workshopform_reg_qr_missing_name_title", "QR payment code isn't ready yet")}
-              </p>
-              <p className="text-xs text-muted-foreground font-sans mb-4">
-                {t("workshopform_reg_qr_missing_name_text", "Please transfer the payment manually using the details below:")}
-              </p>
-              <div className="font-sans text-sm space-y-1">
-                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_iban_label", "IBAN")}: </span>{iban}</p>
-                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_amount_label", "Amount")}: </span>{formatPrice(price)}</p>
-                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_message_label", "Payment reference")}: </span>{paymentMessage || workshopTitle}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 rounded-3xl p-8 md:p-12 overflow-hidden">
@@ -195,36 +116,9 @@ const WorkshopRegistration = ({
             </div>
           </div>
 
-          {/* QR Code */}
-          {qrString && (
-            <div className="bg-card rounded-2xl p-6 border border-border text-center">
-              <p className="font-sans text-sm font-medium mb-4">
-                {t("workshopform_reg_qr_title", "Pay via QR code in your bank app")}
-              </p>
-              <div className="bg-white p-4 rounded-xl inline-block shadow-soft">
-                <QRCodeSVG value={qrString} size={160} level="M" />
-              </div>
-              <p className="text-xs text-muted-foreground font-sans mt-3">
-                {t("workshopform_reg_qr_scan_caption", "Scan with your banking app to pay")}
-              </p>
-            </div>
-          )}
-
-          {missingBeneficiaryName && (
-            <div className="bg-card rounded-2xl p-6 border border-border text-left">
-              <p className="font-sans text-sm font-medium mb-3">
-                {t("workshopform_reg_qr_missing_name_title", "QR payment code isn't ready yet")}
-              </p>
-              <p className="text-xs text-muted-foreground font-sans mb-4">
-                {t("workshopform_reg_qr_missing_name_text", "Please transfer the payment manually using the details below:")}
-              </p>
-              <div className="font-sans text-sm space-y-1">
-                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_iban_label", "IBAN")}: </span>{iban}</p>
-                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_amount_label", "Amount")}: </span>{formatPrice(price)}</p>
-                <p><span className="text-muted-foreground">{t("workshopform_reg_qr_message_label", "Payment reference")}: </span>{paymentMessage || workshopTitle}</p>
-              </div>
-            </div>
-          )}
+          <p className="text-xs text-muted-foreground font-sans">
+            {t("workshopform_reg_security_note", "Payment is secured by Stripe. You'll be redirected to complete your purchase by card.")}
+          </p>
         </div>
 
         {/* Registration form */}
@@ -235,6 +129,20 @@ const WorkshopRegistration = ({
           <p className="text-muted-foreground font-sans text-sm mb-6">
             {t("workshopform_reg_form_subtitle", "Fill in your details and I'll confirm your spot.")}
           </p>
+
+          {paymentCancelled && (
+            <div className="flex items-start gap-2 mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <span>{t("workshopform_reg_payment_cancelled_notice", "Payment was cancelled. You can try again below.")}</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-start gap-2 mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
@@ -292,9 +200,12 @@ const WorkshopRegistration = ({
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
+              className="w-full py-3.5 bg-gradient-gold text-primary-foreground font-sans font-semibold rounded-xl shadow-gold hover:shadow-elevated transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {submitting ? t("workshopform_reg_form_submit_loading", "Registering...") : `${t("workshopform_reg_form_submit_prefix", "Register —")} ${formatPrice(price)}`}
+              {submitting && <Loader2 size={18} className="animate-spin" />}
+              {submitting
+                ? t("workshopform_reg_form_submit_loading", "Registering...")
+                : `${t("workshopform_reg_form_submit_prefix", "Register —")} ${formatPrice(price)}`}
             </button>
 
             <p className="text-xs text-muted-foreground font-sans text-center">
