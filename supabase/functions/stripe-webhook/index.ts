@@ -207,6 +207,66 @@ serve(async (req) => {
           break;
         }
 
+        // Handle EXTERNAL (Stripe Payment Link) workshop registration
+        // payments. Payment Links don't accept custom metadata, so these
+        // sessions carry no workshop_registration_id above — instead,
+        // workshop-registration-create appends
+        // ?client_reference_id=<registration_id> to the link URL, and
+        // Stripe copies that onto the resulting Checkout Session's
+        // client_reference_id field. Guarded on payment_status = 'external'
+        // (set only by that same flow) so this can never match a row from
+        // the metadata-based branch above, and so a retry/duplicate event
+        // is a no-op the second time, same idempotency pattern as above.
+        const clientReferenceId = session.client_reference_id;
+        if (clientReferenceId) {
+          console.log(`Processing external payment-link workshop registration for id: ${clientReferenceId}`);
+
+          try {
+            const { data: updatedExternal, error } = await supabaseAdmin
+              .from("workshop_registrations")
+              .update({
+                payment_status: "paid",
+                status: "confirmed",
+                stripe_session_id: session.id,
+              })
+              .eq("id", clientReferenceId)
+              .eq("payment_status", "external")
+              .select("name, email, phone, note, workshop_id")
+              .limit(1);
+
+            if (error) {
+              console.error(`Failed to confirm external workshop registration ${clientReferenceId}:`, error);
+              throw error;
+            }
+
+            const registration = updatedExternal?.[0];
+            if (!registration) {
+              console.log(`External workshop registration ${clientReferenceId} not found or already paid — skipping duplicate notification`);
+              break;
+            }
+
+            console.log(`External workshop registration ${clientReferenceId} confirmed as paid`);
+
+            const { data: workshop } = await supabaseAdmin
+              .from("blog_posts")
+              .select("title")
+              .eq("id", registration.workshop_id)
+              .maybeSingle();
+
+            await notifyWorkshopRegistrationPaid(
+              registration.name,
+              registration.email,
+              workshop?.title ?? null,
+              registration.phone,
+              registration.note
+            );
+          } catch (error) {
+            console.error(`Error processing external workshop registration payment:`, error);
+            throw error;
+          }
+          break;
+        }
+
         // Handle MEMBERSHIP payments
         if (!userId) {
           console.error("No user_id in session metadata for membership payment");

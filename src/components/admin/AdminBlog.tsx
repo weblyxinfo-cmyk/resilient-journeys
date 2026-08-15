@@ -38,6 +38,7 @@ interface BlogPost {
   payment_iban: string | null;
   payment_message: string | null;
   payment_beneficiary_name: string | null;
+  stripe_payment_link: string | null;
 }
 
 const membershipLabels = {
@@ -75,7 +76,8 @@ const AdminBlog = () => {
     workshop_currency: 'EUR',
     payment_iban: '',
     payment_message: '',
-    payment_beneficiary_name: ''
+    payment_beneficiary_name: '',
+    stripe_payment_link: ''
   });
 
   useEffect(() => {
@@ -116,7 +118,8 @@ const AdminBlog = () => {
       workshop_currency: 'EUR',
       payment_iban: '',
       payment_message: '',
-      payment_beneficiary_name: ''
+      payment_beneficiary_name: '',
+      stripe_payment_link: ''
     });
     setEditingPost(null);
   };
@@ -126,6 +129,18 @@ const AdminBlog = () => {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+  };
+
+  // Same allow-list workshop-registration-create re-checks server-side
+  // before ever redirecting a visitor there — https:// only, host is
+  // buy.stripe.com or any *.stripe.com subdomain.
+  const isValidStripePaymentLink = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'https:' && (parsed.hostname === 'buy.stripe.com' || parsed.hostname.endsWith('.stripe.com'));
+    } catch {
+      return false;
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,13 +254,20 @@ const AdminBlog = () => {
       workshop_currency: post.workshop_currency || 'CZK',
       payment_iban: post.payment_iban || '',
       payment_message: post.payment_message || '',
-      payment_beneficiary_name: post.payment_beneficiary_name || ''
+      payment_beneficiary_name: post.payment_beneficiary_name || '',
+      stripe_payment_link: post.stripe_payment_link || ''
     });
     setDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const trimmedPaymentLink = formData.stripe_payment_link.trim();
+    if (formData.category === 'workshop' && trimmedPaymentLink && !isValidStripePaymentLink(trimmedPaymentLink)) {
+      toast.error('Platební odkaz musí být https:// adresa na buy.stripe.com (nebo jinou *.stripe.com doménu).');
+      return;
+    }
 
     // Determine publish status
     let shouldPublish = formData.is_published;
@@ -284,6 +306,7 @@ const AdminBlog = () => {
       payment_iban: formData.category === 'workshop' && formData.payment_iban ? formData.payment_iban : null,
       payment_message: formData.category === 'workshop' && formData.payment_message ? formData.payment_message : null,
       payment_beneficiary_name: formData.category === 'workshop' && formData.payment_beneficiary_name ? formData.payment_beneficiary_name : null,
+      stripe_payment_link: formData.category === 'workshop' && trimmedPaymentLink ? trimmedPaymentLink : null,
     };
 
     if (editingPost) {
@@ -593,6 +616,26 @@ const AdminBlog = () => {
                               </SelectContent>
                             </Select>
                           </div>
+                        </div>
+                      )}
+
+                      {formData.is_paid_workshop && (
+                        <div className="space-y-2">
+                          <Label htmlFor="stripe_payment_link">Platební odkaz ze Stripe (nepovinné)</Label>
+                          <Input
+                            id="stripe_payment_link"
+                            value={formData.stripe_payment_link}
+                            onChange={(e) => setFormData({ ...formData, stripe_payment_link: e.target.value })}
+                            placeholder="https://buy.stripe.com/..."
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Když je pole vyplněné, po registraci se návštěvnice přesměruje na tento odkaz místo na vestavěnou platbu. Nechte prázdné a platba poběží automaticky přes web jako dosud.
+                          </p>
+                          {formData.stripe_payment_link.trim() && (
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                              Upozornění: u vloženého odkazu se cena bere z nastavení ve Stripe, ne z pole Price/Currency výše — nastavte je stejně, jinak se cena na webu a ve Stripe může rozejít. Potvrzení platby (přechod na „Paid“) proběhne automaticky, jakmile Stripe pošle webhook, ale nemusí fungovat vždy stejně spolehlivě jako u vestavěné platby — pokud registrace zůstane dlouho na „Verify manually“, ověřte platbu ručně ve Stripe Dashboard.
+                            </p>
+                          )}
                         </div>
                       )}
                     </CardContent>

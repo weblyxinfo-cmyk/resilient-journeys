@@ -55,16 +55,24 @@ const STATUS_COLORS: Record<string, string> = {
 // Set by Stripe via stripe-webhook, never by the admin — a separate field
 // from `status` (Silvie's own logistics tracker) so an unpaid registration
 // can never be mistaken for a paid one. See docs/workshop-stripe.md.
+// 'external' = paid via a Stripe Payment Link pasted into the workshop
+// instead of the built-in checkout (see docs/workshop-payment-link.md) —
+// workshop-registration-create sets it at insert time, and stripe-webhook
+// still flips it to 'paid' automatically when it can match the payment, but
+// that match is less guaranteed than the built-in flow, so a registration
+// stuck here for a while is worth checking by hand in Stripe.
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
   pending: "Awaiting payment",
   paid: "Paid",
   expired: "Expired",
+  external: "Verify manually",
 };
 
 const PAYMENT_STATUS_COLORS: Record<string, string> = {
   pending: "bg-gray-100 text-gray-700",
   paid: "bg-green-100 text-green-800",
   expired: "bg-red-100 text-red-800",
+  external: "bg-amber-100 text-amber-800",
 };
 
 const AdminInquiries = () => {

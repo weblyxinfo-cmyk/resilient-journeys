@@ -32,6 +32,25 @@ interface WorkshopConfig {
   title: string;
   priceAmount: number; // cents
   currency: string; // lowercase ISO code, as Stripe expects
+  stripePaymentLink: string | null;
+}
+
+/**
+ * Same allow-list an admin is meant to be restricted to in AdminBlog.tsx,
+ * enforced again here since this is the value that actually decides where a
+ * visitor's browser goes next — trusting an unvalidated DB value (which
+ * could in theory be edited outside the admin form) would be an open
+ * redirect. https:// only, host is buy.stripe.com or any *.stripe.com
+ * subdomain.
+ */
+function isValidStripePaymentLink(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    return parsed.hostname === "buy.stripe.com" || parsed.hostname.endsWith(".stripe.com");
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -48,7 +67,7 @@ async function loadWorkshopConfig(supabaseClient: any, workshopId: string): Prom
   try {
     const { data, error } = await supabaseClient
       .from("blog_posts")
-      .select("title, workshop_price, workshop_currency, is_paid_workshop, is_published, category")
+      .select("title, workshop_price, workshop_currency, is_paid_workshop, is_published, category, stripe_payment_link")
       .eq("id", workshopId)
       .eq("category", "workshop")
       .eq("is_paid_workshop", true)
@@ -64,10 +83,25 @@ async function loadWorkshopConfig(supabaseClient: any, workshopId: string): Prom
       return null;
     }
 
+    // An invalid stored link (shouldn't happen — AdminBlog.tsx validates on
+    // save — but the column has no DB-level format check) falls back to
+    // null, i.e. the normal in-house Stripe Checkout path. Never redirect
+    // anywhere on the strength of an unvalidated value.
+    let stripePaymentLink: string | null = null;
+    if (typeof data.stripe_payment_link === "string" && data.stripe_payment_link.trim()) {
+      const trimmed = data.stripe_payment_link.trim();
+      if (isValidStripePaymentLink(trimmed)) {
+        stripePaymentLink = trimmed;
+      } else {
+        console.error("Invalid stripe_payment_link on blog_posts row, falling back to built-in checkout:", workshopId, trimmed);
+      }
+    }
+
     return {
       title: data.title,
       priceAmount,
       currency: (data.workshop_currency || "EUR").toLowerCase(),
+      stripePaymentLink,
     };
   } catch (err) {
     console.error("blog_posts lookup failed, refusing registration:", err);
@@ -129,11 +163,16 @@ serve(async (req) => {
     // Client sends what price it rendered; if it disagrees with the DB, the
     // visitor is looking at a stale CMS cache or an old JS bundle — refuse
     // rather than charge a price nobody currently sees. See create-checkout §B2.
+    // Skipped for a payment-link workshop: the actual charge amount lives in
+    // the Payment Link's own Stripe configuration, not workshop_price, so
+    // this check has nothing authoritative to compare against — see
+    // docs/workshop-payment-link.md for the resulting risk (workshop_price
+    // can drift out of sync with what the link actually charges).
     const expectedAmount =
       typeof expectedPriceEur === "number" && Number.isFinite(expectedPriceEur)
         ? Math.round(expectedPriceEur * 100)
         : null;
-    if (expectedAmount !== null && expectedAmount !== workshop.priceAmount) {
+    if (!workshop.stripePaymentLink && expectedAmount !== null && expectedAmount !== workshop.priceAmount) {
       return new Response(JSON.stringify({ error: PRICE_CHANGED_MESSAGE }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
@@ -143,8 +182,9 @@ serve(async (req) => {
     // Registration row is created before the Stripe session, same order as
     // booking-create for session_bookings: the row must exist first so its
     // id can go into the session metadata for the webhook to match back to.
-    // payment_status starts 'pending' and is only ever flipped by
-    // stripe-webhook — never by this function or the client.
+    // payment_status starts 'pending' (built-in Checkout) or 'external'
+    // (Payment Link) and is only ever flipped onward by stripe-webhook —
+    // never by this function or the client.
     const { data: registration, error: insertError } = await supabaseClient
       .from("workshop_registrations")
       .insert({
@@ -154,7 +194,7 @@ serve(async (req) => {
         phone: typeof phone === "string" && phone.trim() ? phone.trim() : null,
         note: typeof note === "string" && note.trim() ? note.trim() : null,
         status: "pending",
-        payment_status: "pending",
+        payment_status: workshop.stripePaymentLink ? "external" : "pending",
       })
       .select()
       .single();
@@ -165,6 +205,25 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
       });
+    }
+
+    // Payment-link path: no Stripe session to create. The registration is
+    // already saved (above), so Silvie knows who registered either way.
+    // client_reference_id and prefilled_email are Stripe-documented URL
+    // parameters for Payment Links — Stripe copies client_reference_id onto
+    // the Checkout Session it creates behind the link, which lets
+    // stripe-webhook match the resulting checkout.session.completed event
+    // back to this registration (see stripe-webhook's client_reference_id
+    // branch) without needing custom metadata, which Payment Links don't
+    // accept.
+    if (workshop.stripePaymentLink) {
+      const redirectUrl = new URL(workshop.stripePaymentLink);
+      redirectUrl.searchParams.set("client_reference_id", registration.id);
+      redirectUrl.searchParams.set("prefilled_email", trimmedEmail);
+      return new Response(
+        JSON.stringify({ registration_id: registration.id, checkout_url: redirectUrl.toString() }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
 
     let session;
