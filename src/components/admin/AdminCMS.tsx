@@ -148,6 +148,32 @@ const SaveIndicator = ({ status }: { status: SaveStatus }) => {
 // is exactly one live document; switching which section is "in focus" just
 // scrolls that same document, and only triggers a real reload when the
 // target section lives on a different route.
+/**
+ * A real URL for a section whose route carries a :slug.
+ *
+ * The workshop and blog detail pages have no single address of their own, so
+ * the preview asked the site for the post literally named ":slug" — which
+ * answers 404 and bounces to the listing, leaving those fields with no preview
+ * at all. Any published post of the right kind shows the same layout.
+ */
+const resolvePreviewRoute = async (route: string): Promise<string> => {
+  if (!route.includes(':slug')) return route;
+
+  const category = route.startsWith('/workshopy') ? 'workshop' : 'blog';
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('slug')
+    .eq('category', category)
+    .eq('is_published', true)
+    .order('published_at', { ascending: false })
+    .limit(1);
+
+  const slug = data?.[0]?.slug;
+  // Nothing published to stand in for it: the listing is a better preview
+  // than an error page.
+  return slug ? route.replace(':slug', slug) : route.replace('/:slug', '');
+};
+
 const SharedPreview = ({
   section,
   refreshKey,
@@ -160,6 +186,7 @@ const SharedPreview = ({
   iframeRef: RefObject<HTMLIFrameElement>;
 }) => {
   const [src, setSrc] = useState<string | null>(null);
+  const [resolvedRoute, setResolvedRoute] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [anchorMissing, setAnchorMissing] = useState(false);
@@ -218,7 +245,15 @@ const SharedPreview = ({
       // full auth flow — which fought the parent tab over the shared
       // localStorage session and reset the whole admin. Cache-busting for a
       // re-navigation to the same route now happens on a separate `r` param.
-      setSrc(`${section.route}?cmsPreview=1&r=${refreshKey}`);
+      let cancelled = false;
+      resolvePreviewRoute(section.route).then((route) => {
+        if (cancelled) return;
+        setResolvedRoute(route);
+        setSrc(`${route}?cmsPreview=1&r=${refreshKey}`);
+      });
+      return () => {
+        cancelled = true;
+      };
     } else {
       // Same document already loaded — just scroll to the newly focused
       // section, no reload.
@@ -240,7 +275,7 @@ const SharedPreview = ({
     );
   }
 
-  const liveUrl = `${section.route}${section.anchor ? `#${section.anchor}` : ''}`;
+  const liveUrl = `${resolvedRoute ?? section.route}${section.anchor ? `#${section.anchor}` : ''}`;
 
   return (
     <div className="relative h-full rounded-lg border border-border bg-muted/30 overflow-hidden">
