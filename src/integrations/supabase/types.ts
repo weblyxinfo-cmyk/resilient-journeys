@@ -82,22 +82,28 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          end_time: string | null
           id: string
           reason: string | null
+          start_time: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           date: string
+          end_time?: string | null
           id?: string
           reason?: string | null
+          start_time?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           date?: string
+          end_time?: string | null
           id?: string
           reason?: string | null
+          start_time?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -108,6 +114,7 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          event_at: string | null
           excerpt: string | null
           featured_image_url: string | null
           gallery_images: string[] | null
@@ -123,6 +130,7 @@ export type Database = {
           published_at: string | null
           scheduled_at: string | null
           slug: string
+          stripe_payment_link: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -136,6 +144,7 @@ export type Database = {
           category: string
           content: string
           created_at?: string
+          event_at?: string | null
           excerpt?: string | null
           featured_image_url?: string | null
           gallery_images?: string[] | null
@@ -151,6 +160,7 @@ export type Database = {
           published_at?: string | null
           scheduled_at?: string | null
           slug: string
+          stripe_payment_link?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -164,6 +174,7 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          event_at?: string | null
           excerpt?: string | null
           featured_image_url?: string | null
           gallery_images?: string[] | null
@@ -179,6 +190,7 @@ export type Database = {
           published_at?: string | null
           scheduled_at?: string | null
           slug?: string
+          stripe_payment_link?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -910,11 +922,13 @@ export type Database = {
           created_at: string
           id: string
           is_visible: boolean
+          kind: string
           name: string
           rating: number | null
           role: string | null
           sort_order: number
           updated_at: string
+          workshop_post_id: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -922,11 +936,13 @@ export type Database = {
           created_at?: string
           id?: string
           is_visible?: boolean
+          kind?: string
           name: string
           rating?: number | null
           role?: string | null
           sort_order?: number
           updated_at?: string
+          workshop_post_id?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -934,13 +950,23 @@ export type Database = {
           created_at?: string
           id?: string
           is_visible?: boolean
+          kind?: string
           name?: string
           rating?: number | null
           role?: string | null
           sort_order?: number
           updated_at?: string
+          workshop_post_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_workshop_post_id_fkey"
+            columns: ["workshop_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_progress: {
         Row: {
@@ -1147,8 +1173,12 @@ export type Database = {
           id: string
           name: string
           note: string | null
+          paid_amount_cents: number | null
+          paid_currency: string | null
+          payment_status: string
           phone: string | null
           status: string
+          stripe_session_id: string | null
           workshop_id: string
         }
         Insert: {
@@ -1157,8 +1187,12 @@ export type Database = {
           id?: string
           name: string
           note?: string | null
+          paid_amount_cents?: number | null
+          paid_currency?: string | null
+          payment_status?: string
           phone?: string | null
           status?: string
+          stripe_session_id?: string | null
           workshop_id: string
         }
         Update: {
@@ -1167,8 +1201,12 @@ export type Database = {
           id?: string
           name?: string
           note?: string | null
+          paid_amount_cents?: number | null
+          paid_currency?: string | null
+          payment_status?: string
           phone?: string | null
           status?: string
+          stripe_session_id?: string | null
           workshop_id?: string
         }
         Relationships: [

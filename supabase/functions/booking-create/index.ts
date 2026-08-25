@@ -113,6 +113,13 @@ async function loadSessionConfig(
   };
 }
 
+// TIME columns (e.g. "08:00:00") compared as minutes since midnight, the same
+// way booking-available-slots/-days compare them against UTC slot times.
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -210,15 +217,34 @@ serve(async (req) => {
     const dateStr = startDate.toISOString().split("T")[0];
     const dayOfWeek = startDate.getUTCDay();
 
-    // Check blocked dates
-    const { data: blockedDate } = await supabaseClient
+    // Check blocked dates. A date can now have several blocked windows
+    // (or one full-day row with start_time/end_time both NULL), so fetch
+    // all rows for the date instead of assuming at most one.
+    const { data: blockedRows, error: blockedError } = await supabaseClient
       .from("blocked_dates")
-      .select("*")
-      .eq("date", dateStr)
-      .maybeSingle();
+      .select("start_time, end_time")
+      .eq("date", dateStr);
 
-    if (blockedDate) {
+    if (blockedError) throw blockedError;
+
+    if (blockedRows?.some((b: any) => b.start_time === null || b.end_time === null)) {
       throw new Error("Selected date is blocked");
+    }
+
+    // Session [start, start+duration) is blocked when it overlaps a blocked
+    // window [start_time, end_time). Compare in minutes since midnight, same
+    // as the UTC hours/minutes used elsewhere for TIME columns.
+    const sessionStartMinutes = startDate.getUTCHours() * 60 + startDate.getUTCMinutes();
+    const sessionEndMinutes = sessionStartMinutes + duration;
+
+    const hasBlockedTimeOverlap = (blockedRows || []).some((b: any) => {
+      const blockedStart = timeToMinutes(b.start_time);
+      const blockedEnd = timeToMinutes(b.end_time);
+      return sessionStartMinutes < blockedEnd && sessionEndMinutes > blockedStart;
+    });
+
+    if (hasBlockedTimeOverlap) {
+      throw new Error("Selected time is blocked. Please choose a different time on this date.");
     }
 
     // Check availability for day of week

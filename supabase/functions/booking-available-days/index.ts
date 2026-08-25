@@ -61,6 +61,36 @@ function getAvailabilityForDate(
   );
 }
 
+interface BlockedWindow {
+  start_time: string | null;
+  end_time: string | null;
+}
+
+// TIME columns (e.g. "08:00:00") compared as minutes since midnight.
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+/**
+ * True when a session [slotStartMinutes, slotEndMinutes) overlaps any of the
+ * given blocked windows. A row with both times NULL blocks the whole day.
+ * Kept identical to booking-available-slots so the two never disagree on
+ * which slots are considered blocked.
+ */
+function isSlotBlocked(
+  slotStartMinutes: number,
+  slotEndMinutes: number,
+  blockedWindows: BlockedWindow[]
+): boolean {
+  return blockedWindows.some((b) => {
+    if (b.start_time === null || b.end_time === null) return true;
+    const blockedStart = timeToMinutes(b.start_time);
+    const blockedEnd = timeToMinutes(b.end_time);
+    return slotStartMinutes < blockedEnd && slotEndMinutes > blockedStart;
+  });
+}
+
 /**
  * Session length from the card the admin edits, falling back to the map above.
  * Kept in sync with booking-create's loadSessionConfig, including the card_key:
@@ -143,18 +173,21 @@ serve(async (req) => {
 
     if (availError) throw availError;
 
-    // Get blocked dates in the month
+    // Get blocked dates in the month. A date can have several partial
+    // windows now, so group all rows per date instead of a plain Set.
     const { data: blockedDates, error: blockedError } = await supabaseClient
       .from("blocked_dates")
-      .select("date")
+      .select("date, start_time, end_time")
       .gte("date", startDate.toISOString().split("T")[0])
       .lte("date", endDate.toISOString().split("T")[0]);
 
     if (blockedError) throw blockedError;
 
-    const blockedSet = new Set(
-      blockedDates?.map((bd: any) => bd.date) || []
-    );
+    const blockedByDate: Record<string, BlockedWindow[]> = {};
+    blockedDates?.forEach((bd: any) => {
+      if (!blockedByDate[bd.date]) blockedByDate[bd.date] = [];
+      blockedByDate[bd.date].push({ start_time: bd.start_time, end_time: bd.end_time });
+    });
 
     // Get all bookings in the month (confirmed + pending)
     const { data: bookings, error: bookingsError } = await supabaseClient
@@ -188,11 +221,9 @@ serve(async (req) => {
         continue;
       }
 
-      // Skip if blocked
-      if (blockedSet.has(dateStr)) {
-        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
-        continue;
-      }
+      // A day is only skipped once we know no slot survives the blocked
+      // windows below — a partial block must not hide the rest of the day.
+      const dayBlockedWindows = blockedByDate[dateStr] || [];
 
       // Get availability for this specific date (seasonal or default)
       const dayAvailability = getAvailabilityForDate(
@@ -229,7 +260,7 @@ serve(async (req) => {
           const slotEnd = new Date(slotStart);
           slotEnd.setUTCMinutes(slotEnd.getUTCMinutes() + sessionDuration);
 
-          // Check if slot conflicts with existing bookings
+          // Check if slot conflicts with existing bookings or a blocked window
           const hasConflict = dayBookings.some((booking: any) => {
             const bookingStart = new Date(booking.session_date);
             const bookingEnd = booking.end_time
@@ -245,7 +276,9 @@ serve(async (req) => {
             );
           });
 
-          if (!hasConflict) {
+          const blocked = isSlotBlocked(slotMinutes, slotMinutes + sessionDuration, dayBlockedWindows);
+
+          if (!hasConflict && !blocked) {
             hasAvailableSlots = true;
             break;
           }

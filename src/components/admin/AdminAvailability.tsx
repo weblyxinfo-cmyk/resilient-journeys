@@ -72,6 +72,9 @@ const AdminAvailability = () => {
   const [blockedForm, setBlockedForm] = useState({
     date: "",
     reason: "",
+    is_full_day: true,
+    start_time: "",
+    end_time: "",
   });
 
   useEffect(() => {
@@ -384,16 +387,29 @@ const AdminAvailability = () => {
         return;
       }
 
+      if (!blockedForm.is_full_day) {
+        if (!blockedForm.start_time || !blockedForm.end_time) {
+          toast.error("Vyplňte čas od a do");
+          return;
+        }
+        if (blockedForm.end_time <= blockedForm.start_time) {
+          toast.error("Konec času musí být po začátku");
+          return;
+        }
+      }
+
       const { error } = await supabase.from("blocked_dates").insert({
         date: blockedForm.date,
         reason: blockedForm.reason || null,
+        start_time: blockedForm.is_full_day ? null : blockedForm.start_time,
+        end_time: blockedForm.is_full_day ? null : blockedForm.end_time,
       });
 
       if (error) throw error;
 
       toast.success("Den zablokován");
       setBlockedDialogOpen(false);
-      setBlockedForm({ date: "", reason: "" });
+      setBlockedForm({ date: "", reason: "", is_full_day: true, start_time: "", end_time: "" });
       fetchBlockedDates();
     } catch (error: any) {
       toast.error("Chyba: " + error.message);
@@ -783,7 +799,9 @@ const AdminAvailability = () => {
           <Dialog open={blockedDialogOpen} onOpenChange={setBlockedDialogOpen}>
             <DialogTrigger asChild>
               <Button
-                onClick={() => setBlockedForm({ date: "", reason: "" })}
+                onClick={() =>
+                  setBlockedForm({ date: "", reason: "", is_full_day: true, start_time: "", end_time: "" })
+                }
                 className="bg-gradient-gold"
               >
                 <Plus className="mr-2" size={16} />
@@ -806,6 +824,41 @@ const AdminAvailability = () => {
                     min={format(new Date(), "yyyy-MM-dd")}
                   />
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={blockedForm.is_full_day}
+                    onCheckedChange={(checked) =>
+                      setBlockedForm({ ...blockedForm, is_full_day: checked })
+                    }
+                  />
+                  <Label>Celý den</Label>
+                </div>
+
+                {!blockedForm.is_full_day && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="blocked_start_time">Od</Label>
+                      <Input
+                        id="blocked_start_time"
+                        type="time"
+                        value={blockedForm.start_time}
+                        onChange={(e) => setBlockedForm({ ...blockedForm, start_time: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="blocked_end_time">Do</Label>
+                      <Input
+                        id="blocked_end_time"
+                        type="time"
+                        value={blockedForm.end_time}
+                        onChange={(e) => setBlockedForm({ ...blockedForm, end_time: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="blocked_reason">Důvod (volitelné)</Label>
@@ -844,6 +897,7 @@ const AdminAvailability = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Datum</TableHead>
+                    <TableHead>Čas</TableHead>
                     <TableHead>Důvod</TableHead>
                     <TableHead className="text-right">Akce</TableHead>
                   </TableRow>
@@ -856,6 +910,16 @@ const AdminAvailability = () => {
                           <Calendar size={16} className="text-muted-foreground" />
                           {format(new Date(blocked.date), "d. MMMM yyyy", { locale: cs })}
                         </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {blocked.start_time && blocked.end_time ? (
+                          <span className="flex items-center gap-1">
+                            <Clock size={14} />
+                            {blocked.start_time.slice(0, 5)} – {blocked.end_time.slice(0, 5)}
+                          </span>
+                        ) : (
+                          "Celý den"
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {blocked.reason || "—"}

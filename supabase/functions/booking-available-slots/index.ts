@@ -58,6 +58,36 @@ function getAvailabilityForDate(
   );
 }
 
+interface BlockedWindow {
+  start_time: string | null;
+  end_time: string | null;
+}
+
+// TIME columns (e.g. "08:00:00") compared as minutes since midnight.
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+/**
+ * True when a session [slotStartMinutes, slotEndMinutes) overlaps any of the
+ * given blocked windows. A row with both times NULL blocks the whole day.
+ * Kept identical to booking-available-days so the two never disagree on
+ * which slots are considered blocked.
+ */
+function isSlotBlocked(
+  slotStartMinutes: number,
+  slotEndMinutes: number,
+  blockedWindows: BlockedWindow[]
+): boolean {
+  return blockedWindows.some((b) => {
+    if (b.start_time === null || b.end_time === null) return true;
+    const blockedStart = timeToMinutes(b.start_time);
+    const blockedEnd = timeToMinutes(b.end_time);
+    return slotStartMinutes < blockedEnd && slotEndMinutes > blockedStart;
+  });
+}
+
 /**
  * Session length from the card the admin edits, falling back to the map above.
  * Kept in sync with booking-create's loadSessionConfig, including the card_key:
@@ -143,20 +173,23 @@ serve(async (req) => {
       throw new Error(`Invalid session type: ${sessionType}`);
     }
 
-    // Check if date is blocked
-    const { data: blockedDate, error: blockedError } = await supabaseClient
+    // A date can have several blocked windows now, so fetch all rows for it.
+    const { data: blockedRows, error: blockedError } = await supabaseClient
       .from("blocked_dates")
-      .select("*")
-      .eq("date", date)
-      .maybeSingle();
+      .select("start_time, end_time, reason")
+      .eq("date", date);
 
     if (blockedError) throw blockedError;
 
-    if (blockedDate) {
+    const fullDayBlock = blockedRows?.find(
+      (b: any) => b.start_time === null && b.end_time === null
+    );
+
+    if (fullDayBlock) {
       return new Response(
         JSON.stringify({
           slots: [],
-          message: `Date is blocked: ${blockedDate.reason || "Not available"}`,
+          message: `Date is blocked: ${fullDayBlock.reason || "Not available"}`,
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -164,6 +197,8 @@ serve(async (req) => {
         }
       );
     }
+
+    const blockedWindows: BlockedWindow[] = blockedRows || [];
 
     // Get all active availability rows
     const { data: allAvailability, error: availError } = await supabaseClient
@@ -260,6 +295,16 @@ serve(async (req) => {
             time: timeStr,
             available: false,
             reason: "Too soon (24h minimum notice required)",
+          });
+          continue;
+        }
+
+        // Skip if slot overlaps a partial blocked window for this date
+        if (isSlotBlocked(slotMinutes, slotMinutes + sessionDuration, blockedWindows)) {
+          slots.push({
+            time: timeStr,
+            available: false,
+            reason: "Blocked",
           });
           continue;
         }
