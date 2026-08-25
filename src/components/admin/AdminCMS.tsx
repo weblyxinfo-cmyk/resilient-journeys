@@ -402,13 +402,30 @@ const AdminCMS = () => {
 
   const fetchContent = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('cms_content')
-      .select('*')
-      .order('page', { ascending: true })
-      .order('section', { ascending: true })
-      .order('sort_order', { ascending: true })
-      .order('key', { ascending: true });
+    // Same 1000-row response cap as useCms: unpaged, the tail of the table was
+    // missing from this panel entirely, so those fields could not even be found
+    // and edited — the pages sorting last simply were not there.
+    const PAGE_SIZE = 1000;
+    const rows: any[] = [];
+    let error = null;
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const page = await supabase
+        .from('cms_content')
+        .select('*')
+        .order('page', { ascending: true })
+        .order('section', { ascending: true })
+        .order('sort_order', { ascending: true })
+        .order('key', { ascending: true })
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (page.error) {
+        error = page.error;
+        break;
+      }
+      rows.push(...(page.data ?? []));
+      if (!page.data || page.data.length < PAGE_SIZE) break;
+    }
+    const data = rows;
 
     if (error) {
       toast.error('Chyba při načítání obsahu: ' + error.message);

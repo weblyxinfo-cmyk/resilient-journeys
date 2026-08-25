@@ -23,14 +23,27 @@ export const CmsProvider = ({ children }: { children: ReactNode }) => {
   const { data } = useQuery({
     queryKey: ['cms_content'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cms_content')
-        .select('key, value');
+      // The API caps a response at 1000 rows and the table is past that, so a
+      // single request silently dropped the overflow — those keys never
+      // reached the site no matter what the admin saved. Without an order the
+      // dropped set was not even stable, so a field could work on one load and
+      // fall back to its built-in text on the next.
+      const PAGE_SIZE = 1000;
+      const rows: { key: string; value: string | null }[] = [];
+      for (let from = 0; ; from += PAGE_SIZE) {
+        const { data, error } = await supabase
+          .from('cms_content')
+          .select('key, value')
+          .order('key', { ascending: true })
+          .range(from, from + PAGE_SIZE - 1);
 
-      if (error) throw error;
+        if (error) throw error;
+        rows.push(...(data ?? []));
+        if (!data || data.length < PAGE_SIZE) break;
+      }
 
       const map: CmsMap = {};
-      for (const row of data ?? []) {
+      for (const row of rows) {
         // Blank values fall through to the caller's fallback on purpose — an
         // accidentally cleared field in the admin must not blank the website.
         if (row.value) map[row.key] = row.value;

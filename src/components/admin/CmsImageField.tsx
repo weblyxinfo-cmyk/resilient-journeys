@@ -28,6 +28,16 @@ interface CmsImageFieldProps {
 // URL, exactly like typing a URL into the old input did. The caller still
 // owns debouncing/autosave/revert-to-default — this component doesn't know
 // about cms_content at all.
+const isDecodableImage = async (file: File): Promise<boolean> => {
+  try {
+    const bitmap = await createImageBitmap(file);
+    bitmap.close();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const CmsImageField = ({ value, onChange, disabled, onFocus, onBlur }: CmsImageFieldProps) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,6 +49,13 @@ const CmsImageField = ({ value, onChange, disabled, onFocus, onBlur }: CmsImageF
     }
     if (file.size > MAX_FILE_SIZE_BYTES) {
       toast.error('Fotka je příliš velká — maximální velikost je 5 MB.');
+      return;
+    }
+    // file.type is only what the browser inferred from the extension, so a
+    // renamed document passes the check above and uploads as a broken image.
+    // Decoding it is the only way to know it really is a picture.
+    if (!(await isDecodableImage(file))) {
+      toast.error('Soubor není platná fotka — zkuste ji uložit znovu jako JPG, PNG nebo WEBP.');
       return;
     }
 
