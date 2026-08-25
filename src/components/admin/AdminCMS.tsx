@@ -900,8 +900,26 @@ const AdminCMS = () => {
     );
   };
 
+  // The same :slug substitution the preview frame does — the link out to the
+  // live site would otherwise hand the browser "/workshopy/:slug", which lands
+  // on the listing instead of the page being edited.
+  const [previewLiveRoute, setPreviewLiveRoute] = useState<string | null>(null);
+  useEffect(() => {
+    if (!previewSection) {
+      setPreviewLiveRoute(null);
+      return;
+    }
+    let cancelled = false;
+    resolvePreviewRoute(previewSection.route).then((route) => {
+      if (!cancelled) setPreviewLiveRoute(route);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [previewSection]);
+
   const previewLiveUrl = previewSection
-    ? `${previewSection.route}${previewSection.anchor ? `#${previewSection.anchor}` : ''}`
+    ? `${previewLiveRoute ?? previewSection.route}${previewSection.anchor ? `#${previewSection.anchor}` : ''}`
     : null;
 
   return (
