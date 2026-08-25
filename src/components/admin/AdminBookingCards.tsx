@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Pencil, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import CmsImageField from '@/components/admin/CmsImageField';
 
 interface ExtraSection {
   heading?: string;
@@ -482,11 +483,12 @@ const AdminBookingCards = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Image path</Label>
-                  <Input
+                  <Label>Fotka karty</Label>
+                  {/* Was a path to a file in the repo, which meant only a
+                      developer could ever change the picture. */}
+                  <CmsImageField
                     value={editing.image || ''}
-                    onChange={(e) => setField('image', e.target.value)}
-                    placeholder="/booking/example.jpg"
+                    onChange={(url) => setField('image', url)}
                   />
                 </div>
                 <div className="space-y-2">

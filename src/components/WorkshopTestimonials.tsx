@@ -9,6 +9,7 @@ interface Testimonial {
   role: string | null;
   content: string;
   rating: number;
+  avatar_url: string | null;
 }
 
 interface WorkshopTestimonialsProps {
@@ -31,7 +32,7 @@ const WorkshopTestimonials = ({ workshopId }: WorkshopTestimonialsProps) => {
     const fetchTestimonials = async () => {
       const { data } = await supabase
         .from("testimonials")
-        .select("id, name, role, content, rating")
+        .select("id, name, role, content, rating, avatar_url")
         .eq("is_visible", true)
         .eq("kind", "workshop")
         .or(`workshop_post_id.eq.${workshopId},workshop_post_id.is.null`)
@@ -71,9 +72,18 @@ const WorkshopTestimonials = ({ workshopId }: WorkshopTestimonialsProps) => {
             </p>
 
             <div className="flex items-center gap-3 pt-5 border-t border-border/60">
-              <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-gold text-primary-foreground font-serif font-semibold text-lg flex-shrink-0">
-                {testimonial.name.trim().charAt(0).toUpperCase()}
-              </div>
+              {testimonial.avatar_url ? (
+                <img
+                  src={testimonial.avatar_url}
+                  alt={testimonial.name}
+                  className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-gold text-primary-foreground font-serif font-semibold text-lg flex-shrink-0">
+                  {testimonial.name.trim().charAt(0).toUpperCase()}
+                </div>
+              )}
               <div>
                 <div className="font-serif font-semibold text-foreground leading-tight">
                   {testimonial.name}

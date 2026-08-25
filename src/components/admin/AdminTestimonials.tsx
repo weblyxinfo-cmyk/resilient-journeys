@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Star, Eye, EyeOff } from 'lucide-react';
+import CmsImageField from '@/components/admin/CmsImageField';
 import { Badge } from '@/components/ui/badge';
 
 interface Testimonial {
@@ -350,13 +351,12 @@ const AdminTestimonials = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="avatar_url">Profile Image URL</Label>
-                <Input
-                  id="avatar_url"
-                  type="url"
+                <Label htmlFor="avatar_url">Fotka (nepovinná)</Label>
+                {/* A plain URL field asked for a picture already published
+                    somewhere; uploading one is the only practical route. */}
+                <CmsImageField
                   value={formData.avatar_url}
-                  onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                  placeholder="https://..."
+                  onChange={(url) => setFormData({ ...formData, avatar_url: url })}
                 />
               </div>
               <div>
