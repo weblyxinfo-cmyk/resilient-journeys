@@ -25,7 +25,7 @@ const SESSION_PRICES: Record<string, number> = {
   one_on_one: 10700, // €107
   family: 12700, // €127
   endometriosis_support: 23700, // €237 (3-session package, €79/session)
-  individual_eft_reiki_offer: 5000, // €50 special offer
+  individual_eft_reiki_offer: 6000, // €60 EFT & Reiki session
   premium_consultation: 8700, // €87
 };
 
@@ -37,17 +37,22 @@ interface SessionConfig {
 }
 
 /**
- * Price and duration for a session type, read from the card the admin edits.
+ * Price and duration for the card the visitor booked from.
  *
- * The client sends the backend session type, which may be shared by more than
- * one card (two cards currently sell the same €50 EFT session), so match on
- * booking_type first and fall back to card_key for cards that do not remap.
- * Lowest sort_order wins if several cards share a type.
+ * More than one card can sell the same backend session type — two currently
+ * sell an EFT & Reiki session — so the type alone does not identify a price.
+ * The page therefore sends the card_key it displayed and we price that exact
+ * card; matching on the type would charge whichever card happens to sort
+ * first, which is how a €60 card once billed €77 through Stripe.
+ *
+ * Requests without a card_key (an older page still open in a tab) fall back to
+ * matching by type, lowest sort_order first, as before.
  */
 // deno-lint-ignore no-explicit-any
 async function loadSessionConfig(
   supabaseClient: any,
   sessionType: string,
+  cardKey?: string | null,
 ): Promise<SessionConfig> {
   const fallback: SessionConfig = {
     durationMinutes: SESSION_DURATIONS[sessionType],
@@ -56,38 +61,56 @@ async function loadSessionConfig(
     title: null,
   };
 
+  // deno-lint-ignore no-explicit-any
+  let card: any = null;
   try {
-    const { data, error } = await supabaseClient
+    const query = supabaseClient
       .from("booking_cards")
       .select("duration_minutes, price_eur, valid_until, title, booking_type, card_key")
-      .eq("is_active", true)
-      .or(`booking_type.eq.${sessionType},card_key.eq.${sessionType}`)
+      .eq("is_active", true);
+
+    const { data, error } = await (cardKey
+      ? query.eq("card_key", cardKey)
+      : query.or(`booking_type.eq.${sessionType},card_key.eq.${sessionType}`))
       .order("sort_order")
       .limit(1);
 
     if (error) throw error;
-
-    const card = data?.[0];
-    // A type with no card (premium_consultation) keeps the hardcoded values.
-    if (!card) return fallback;
-
-    // Never let a bad row produce a free or negative charge.
-    const priceCents = Math.round(Number(card.price_eur) * 100);
-    if (!Number.isFinite(priceCents) || priceCents < 0) {
-      console.error("Invalid price on booking card, using fallback:", card.price_eur);
-      return fallback;
-    }
-
-    return {
-      durationMinutes: Number(card.duration_minutes) || fallback.durationMinutes,
-      priceCents,
-      validUntil: card.valid_until ?? null,
-      title: card.title ?? null,
-    };
+    card = data?.[0] ?? null;
   } catch (err) {
     console.error("booking_cards lookup failed, using fallback prices:", err);
     return fallback;
   }
+
+  // A named card that matches nothing is a request we cannot price. Refusing
+  // beats silently charging some other card's amount.
+  if (cardKey && !card) {
+    throw new Error("Unknown session card. Please reload the page and try again.");
+  }
+
+  // A type with no card (premium_consultation) keeps the hardcoded values.
+  if (!card) return fallback;
+
+  // The card has to actually sell the type being booked, so a request cannot
+  // pair a cheap card with an expensive session.
+  const cardSessionType = card.booking_type ?? card.card_key;
+  if (cardSessionType !== sessionType) {
+    throw new Error("This session card does not match the session being booked.");
+  }
+
+  // Never let a bad row produce a free or negative charge.
+  const priceCents = Math.round(Number(card.price_eur) * 100);
+  if (!Number.isFinite(priceCents) || priceCents < 0) {
+    console.error("Invalid price on booking card, using fallback:", card.price_eur);
+    return fallback;
+  }
+
+  return {
+    durationMinutes: Number(card.duration_minutes) || fallback.durationMinutes,
+    priceCents,
+    validUntil: card.valid_until ?? null,
+    title: card.title ?? null,
+  };
 }
 
 serve(async (req) => {
@@ -98,7 +121,7 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { session_type, client_name, client_email, start_time, notes } = requestBody;
+    const { session_type, card_key, expected_price_eur, client_name, client_email, start_time, notes } = requestBody;
 
     console.log("Booking request:", session_type, start_time);
 
@@ -140,10 +163,27 @@ serve(async (req) => {
 
     // Price and duration come from the card the admin edits, never from the
     // request, so an edited price takes effect for Stripe on the next booking.
-    const sessionConfig = await loadSessionConfig(supabaseClient, session_type);
+    const sessionConfig = await loadSessionConfig(supabaseClient, session_type, card_key);
 
     if (!sessionConfig.durationMinutes) {
       throw new Error(`Invalid session type: ${session_type}`);
+    }
+
+    // The page tells us the price it showed. If that disagrees with the card,
+    // the visitor is looking at a stale page (or the request was tampered
+    // with) — refuse rather than charge an amount they never saw, the same way
+    // create-checkout does for memberships.
+    if (expected_price_eur !== undefined && expected_price_eur !== null) {
+      const expectedCents = Math.round(Number(expected_price_eur) * 100);
+      if (!Number.isFinite(expectedCents) || expectedCents !== sessionConfig.priceCents) {
+        console.error(
+          "Price mismatch:",
+          { session_type, card_key, expectedCents, actual: sessionConfig.priceCents },
+        );
+        throw new Error(
+          "The price of this session has changed. Please reload the page and book again.",
+        );
+      }
     }
 
     // Time-limited offers: reject bookings after the offer's end date

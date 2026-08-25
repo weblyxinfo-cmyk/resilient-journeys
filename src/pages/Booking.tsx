@@ -212,7 +212,7 @@ const Booking = () => {
     try {
       const monthStr = format(currentMonth, "yyyy-MM");
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-days?month=${monthStr}&type=${resolveBookingType(selectedType)}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-days?month=${monthStr}&type=${resolveBookingType(selectedType)}&card=${encodeURIComponent(selectedType)}`,
         {
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -241,7 +241,7 @@ const Booking = () => {
     setLoadingSlots(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-slots?date=${selectedDate}&type=${resolveBookingType(selectedType)}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/booking-available-slots?date=${selectedDate}&type=${resolveBookingType(selectedType)}&card=${encodeURIComponent(selectedType)}`,
         {
           headers: {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -299,6 +299,11 @@ const Booking = () => {
           },
           body: JSON.stringify({
             session_type: resolveBookingType(selectedType),
+            // Which card was on screen, and the price it showed. Two cards can
+            // sell the same session type at different prices, so the type alone
+            // does not tell the server what to charge.
+            card_key: selectedType,
+            expected_price_eur: selectedSessionType?.price,
             client_name: formData.client_name,
             client_email: formData.client_email,
             start_time: startTime,

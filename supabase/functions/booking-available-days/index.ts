@@ -63,16 +63,24 @@ function getAvailabilityForDate(
 
 /**
  * Session length from the card the admin edits, falling back to the map above.
- * Kept in sync with booking-create's loadSessionConfig.
+ * Kept in sync with booking-create's loadSessionConfig, including the card_key:
+ * two cards can share one session type and need not be the same length.
  */
 // deno-lint-ignore no-explicit-any
-async function loadDuration(supabaseClient: any, sessionType: string): Promise<number> {
+async function loadDuration(
+  supabaseClient: any,
+  sessionType: string,
+  cardKey?: string | null,
+): Promise<number> {
   try {
-    const { data, error } = await supabaseClient
+    const query = supabaseClient
       .from("booking_cards")
       .select("duration_minutes")
-      .eq("is_active", true)
-      .or(`booking_type.eq.${sessionType},card_key.eq.${sessionType}`)
+      .eq("is_active", true);
+
+    const { data, error } = await (cardKey
+      ? query.eq("card_key", cardKey)
+      : query.or(`booking_type.eq.${sessionType},card_key.eq.${sessionType}`))
       .order("sort_order")
       .limit(1);
 
@@ -95,6 +103,7 @@ serve(async (req) => {
     const url = new URL(req.url);
     const month = url.searchParams.get("month"); // Format: YYYY-MM
     const sessionType = url.searchParams.get("type");
+    const cardKey = url.searchParams.get("card");
 
     // Validation
     if (!month || !sessionType) {
@@ -121,7 +130,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const sessionDuration = await loadDuration(supabaseClient, sessionType);
+    const sessionDuration = await loadDuration(supabaseClient, sessionType, cardKey);
     if (!sessionDuration) {
       throw new Error(`Invalid session type: ${sessionType}`);
     }
