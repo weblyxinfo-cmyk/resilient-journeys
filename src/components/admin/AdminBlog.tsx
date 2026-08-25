@@ -27,6 +27,7 @@ interface BlogPost {
   is_published: boolean;
   published_at: string | null;
   scheduled_at: string | null;
+  event_at: string | null;
   min_membership: 'free' | 'basic' | 'premium';
   tags: string[];
   meta_title: string | null;
@@ -69,6 +70,7 @@ const AdminBlog = () => {
     gallery_images: [] as string[],
     is_published: false,
     scheduled_at: '',
+    event_at: '',
     min_membership: 'free' as 'free' | 'basic' | 'premium',
     tags: '',
     is_paid_workshop: false,
@@ -111,6 +113,7 @@ const AdminBlog = () => {
       gallery_images: [],
       is_published: false,
       scheduled_at: '',
+      event_at: '',
       min_membership: 'free',
       tags: '',
       is_paid_workshop: false,
@@ -129,6 +132,14 @@ const AdminBlog = () => {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+  };
+
+  // datetime-local needs "YYYY-MM-DDTHH:mm" in the browser's local time —
+  // slicing the ISO string would keep it in UTC and shift the displayed time.
+  const isoToLocalDateTimeInput = (iso: string) => {
+    const date = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
   // Same allow-list workshop-registration-create re-checks server-side
@@ -247,6 +258,7 @@ const AdminBlog = () => {
       gallery_images: post.gallery_images || [],
       is_published: post.is_published,
       scheduled_at: post.scheduled_at || '',
+      event_at: post.event_at ? isoToLocalDateTimeInput(post.event_at) : '',
       min_membership: post.min_membership,
       tags: post.tags.join(', '),
       is_paid_workshop: post.is_paid_workshop || false,
@@ -295,6 +307,7 @@ const AdminBlog = () => {
       is_published: shouldPublish,
       published_at: publishedAt,
       scheduled_at: scheduledAt,
+      event_at: formData.event_at ? new Date(formData.event_at).toISOString() : null,
       min_membership: formData.min_membership,
       tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
       meta_title: formData.title,
@@ -581,6 +594,20 @@ const AdminBlog = () => {
                 {formData.category === 'workshop' && (
                   <Card className="border-gold/30">
                     <CardContent className="pt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="event_at">Workshop date & time</Label>
+                        <Input
+                          id="event_at"
+                          type="datetime-local"
+                          value={formData.event_at}
+                          onChange={(e) => setFormData({ ...formData, event_at: e.target.value })}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          When the workshop actually takes place — shown to visitors on the Workshopy page. Not to be confused with "Schedule for later" below, which only controls when this post gets published.
+                        </p>
+                      </div>
+
                       <div className="flex items-center space-x-2">
                         <Switch
                           id="is_paid_workshop"
@@ -722,15 +749,22 @@ const AdminBlog = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {post.scheduled_at && !post.is_published ? (
-                            <Badge variant="outline" className="border-blue-500 text-blue-600">
-                              Scheduled: {new Date(post.scheduled_at).toLocaleString()}
-                            </Badge>
-                          ) : (
-                            <Badge variant={post.is_published ? 'default' : 'secondary'}>
-                              {post.is_published ? 'Published' : 'Draft'}
-                            </Badge>
-                          )}
+                          <div className="flex flex-col gap-1 items-start">
+                            {post.scheduled_at && !post.is_published ? (
+                              <Badge variant="outline" className="border-blue-500 text-blue-600">
+                                Scheduled: {new Date(post.scheduled_at).toLocaleString()}
+                              </Badge>
+                            ) : (
+                              <Badge variant={post.is_published ? 'default' : 'secondary'}>
+                                {post.is_published ? 'Published' : 'Draft'}
+                              </Badge>
+                            )}
+                            {activeCategory === 'workshop' && (
+                              <Badge variant="outline" className="border-gold/50 text-gold-dark">
+                                {post.event_at ? `Date: ${new Date(post.event_at).toLocaleString()}` : 'No date set'}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{membershipLabels[post.min_membership]}</Badge>

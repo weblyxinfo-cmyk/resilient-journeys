@@ -21,7 +21,9 @@ const Testimonials = () => {
       const { data } = await supabase
         .from('testimonials')
         .select('*')
+        // Workshop testimonials are shown on the workshop pages instead of here.
         .eq('is_visible', true)
+        .eq('kind', 'general')
         .order('sort_order');
       
       if (data && data.length > 0) {

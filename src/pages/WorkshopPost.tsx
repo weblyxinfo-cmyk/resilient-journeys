@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import SEO from '@/components/SEO';
 import WorkshopInquiryForm from '@/components/WorkshopInquiryForm';
 import WorkshopRegistration from '@/components/WorkshopRegistration';
+import WorkshopTestimonials from '@/components/WorkshopTestimonials';
 import { useCms } from '@/hooks/useCms';
 
 interface Workshop {
@@ -19,6 +20,7 @@ interface Workshop {
   content: string;
   category: string;
   published_at: string | null;
+  event_at: string | null;
   tags: string[];
   featured_image_url: string | null;
   gallery_images: string[] | null;
@@ -89,6 +91,21 @@ const WorkshopPost = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  /**
+   * When the workshop is held, always in Spanish local time: the workshop
+   * happens at a place, at an hour, and a visitor reading from another
+   * timezone needs that hour — not the same instant converted to their own.
+   */
+  const formatEventDate = (dateString: string) =>
+    new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Madrid',
+    });
+
   if (loading) {
     return (
       <div id="cms-workshoppost-loading" className="min-h-screen bg-background flex items-center justify-center">
@@ -113,6 +130,7 @@ const WorkshopPost = () => {
           "@context": "https://schema.org",
           "@type": "Event",
           "name": workshop.title,
+          "startDate": workshop.event_at || undefined,
           "description": workshop.excerpt || workshop.content.substring(0, 160),
           "image": workshop.featured_image_url || undefined,
           "organizer": {
@@ -158,7 +176,11 @@ const WorkshopPost = () => {
               ))}
               <div className="flex items-center gap-2 text-sm text-muted-foreground font-sans">
                 <Calendar size={14} />
-                <span>{formatDate(workshop.published_at)}</span>
+                <span>
+                  {workshop.event_at
+                    ? formatEventDate(workshop.event_at)
+                    : formatDate(workshop.published_at)}
+                </span>
               </div>
             </div>
 
@@ -259,6 +281,8 @@ const WorkshopPost = () => {
               <WorkshopInquiryForm workshopId={workshop.id} workshopTitle={workshop.title} />
             )}
           </div>
+
+          <WorkshopTestimonials workshopId={workshop.id} />
         </article>
       </main>
 

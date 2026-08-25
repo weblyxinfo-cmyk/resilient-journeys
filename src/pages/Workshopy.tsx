@@ -16,6 +16,7 @@ interface Workshop {
   excerpt: string | null;
   category: string;
   published_at: string | null;
+  event_at: string | null;
   tags: string[];
   featured_image_url: string | null;
   gallery_images: string[] | null;
@@ -37,21 +38,68 @@ const Workshopy = () => {
   const fetchWorkshops = async () => {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, excerpt, category, published_at, tags, featured_image_url, gallery_images, video_urls, is_paid_workshop, workshop_price, workshop_currency')
+      .select('id, title, slug, excerpt, category, published_at, event_at, tags, featured_image_url, gallery_images, video_urls, is_paid_workshop, workshop_price, workshop_currency')
       .eq('category', 'workshop')
-      .eq('is_published', true)
-      .order('published_at', { ascending: false });
+      .eq('is_published', true);
 
     if (!error && data) {
-      setWorkshops(data);
+      setWorkshops([...data].sort(compareWorkshops));
     }
     setLoading(false);
   };
+
+  // Upcoming workshops (event_at in the future) come first, soonest on top.
+  // Workshops without a date fall back to publish date, newest first.
+  // Past workshops sink to the bottom, most recently held on top.
+  const compareWorkshops = (a: Workshop, b: Workshop) => {
+    const now = Date.now();
+    const eventTime = (w: Workshop) => (w.event_at ? new Date(w.event_at).getTime() : null);
+    const bucket = (w: Workshop) => {
+      const t = eventTime(w);
+      if (t === null) return 1;
+      return t >= now ? 0 : 2;
+    };
+
+    const bucketA = bucket(a);
+    const bucketB = bucket(b);
+    if (bucketA !== bucketB) return bucketA - bucketB;
+
+    if (bucketA === 0) {
+      // upcoming: soonest first
+      return eventTime(a)! - eventTime(b)!;
+    }
+    if (bucketA === 2) {
+      // past: most recent first
+      return eventTime(b)! - eventTime(a)!;
+    }
+    // no date: newest published first
+    return new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime();
+  };
+
+  // The listing sits under an "Upcoming Workshops" heading, so a workshop whose
+  // date has passed is labelled rather than left to look like it is still open.
+  const hasPassed = (workshop: Workshop) =>
+    workshop.event_at !== null && new Date(workshop.event_at).getTime() < Date.now();
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Coming Soon';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  // Workshop takes place in Silvie's local time zone (Spain) — always show
+  // that time regardless of the visitor's own time zone, so no conversion.
+  const formatEventDateTime = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Madrid',
+    });
   };
 
   return (
@@ -282,8 +330,15 @@ const Workshopy = () => {
                         )}
                         <div className="flex items-center gap-2 text-sm text-muted-foreground font-sans">
                           <Calendar size={14} />
-                          <span>{formatDate(workshop.published_at)}</span>
+                          <span>{formatEventDateTime(workshop.event_at) || formatDate(workshop.published_at)}</span>
                         </div>
+                        {hasPassed(workshop) && (
+                          <div className="inline-flex items-center px-3 py-1 bg-muted rounded-full">
+                            <span className="text-xs font-sans font-semibold text-muted-foreground">
+                              {t("workshops_past_badge", "Already held")}
+                            </span>
+                          </div>
+                        )}
                         {workshop.is_paid_workshop && workshop.workshop_price > 0 && (
                           <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 rounded-full">
                             <CreditCard size={12} className="text-green-700" />
